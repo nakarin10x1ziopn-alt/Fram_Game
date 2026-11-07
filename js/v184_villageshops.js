@@ -11,7 +11,7 @@ V23.add('v184_villageshops', () => {
   if (!list.length) return;
   const SLOTS = {   // shop id -> [side, z]   side +1 = east (door faces west to the road), -1 = west
     dealer2: [1, -82], supercar: [1, -94], evcenter: [1, -106],
-    seafood: [-1, -86], citycafe: [-1, -98], lux: [-1, -132], floating: [-1, -144],
+    seafood: [-1, -86], citycafe: [-1, -98], floating: [-1, -110], lux: [-1, -122],
   };
   const STYLE = {
     dealer2: { wall: 0xe3f2fd, roof: 0xe0e0e0, bg: '#1565c0', flat: true, glass: true },

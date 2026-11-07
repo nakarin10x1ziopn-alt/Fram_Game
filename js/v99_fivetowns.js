@@ -66,8 +66,8 @@ V23.add('v99_fivetowns', () => {
   try { for (const id of ['pcshop', 'secshop']) if (SHOPS[id] && SHOPS[id].n) SHOPS[id].n = SHOPS[id].n.replace('ทุ่งทอง', 'สุขใจ'); } catch (e) { }
   try { // ---- village: three shopfronts facing east ----
     const defs = [
-      { z: -138, name: 'ไอที & ซีเคียวริตี้ สุขใจ (ไอที เครือข่าย กล้อง)', bg: '#0d47a1', wall: 0xe3f2fd, find: p => /ไอทีสโตร์/.test(p.label), extra: [p => /ช่างวางระบบเครือข่าย/.test(p.label)], label: 'ไอที & ซีเคียวริตี้ สุขใจ', icon: '💻' },   // v179: the IT shop and the security shop are one shop now (one shopfront)
-      { z: -126, name: 'คอมพิวเตอร์พลาซ่า สุขใจ (คอมประกอบ)', bg: '#4527a0', wall: 0xede7f6, find: p => /^คอมพิวเตอร์พลาซ่า/.test(p.label), extra: [p => /เคาน์เตอร์ประกอบคอม/.test(p.label)], label: 'คอมพิวเตอร์พลาซ่า สุขใจ', icon: '🖥️' },
+      { z: -130, name: 'ไอที & ซีเคียวริตี้ สุขใจ (ไอที เครือข่าย กล้อง)', bg: '#0d47a1', wall: 0xe3f2fd, find: p => /ไอทีสโตร์/.test(p.label), extra: [p => /ช่างวางระบบเครือข่าย/.test(p.label)], label: 'ไอที & ซีเคียวริตี้ สุขใจ', icon: '💻' },   // v179: the IT shop and the security shop are one shop now (one shopfront)
+      { z: -118, name: 'คอมพิวเตอร์พลาซ่า สุขใจ (คอมประกอบ)', bg: '#4527a0', wall: 0xede7f6, find: p => /^คอมพิวเตอร์พลาซ่า/.test(p.label), extra: [p => /เคาน์เตอร์ประกอบคอม/.test(p.label)], label: 'คอมพิวเตอร์พลาซ่า สุขใจ', icon: '🖥️' },
     ];
     const X = 11.5, rot = -Math.PI / 2;   // east side of the main road, facing the road
     for (const d of defs) {
@@ -78,8 +78,8 @@ V23.add('v99_fivetowns', () => {
       if (main) { const dr = l2w(X, d.z, rot, 0, o.d / 2 + 1.7); main.x = dr.x; main.z = dr.z; main.r = 2.4; main.map = false; main.label = d.label; main.icon = d.icon; ensureRoom(main); World.pois.push(main); counts.moved++; counts.moved_names.push(d.label + ' (หมู่บ้าน)'); }
       d.extra.forEach((f, k) => { const p = toVillage.find(f); if (!p) return; const dr = l2w(X, d.z, rot, 3.6, o.d / 2 + 1.7); p.x = dr.x; p.z = dr.z; p.r = 1.8; p.map = false; World.pois.push(p); counts.moved++; counts.moved_names.push(p.label + ' (หมู่บ้าน)'); });
     }
-    World.pois.push({ kind: 'act', x: X + 9, z: -126, r: 2.2, label: 'ย่านไอทีสุขใจ', icon: '💻', map: true, act: () => ({ icon: '💻', label: 'ย่านไอทีสุขใจ: อุปกรณ์ไอที เครือข่าย และคอมประกอบ', fn: () => toast('ร้านไอที เครือข่ายและกล้อง และคอมพิวเตอร์พลาซ่า (ประกอบคอม) อยู่ริมถนนใหญ่ ทางเข้าหมู่บ้าน', '💻') }) });
-    TAXI_DEST.push({ n: 'ย่านไอทีสุขใจ (ร้านไอที/คอม/เครือข่าย)', x: 2.5, z: -126, fee: 60 });
+    World.pois.push({ kind: 'act', x: X + 9, z: -124, r: 2.2, label: 'ย่านไอทีสุขใจ', icon: '💻', map: true, act: () => ({ icon: '💻', label: 'ย่านไอทีสุขใจ: อุปกรณ์ไอที เครือข่าย และคอมประกอบ', fn: () => toast('ร้านไอที เครือข่ายและกล้อง และคอมพิวเตอร์พลาซ่า (ประกอบคอม) อยู่ริมถนนใหญ่ ทางเข้าหมู่บ้าน', '💻') }) });
+    TAXI_DEST.push({ n: 'ย่านไอทีสุขใจ (ร้านไอที/คอม/เครือข่าย)', x: 2.5, z: -124, fee: 60 });
   } catch (e) { console.warn('v99 village IT', e); }
   // ---- สุขนครมหานคร: the booth plaza ----
   const buildPlaza = A => {
