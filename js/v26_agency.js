@@ -44,18 +44,18 @@ V23.add('v26_agency', () => {
 
   // ================= new documents (they join the Gov24 wallet; Gov24 shows, expires and warns about them) =================
   const NEWD = {
-    medcert: { n: 'ใบรับรองแพทย์', i: '🩺', life: 7, off: 'v26', by: 'clinic' },
+    medcert: { n: 'ใบรับรองแพทย์', i: '🩺', life: 28, off: 'v26', by: 'clinic' },
     vaccard: { n: 'สมุดบันทึกการรับวัคซีน', i: '💉', life: 0, off: 'v26', by: 'clinic' },
     marriage: { n: 'ทะเบียนสมรส (คร.2)', i: '💍', life: 0, off: 'v26', by: 'family' },
     birthcert: { n: 'สูติบัตรบุตร (ท.ร.3)', i: '👶', life: 0, off: 'v26', by: 'family' },
-    famcert: { n: 'หนังสือรับรองสถานภาพครอบครัว', i: '👨‍👩‍👧', life: 28, off: 'v26', by: 'family' },
+    famcert: { n: 'หนังสือรับรองสถานภาพครอบครัว', i: '👨‍👩‍👧', life: YD, off: 'v26', by: 'family' },
     sso39: { n: 'ผู้ประกันตนมาตรา 39 (สมัครใจต่อเนื่อง)', i: '🛡️', life: 0, off: 'v26', by: 'sso2' },
     baacacct: { n: 'บัญชีเงินฝากเกษตรกร ธ.ก.ส.', i: '🌾', life: 0, off: 'v26', by: 'baac' },
     donorcard: { n: 'บัตรผู้บริจาคโลหิต สภากาชาดไทย', i: '🩸', life: YD, off: 'v26', by: 'rc' },
-    nodebt: { n: 'หนังสือรับรองการไม่มีภาระหนี้/คดี', i: '📋', life: 28, off: 'v26', by: 'exec' },
+    nodebt: { n: 'หนังสือรับรองการไม่มีภาระหนี้/คดี', i: '📋', life: YD, off: 'v26', by: 'exec' },
     tmark: { n: 'ทะเบียนเครื่องหมายการค้า', i: '™️', life: 10 * YD, off: 'v26', by: 'dip' },
     copyrt: { n: 'หนังสือแจ้งข้อมูลลิขสิทธิ์', i: '©️', life: 0, off: 'v26', by: 'dip' },
-    workcert: { n: 'หนังสือรับรองการทำงาน', i: '💼', life: 28, off: 'v26', by: 'labour2' },
+    workcert: { n: 'หนังสือรับรองการทำงาน', i: '💼', life: YD, off: 'v26', by: 'labour2' },
     employer: { n: 'ทะเบียนนายจ้าง (สปส.1-03)', i: '🏭', life: 0, off: 'v26', by: 'labour2' },
   };
   for (const k in NEWD) G24.docs[k] = NEWD[k];
