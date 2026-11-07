@@ -20,10 +20,10 @@ V23.add('v36_calendar', () => {
   function start() {
     const s = st();
     if (!s.cal || typeof s.cal.start !== 'number') {
-      // a NEW game starts on 1 January (1 Jan 2029 is a Monday, so day 1 is still a Monday and every weekday / opening-hours rule keeps working);
+      // a NEW game starts on 1 January (1 Jan 2024 = 1 Jan พ.ศ. 2567 is a Monday, so day 1 is still a Monday and every weekday / opening-hours rule keeps working);
       // an old save without a calendar is placed so that its day lands in the current Thai week, as before
       const fresh = S.day <= 1 || (typeof G !== 'undefined' && G.fresh);
-      if (fresh) s.cal = { start: Math.floor(Date.UTC(2029, 0, 1) / 86400000) - (S.day - 1), ny: 1 };
+      if (fresh) s.cal = { start: Math.floor(Date.UTC(2024, 0, 1) / 86400000) - (S.day - 1), ny: 1 };
       else { const t = thaiToday(), mon = t - (t + 3) % 7; s.cal = { start: mon - 7 * Math.floor((S.day - 1) / 7) }; }
     }
     return s.cal.start;
@@ -66,7 +66,7 @@ V23.add('v36_calendar', () => {
   const moonList = y => { const ks = Math.floor((y - 2000) * 12.3685) - 2; return Array.from({ length: 30 }, (_, n) => fullMoon(ks + n + 0.5)); };
   const addDays = (d, n) => { const t = new Date(Date.UTC(d.y, d.m, d.dom) + n * 86400000); return { y: t.getUTCFullYear(), m: t.getUTCMonth(), dom: t.getUTCDate() }; };
   const CONFIRMED = { 2026: { makha: [2, 3], visakha: [4, 31], asanha: [6, 29], khaophansa: [6, 30], okphansa: [9, 26], loy: [10, 24] }, 2027: { makha: [1, 21], visakha: [4, 20], asanha: [6, 18], khaophansa: [6, 19], okphansa: [9, 15], loy: [10, 14] } };
-  const CNY = { 2026: [1, 17], 2027: [1, 6], 2028: [0, 26], 2029: [1, 13], 2030: [1, 3], 2031: [0, 23], 2032: [1, 11] };
+  const CNY = { 2024: [1, 10], 2025: [0, 29], 2026: [1, 17], 2027: [1, 6], 2028: [0, 26], 2029: [1, 13], 2030: [1, 3], 2031: [0, 23], 2032: [1, 11] };
   const lunarFor = y => {
     if (CONFIRMED[y]) return CONFIRMED[y];
     const mo = moonList(y), pick = mo.find(q => q.y === y && ((q.m === 1 && q.dom >= 7) || (q.m === 2 && q.dom <= 8))); if (!pick) return {};
