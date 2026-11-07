@@ -34,7 +34,7 @@ V23.add('v36_calendar', () => {
   function date(d = S.day) {
     const ed = epoch(d), t = new Date(ed * 86400000);
     const y = t.getUTCFullYear(), m = t.getUTCMonth(), dom = t.getUTCDate(), dow = dowOf(ed);
-    return { y, m, dom, dow, be: y + 543, ed };
+    return { y, m, dom, dow, rdow: (((ed + 3) % 7) + 7) % 7, be: y + 543, ed };   // dow = game weekday (shifted for new saves), rdow = the real weekday of that date (public-holiday compensation follows the real one)
   }
   const full = (d = S.day) => { const t = date(d); return `${DAYN[t.dow]}ที่ ${t.dom} ${MON[t.m]} พ.ศ. ${t.be}`; };
   const short = (d = S.day) => { const t = date(d); return `${DAYS[t.dow]} ${t.dom} ${MONS[t.m]} ${String(t.be).slice(2)}`; };
@@ -67,7 +67,9 @@ V23.add('v36_calendar', () => {
   };
   const moonList = y => { const ks = Math.floor((y - 2000) * 12.3685) - 2; return Array.from({ length: 30 }, (_, n) => fullMoon(ks + n + 0.5)); };
   const addDays = (d, n) => { const t = new Date(Date.UTC(d.y, d.m, d.dom) + n * 86400000); return { y: t.getUTCFullYear(), m: t.getUTCMonth(), dom: t.getUTCDate() }; };
-  const CONFIRMED = { 2026: { makha: [2, 3], visakha: [4, 31], asanha: [6, 29], khaophansa: [6, 30], okphansa: [9, 26], loy: [10, 24] }, 2027: { makha: [1, 21], visakha: [4, 20], asanha: [6, 18], khaophansa: [6, 19], okphansa: [9, 15], loy: [10, 14] } };
+  const CONFIRMED = { 2026: { makha: [2, 3], visakha: [4, 31], asanha: [6, 29], khaophansa: [6, 30], okphansa: [9, 26], loy: [10, 24] }, 2027: { makha: [1, 21], visakha: [4, 20], asanha: [6, 18], khaophansa: [6, 19], okphansa: [9, 15], loy: [10, 13] } };
+  const MIDAUT = { 2026: [8, 25], 2027: [8, 15], 2028: [9, 3], 2029: [8, 22], 2030: [8, 12], 2031: [9, 1], 2032: [8, 19] };
+  const DIWALI = { 2027: [9, 29], 2028: [9, 17], 2029: [10, 5], 2030: [9, 26] };
   const CNY = { 2024: [1, 10], 2025: [0, 29], 2026: [1, 17], 2027: [1, 6], 2028: [0, 26], 2029: [1, 13], 2030: [1, 3], 2031: [0, 23], 2032: [1, 11] };
   const lunarFor = y => {
     if (CONFIRMED[y]) return CONFIRMED[y];
@@ -83,9 +85,15 @@ V23.add('v36_calendar', () => {
     const mp = new Map(), used = new Set(), ex = Object.assign({}, EX), lu = lunarFor(y);
     for (const k of Object.keys(lu)) if (lu[k]) ex[k] = lu[k];
     if (CNY[y]) ex.cny = CNY[y];
+    // v193: exact dates instead of the old fixed slots: Easter (Gregorian computus), Children's Day (2nd Saturday of January), Mid-Autumn (full moon between 8 Sep and 7 Oct), Diwali (table, years known)
+    { const a = y % 19, b = Math.floor(y / 100), c = y % 100, d1 = Math.floor(b / 4), e1 = b % 4, f = Math.floor((b + 8) / 25), g = Math.floor((b - f + 1) / 3), h = (19 * a + b - d1 - g + 15) % 30, i = Math.floor(c / 4), k = c % 4, l = (32 + 2 * e1 + 2 * i - h - k) % 7, m1 = Math.floor((a + 11 * h + 22 * l) / 451), mm = Math.floor((h + l - 7 * m1 + 114) / 31), dd = ((h + l - 7 * m1 + 114) % 31) + 1; ex.easter = [mm - 1, dd]; }
+    ex.kids = [0, 1 + ((6 - new Date(Date.UTC(y, 0, 1)).getUTCDay() + 7) % 7) + 7];
+    if (MIDAUT[y]) ex.midautumn = MIDAUT[y]; else { const ma = moonList(y).find(q => q.y === y && ((q.m === 8 && q.dom >= 8) || (q.m === 9 && q.dom <= 7))); if (ma) ex.midautumn = [ma.m, ma.dom]; }
+    if (DIWALI[y]) ex.diwali = DIWALI[y];
     const is = islamic(y); for (const k of Object.keys(is)) if (y !== 2026 && is[k][2] === y) ex[k] = [is[k][0], is[k][1]];
     const put = (m, dom, e) => { let dd = dom; while (used.has(m + '-' + dd) && dd < daysIn(y, m)) dd++; used.add(m + '-' + dd); mp.set(m + '-' + dd, e); };
-    for (const e of CAL) if (ex[e.k]) put(ex[e.k][0], ex[e.k][1], e);
+    // Easter shares an entry with Chakri Day in the old table: Easter itself is not a public holiday (Chakri Day is added separately as 6 April)
+    for (const e of CAL) if (ex[e.k]) put(ex[e.k][0], ex[e.k][1], e.k === 'easter' ? Object.assign({}, e, { hol: 0, n: 'วันอีสเตอร์' }) : e);
     for (const e of CAL) if (!ex[e.k]) put(e.w, Math.max(1, Math.round((e.d - 0.5) / 7 * DIM0[e.w])), e);
     return mp;
   }
@@ -97,7 +105,7 @@ V23.add('v36_calendar', () => {
   // an official holiday on a Saturday or Sunday is taken on the next working day (Monday)
   function event(d = S.day) {
     const e = rawEvent(d); if (e) return e;
-    const t = date(d); if (t.dow === 0) { for (const b of [1, 2]) { const p = rawEvent(d - b); if (p && p.hol && p.rel !== 'labourOnly' && p.k !== 'labour') return Object.assign({}, p, { k: 'sub_' + p.k, n: 'วันหยุดชดเชย' + p.n, hol: 1, sub: 1 }); } }
+    const t = date(d); if (t.rdow === 0) { for (const b of [1, 2]) { const p = rawEvent(d - b); if (p && p.hol && p.rel !== 'labourOnly' && p.k !== 'labour') return Object.assign({}, p, { k: 'sub_' + p.k, n: 'วันหยุดชดเชย' + p.n, hol: 1, sub: 1 }); } }
     return null;
   }
   // public holidays the festival table does not have: the rest of Songkran, Chakri Day and the King's birthday
@@ -106,6 +114,7 @@ V23.add('v36_calendar', () => {
     [3, 14, 'songkran2', 'วันสงกรานต์ (วันที่ 2)', '💦', 'water', 'วันหยุดราชการ เล่นน้ำ รดน้ำดำหัวผู้ใหญ่'],
     [3, 15, 'songkran3', 'วันสงกรานต์ (วันที่ 3)', '💦', 'water', 'วันหยุดราชการ เล่นน้ำ รดน้ำดำหัวผู้ใหญ่'],
     [3, 6, 'chakri', 'วันจักรี', '👑', 'confetti', 'วันหยุดราชการ วางพวงมาลาถวายสักการะ'],
+    [5, 3, 'queenbday', 'วันเฉลิมพระชนมพรรษา สมเด็จพระนางเจ้าสุทิดาฯ พระบรมราชินี', '👑', 'confetti', 'วันหยุดราชการ'],
     [6, 28, 'kingbday', 'วันเฉลิมพระชนมพรรษา พระบาทสมเด็จพระวชิรเกล้าเจ้าอยู่หัว', '👑', 'confetti', 'วันหยุดราชการ'],
   ]) EXTRA[m + '-' + dom] = { k, n, i, fx, rel: 'buddhist', hol: 1, desc };
   // position inside the 84-slot festival year (12 months x 7 slots), used for the long ritual periods
