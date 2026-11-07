@@ -30,6 +30,8 @@ const DriveSchool = {
     const fee = type === 'sedan' ? 500 : 1500; if (S.money < fee) { UI.toast('เงินสดไม่พอ ต้องใช้ ' + baht(fee), '💸'); return; } S.money -= fee; UI.close();
     const y = Towns4.yard, d = { type, x: y.x, z: y.z - 13, r: 0 };
     fade(() => {
+      // the exam can be started from the phone while standing inside a house / room / mine / another town: the outdoor world is hidden then (black screen), so go outside first
+      try { leaveIndoors(); if (G.away && typeof Town2 !== 'undefined' && Town2.leaveAway) Town2.leaveAway(true); World.outdoor.visible = true; World.sky.visible = true; } catch (e) { console.warn('driveschool outdoors', e); }
       if (G.driving) { G.driving.speed = 0; exitCar(); }
       const o = addCarObj(d); o.school = true; if (o.col) { Col.remove(o.col); o.col = null; } enterCar(o);
       const pts = [[0, -7], [-3, -1], [3, 5], [0, 12]].map(([x, z]) => ({ x: y.x + x, z: y.z + z }));
