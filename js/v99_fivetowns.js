@@ -72,7 +72,7 @@ V23.add('v99_fivetowns', () => {
     const X = 11.5, rot = -Math.PI / 2;   // east side of the main road, facing the road
     for (const d of defs) {
       const o = { w: 10, d: 8, h: 5, rows: 1, flat: true, glassFront: true, wall: d.wall, roof: 0xe0e0e0, sign: d.name, signStyle: { bg: d.bg } };
-      const b = World.building(o); b.position.set(X, World.groundY(X, d.z), d.z); b.rotation.y = rot; World.outdoor.add(b);
+      const b = World.building(o); b.position.set(X, (() => { let m = Infinity; for (let i = 0; i <= 4; i++) for (let j = 0; j <= 4; j++) { const q = l2w(X, d.z, rot, (i / 4 - 0.5) * o.w, (j / 4 - 0.5) * o.d); m = Math.min(m, World.groundY(q.x, q.z)); } return Number.isFinite(m) ? m : World.groundY(X, d.z); })(), d.z); b.rotation.y = rot; World.outdoor.add(b);
       try { Col.box(X, d.z, o.w / 2 + 0.3, o.d / 2 + 0.3, rot, 'bld'); } catch (e) { }
       const main = toVillage.find(d.find);
       if (main) { const dr = l2w(X, d.z, rot, 0, o.d / 2 + 1.7); main.x = dr.x; main.z = dr.z; main.r = 2.4; main.map = false; main.label = d.label; main.icon = d.icon; ensureRoom(main); World.pois.push(main); counts.moved++; counts.moved_names.push(d.label + ' (หมู่บ้าน)'); }

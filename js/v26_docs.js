@@ -16,10 +16,10 @@ V23.add('v26_docs', () => {
   const NEWDOCS = {
     birthcert: { n: 'สูติบัตร (ใบเกิดบุตร)', i: '👶', life: 0, off: 'district' },
     marriage: { n: 'ทะเบียนสมรส (คู่สมรส)', i: '💍', life: 0, off: 'district' },
-    medcert: { n: 'ใบรับรองแพทย์', i: '🩺', life: 7, off: 'health' },
+    medcert: { n: 'ใบรับรองแพทย์', i: '🩺', life: 28, off: 'health' },
     visa: { n: 'วีซ่าท่องเที่ยว', i: '🛂', life: YD, off: 'passport' },
     commreg: { n: 'ทะเบียนพาณิชย์', i: '🛒', life: 0, off: 'dbd' },
-    deedcopy: { n: 'สำเนาโฉนดที่ดิน (รับรอง)', i: '📜', life: 28, off: 'land' },
+    deedcopy: { n: 'สำเนาโฉนดที่ดิน (รับรอง)', i: '📜', life: YD, off: 'land' },
     pslicense: { n: 'ใบอนุญาตขับรถสาธารณะ (ท.1)', i: '🚕', life: 5 * YD, off: 'dlt' },
     alcohol: { n: 'ใบอนุญาตจำหน่ายสุรา', i: '🍶', life: 3 * YD, off: 'revenue' },
     foodprod: { n: 'ใบอนุญาตผลิตอาหาร (อย.)', i: '🥫', life: 2 * YD, off: 'health' },

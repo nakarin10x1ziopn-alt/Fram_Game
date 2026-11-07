@@ -24,6 +24,8 @@ V23.add('v184_villageshops', () => {
   };
   const VNAME = { dealer2: 'สุขใจมอเตอร์', supercar: 'ซุปเปอร์คาร์สุขใจ', evcenter: 'ศูนย์ EV & พลังงานสะอาด สุขใจ', seafood: 'ร้านซีฟู้ดสุขใจ', lux: 'บ้านสวยเฟอร์นิเจอร์' };   // the old names pointed at towns that are gone (the merged shops keep their merged names)
   const W = 10, D = 6.5, XF = 7.5;                 // width along the road, depth, front face distance from the road centre line
+  // v191: the lawn beside the road is bumpy (a low berm about 12 m from the road line, up to 0.7 m): standing on the centre height lifted the road side of the shop on a plinth. Stand on the LOWEST ground under the footprint instead
+  const lowY = (x, z, rot, w, d) => { let m = Infinity; for (let i = 0; i <= 4; i++) for (let j = 0; j <= 4; j++) { const q = l2w(x, z, rot, (i / 4 - 0.5) * w, (j / 4 - 0.5) * d); m = Math.min(m, World.groundY(q.x, q.z)); } return Number.isFinite(m) ? m : World.groundY(x, z); };
   const made = [];
   for (const p of list) {
     const slot = SLOTS[p.id], S0 = STYLE[p.id]; if (!slot || !S0) continue;
@@ -32,7 +34,7 @@ V23.add('v184_villageshops', () => {
     try { if (SHOPS[p.id]) SHOPS[p.id].n = name; if (window.ShopMerge179) for (const m of ShopMerge179.M) if (m.host === p.id) for (const ab of m.abs) if (SHOPS[ab]) SHOPS[ab].n = name; } catch (e) { }
     const o = { w: W, d: D, h: S0.flat ? 4.8 : 4.2, rows: 1, flat: !!S0.flat, glassFront: !!S0.glass, roofH: S0.flat ? undefined : 2.4, wall: S0.wall, roof: S0.roof, sign: name.slice(0, 30), signStyle: { bg: S0.bg }, awning: S0.awning, winF: S0.flat ? undefined : [-2.6, 2.6], winS: [0], wallTex: S0.wood ? 'wood' : undefined, pots: !S0.flat, flowers: p.id === 'citycafe' };
     try {
-      const b = World.building(o); b.position.set(x, World.groundY(x, z), z); b.rotation.y = rot; World.outdoor.add(b);
+      const b = World.building(o); b.position.set(x, lowY(x, z, rot, W, D), z); b.rotation.y = rot; World.outdoor.add(b);
       try { Col.box(x, z, W / 2 + 0.3, D / 2 + 0.3, rot, 'bld'); } catch (e) { }
       const dr = l2w(x, z, rot, 0, D / 2 + 1.7);
       p.x = dr.x; p.z = dr.z; p.r = 2.4; p.map = true; p.label = name; p.room = { kind: (typeof SHOP_ROOM !== 'undefined' && SHOP_ROOM[p.id]) || 'shop', shop: p.id, title: name };

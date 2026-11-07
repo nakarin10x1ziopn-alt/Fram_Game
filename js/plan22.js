@@ -67,7 +67,7 @@ const Plan = {
     const _sj = Life2.startJob.bind(Life2); Life2.startJob = k => this.job(k) || _sj(k);
     const _uj = Life2.updateJob.bind(Life2); Life2.updateJob = dt => (Life2.job && Life2.job.k === 'cargo' ? this.cargoUpdate(dt) : _uj(dt));
     const _menu = UI.menu.bind(UI); UI.menu = () => { _menu(); const r = UI.cur.render; UI.cur.render = t => r(t).replace('<button class="btn danger" data-a="newgame">', this.menuHTML() + '<button class="btn danger" data-a="newgame">'); UI.renderBody(); };
-    if (S.license && !S.licExp) S.licExp = S.day + 60;
+    if (S.license && !S.licExp) S.licExp = S.day + 5 * (typeof YEAR_DAYS !== 'undefined' ? YEAR_DAYS : 84);
     if (S.mobile) this.applyMobile();
   },
   // ===== 1. highway =====
@@ -158,7 +158,7 @@ const Plan = {
   },
   // ===== 3. licence expiry and the truck licence =====
   licDay() {
-    if (S.license && !S.licExp) S.licExp = S.day + 60;
+    if (S.license && !S.licExp) S.licExp = S.day + 5 * (typeof YEAR_DAYS !== 'undefined' ? YEAR_DAYS : 84);
     if (S.license && S.licExp && S.day === S.licExp - 3) Phone.msg('กรมการขนส่งทางบก', 'ใบขับขี่จะหมดอายุใน 3 วัน ต่ออายุได้ที่โรงเรียนสอนขับรถภูผา (300 ฿)');
     if (S.license && S.licExp && S.day > S.licExp) { S.license = 0; S.licOld = 1; Phone.msg('กรมการขนส่งทางบก', 'ใบขับขี่หมดอายุแล้ว! ขับรถตอนนี้ถือว่าไม่มีใบขับขี่ ต่ออายุที่โรงเรียนสอนขับรถภูผา'); }
   },
