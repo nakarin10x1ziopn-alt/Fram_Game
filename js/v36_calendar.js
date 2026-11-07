@@ -20,8 +20,11 @@ V23.add('v36_calendar', () => {
   function start() {
     const s = st();
     if (!s.cal || typeof s.cal.start !== 'number') {
-      const t = thaiToday(), mon = t - (t + 3) % 7;
-      s.cal = { start: mon - 7 * Math.floor((S.day - 1) / 7) };
+      // a NEW game starts on 1 January (1 Jan 2029 is a Monday, so day 1 is still a Monday and every weekday / opening-hours rule keeps working);
+      // an old save without a calendar is placed so that its day lands in the current Thai week, as before
+      const fresh = S.day <= 1 || (typeof G !== 'undefined' && G.fresh);
+      if (fresh) s.cal = { start: Math.floor(Date.UTC(2029, 0, 1) / 86400000) - (S.day - 1), ny: 1 };
+      else { const t = thaiToday(), mon = t - (t + 3) % 7; s.cal = { start: mon - 7 * Math.floor((S.day - 1) / 7) }; }
     }
     return s.cal.start;
   }

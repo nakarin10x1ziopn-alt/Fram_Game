@@ -172,7 +172,7 @@ V23.add('v31_health', () => {
       ['throat', 0.006 * (cool ? 1.5 : 1)],
       ['dengue', 0.005 * (rain ? 3 : 0.3) * (rl('dengue') ? 2.5 : 1) * (safeD >= S.day ? 0.3 : 1) * (safeD > S.day + 14 ? 0.5 : 1)],
       ['heat', 0.01 * (hot || (window.Disaster31 && Disaster31.on && Disaster31.on('heat')) ? 3 : 0.1) * (S.thirst < 40 ? 2 : 1) * (S.furn && S.furn.aircon ? 0.3 : 1)],
-      ['pm25', (rl('pm25') ? 0.05 : 0.002) * protect() * (rl('pm25') && h.mask && n95n() > 0 ? 0.4 : 1)],
+      ['pm25', (rl('pm25') ? 0.05 : 0.0003) * protect() * (rl('pm25') && h.mask && n95n() > 0 ? 0.4 : 1)],
       ['food', 0.006]
     ];
     for (const [k, p] of P) { if (S.sick && act.length) break; if (Math.random() < p * 0.02) { startCond(k); S.sickFree = S.day + 10; break; } }   // a game year is 84 days: a few illnesses a year, not one a week

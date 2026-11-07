@@ -11,7 +11,7 @@ const RL = {
   day() {
     const s = this.st(), se = season().id, dIdx = (S.day - 1) % 7, r = () => Math.random();
     for (const k in s.active) if (s.active[k].until < S.day) delete s.active[k];
-    if (!this.on('pm25') && se !== 'rain' && r() < 0.18) this.start('pm25', 2 + (r() * 3 | 0), `ค่าฝุ่น PM2.5 เกินมาตรฐาน (${110 + (r() * 90 | 0)} มคก./ลบ.ม.) ทำงานกลางแจ้งเหนื่อยขึ้น ควรใส่หน้ากาก N95 หรือเปิดเครื่องฟอกอากาศ`, '😷');
+    if (!this.on('pm25') && se !== 'rain' && r() < 0.008) this.start('pm25', 2 + (r() * 3 | 0), `ค่าฝุ่น PM2.5 เกินมาตรฐาน (${110 + (r() * 90 | 0)} มคก./ลบ.ม.) ทำงานกลางแจ้งเหนื่อยขึ้น ควรใส่หน้ากาก N95 หรือเปิดเครื่องฟอกอากาศ`, '😷');
     if (dIdx === 0) { const ch = Math.round((r() - 0.45) * 8) / 100; s.fuel = U.clamp(s.fuel + ch, 0.8, 1.4); if (ch) this.log(`⛽ ราคาน้ำมัน${ch > 0 ? 'ขึ้น' : 'ลง'} ${Math.abs(ch * 100)}% (ตอนนี้ ×${s.fuel.toFixed(2)})`); }
     if (r() < 0.06) this.scam();
     if (se === 'rain' && !this.on('dengue') && r() < 0.15) this.start('dengue', 4, 'สาธารณสุขเตือนไข้เลือดออกระบาด คว่ำภาชนะ เทน้ำขัง กำจัดลูกน้ำยุงลาย', '🦟');
