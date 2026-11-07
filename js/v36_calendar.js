@@ -20,18 +20,20 @@ V23.add('v36_calendar', () => {
   function start() {
     const s = st();
     if (!s.cal || typeof s.cal.start !== 'number') {
-      // a NEW game starts on 1 January (1 Jan 2024 = 1 Jan พ.ศ. 2567 is a Monday, so day 1 is still a Monday and every weekday / opening-hours rule keeps working);
+      // a NEW game starts on 1 January (1 Jan 2027 = 1 Jan พ.ศ. 2570 is really a Friday, but the game calls day 1 a Monday (cal.sh shifts the weekday names), so day 1 is still a Monday and every weekday / opening-hours rule keeps working);
       // an old save without a calendar is placed so that its day lands in the current Thai week, as before
       const fresh = S.day <= 1 || (typeof G !== 'undefined' && G.fresh);
-      if (fresh) s.cal = { start: Math.floor(Date.UTC(2024, 0, 1) / 86400000) - (S.day - 1), ny: 1 };
+      if (fresh) { const st0 = Math.floor(Date.UTC(2027, 0, 1) / 86400000) - (S.day - 1), real0 = (((st0 + S.day - 1 + 3) % 7) + 7) % 7; s.cal = { start: st0, ny: 1, sh: (7 - real0) % 7 }; }
       else { const t = thaiToday(), mon = t - (t + 3) % 7; s.cal = { start: mon - 7 * Math.floor((S.day - 1) / 7) }; }
     }
     return s.cal.start;
   }
   const epoch = (d = S.day) => start() + d - 1;
+  // weekday of an epoch day (0 = Monday); a new game's day 1 is always a Monday, so the names are shifted by cal.sh (0 for old saves)
+  const dowOf = ed => { const c = st().cal; return (((ed + 3 + (c && c.sh || 0)) % 7) + 7) % 7; };
   function date(d = S.day) {
     const ed = epoch(d), t = new Date(ed * 86400000);
-    const y = t.getUTCFullYear(), m = t.getUTCMonth(), dom = t.getUTCDate(), dow = (((ed + 3) % 7) + 7) % 7;
+    const y = t.getUTCFullYear(), m = t.getUTCMonth(), dom = t.getUTCDate(), dow = dowOf(ed);
     return { y, m, dom, dow, be: y + 543, ed };
   }
   const full = (d = S.day) => { const t = date(d); return `${DAYN[t.dow]}ที่ ${t.dom} ${MON[t.m]} พ.ศ. ${t.be}`; };
@@ -109,7 +111,7 @@ V23.add('v36_calendar', () => {
   // position inside the 84-slot festival year (12 months x 7 slots), used for the long ritual periods
   function yd(d = S.day) { const t = date(d); return t.m * 7 + Math.min(6, Math.floor((t.dom - 1) / daysIn(t.y, t.m) * 7)); }
 
-  window.Cal36 = { date, full, short, dm, hhmm, epoch, dayOf, ageAt, ageMonths, event, yd, month: d => date(d).m, daysIn, start, thaiToday, DAYN, DAYS, MON, MONS, leap };
+  window.Cal36 = { dowOf, date, full, short, dm, hhmm, epoch, dayOf, ageAt, ageMonths, event, yd, month: d => date(d).m, daysIn, start, thaiToday, DAYN, DAYS, MON, MONS, leap };
   start();
 
   // ===== HUD: a full date line above the clock row =====
@@ -152,11 +154,11 @@ V23.add('v36_calendar', () => {
   const birthday = () => (window.Ppl36 && Ppl36.myDob) ? Ppl36.myDob() : null;
   const monthHtml = o => {
     const cur = date(); let y = cur.y, m = cur.m + o; y += Math.floor(m / 12); m = ((m % 12) + 12) % 12;
-    const first = Math.floor(Date.UTC(y, m, 1) / 86400000), dim = daysIn(y, m), dow1 = (((first + 3) % 7) + 7) % 7, bd = birthday();
+    const first = Math.floor(Date.UTC(y, m, 1) / 86400000), dim = daysIn(y, m), dow1 = dowOf(first), bd = birthday();
     let cells = ''; for (let i = 0; i < dow1; i++) cells += '<i></i>';
     const evs = [];
     for (let dom = 1; dom <= dim; dom++) {
-      const ed = first + dom - 1, gd = S.day + (ed - cur.ed), e = Cal24 && Cal24.event ? Cal24.event(gd) : null, dow = (((ed + 3) % 7) + 7) % 7, today = ed === cur.ed;
+      const ed = first + dom - 1, gd = S.day + (ed - cur.ed), e = Cal24 && Cal24.event ? Cal24.event(gd) : null, dow = dowOf(ed), today = ed === cur.ed;
       const bday = bd && bd.m === m && (bd.d === dom || (bd.m === 1 && bd.d === 29 && !leap(y) && dom === 28));
       if (e) evs.push({ dom, e }); if (bday) evs.push({ dom, e: { i: '🎂', n: 'วันเกิดของคุณ' } });
       cells += `<b class="c36 ${today ? 'now' : ''} ${dow >= 5 ? 'we' : ''} ${e && e.hol ? 'ho' : ''}" title="${e ? esc(e.n) : ''}"><span>${dom}</span><em>${e ? e.i : ''}${bday ? '🎂' : ''}</em></b>`;

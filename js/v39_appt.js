@@ -368,7 +368,7 @@ V23.add('v39_appt', () => {
   const monthHtml = () => {
     if (!window.Cal36) return '';
     const cur = Cal36.date(); let y = cur.y, m = cur.m + view.off; y += Math.floor(m / 12); m = ((m % 12) + 12) % 12;
-    const first = Math.floor(Date.UTC(y, m, 1) / 86400000), dim = Cal36.daysIn(y, m), dow1 = (((first + 3) % 7) + 7) % 7;
+    const first = Math.floor(Date.UTC(y, m, 1) / 86400000), dim = Cal36.daysIn(y, m), dow1 = Cal36.dowOf ? Cal36.dowOf(first) : (((first + 3) % 7) + 7) % 7;
     const a = Cal36.dayOf(y, m, 1), b = Cal36.dayOf(y, m, dim), L = list(a, b), by = {};
     for (const e of L) (by[e.d] = by[e.d] || []).push(e);
     let cells = ''; for (let i = 0; i < dow1; i++) cells += '<i></i>';
