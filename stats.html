@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>สถิติความลื่น ไร่สุขใจ</title>
+<style>
+:root{--bg:#f6f4ee;--fg:#22301f;--card:#fff;--dim:#6b7466;--good:#2f8f4e;--bad:#c0392b;--line:#e3e0d6}
+@media (prefers-color-scheme:dark){:root{--bg:#141a14;--fg:#e8efe4;--card:#1d251c;--dim:#9aa596;--line:#2c362a}}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.5 system-ui,"Noto Sans Thai",sans-serif;-webkit-font-smoothing:antialiased}
+main{max-width:960px;margin:0 auto;padding:20px 16px 40px}
+h1{font-size:22px;margin:0 0 4px}p.dim{color:var(--dim);margin:0 0 16px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:16px}
+.k{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px}.k b{display:block;font-size:26px}.k span{color:var(--dim);font-size:13px}
+table{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-bottom:16px}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);font-size:13px;vertical-align:top}th{color:var(--dim);font-weight:600}
+.wrap{overflow-x:auto}.good{color:var(--good)}.bad{color:var(--bad)}
+</style>
+</head>
+<body>
+<main>
+<h1>สถิติความลื่นของเกม (7 วันล่าสุด)</h1>
+<p class="dim">ข้อมูลไม่ระบุตัวตน ส่งมาจากผู้เล่นที่กดยินยอมเท่านั้น</p>
+<div class="kpis" id="k"></div>
+<h3>การ์ดจอที่พบบ่อย</h3><div class="wrap"><table id="g"></table></div>
+<h3>ข้อผิดพลาดที่พบ</h3><div class="wrap"><table id="e"></table></div>
+<h3>รายงานล่าสุด</h3><div class="wrap"><table id="r"></table></div>
+</main>
+<script>
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+fetch('api/stats', { cache: 'no-store' }).then(r => r.json()).then(d => {
+  const k = [['รายงานทั้งหมด', d.n], ['FPS เฉลี่ย', d.avgFps], ['FPS ช่วงแย่สุด 10%', d.p10], ['รายงานที่ต่ำกว่า 50 FPS', d.under50]];
+  document.getElementById('k').innerHTML = k.map(([n, v], i) => `<div class="k"><b class="${i === 1 ? (v >= 50 ? 'good' : 'bad') : ''}">${v ?? '-'}</b><span>${n}</span></div>`).join('');
+  const tab = (id, rows, head) => document.getElementById(id).innerHTML = `<tr>${head.map(h => `<th>${h}</th>`).join('')}</tr>` + (rows.length ? rows.map(r => `<tr>${r.map(c => `<td>${esc(c)}</td>`).join('')}</tr>`).join('') : `<tr><td colspan="${head.length}">ยังไม่มีข้อมูล</td></tr>`);
+  tab('g', d.gpus || [], ['การ์ดจอ', 'จำนวน']); tab('e', d.errors || [], ['ข้อผิดพลาด', 'จำนวน']);
+  tab('r', (d.recent || []).slice().reverse().map(r => [new Date(r.t * 1000).toLocaleString('th-TH'), r.fps, r.low, r.gpu, r.scr, r.mob ? 'มือถือ' : 'คอม', 'v' + r.ver]), ['เวลา', 'FPS', '1% ต่ำสุด', 'การ์ดจอ', 'จอ', 'อุปกรณ์', 'เวอร์ชัน']);
+}).catch(() => { document.getElementById('k').innerHTML = '<p class="dim">โหลดข้อมูลไม่ได้</p>'; });
+</script>
+</body>
+</html>
