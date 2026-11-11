@@ -24,7 +24,7 @@ const BIZ_NET = {
   sfib500: { tier: 'S', n: 'ไฟเบอร์ธุรกิจ SME 500/500 Mbps + IP คงที่ 2 ตัว', down: 500, up: 500, price: 1899, days: 1 },
   s5gb: { tier: 'S', n: 'เน็ต 5G ธุรกิจ 300/60 Mbps (สายสำรอง ไม่ต้องรอช่าง)', down: 300, up: 60, price: 1490, days: 1 },
   bfib: { tier: 'M', n: 'ไฟเบอร์ธุรกิจ 1Gbps + Fixed IP', down: 1000, up: 500, price: 2199, days: 1 },
-  bfib2: { tier: 'M', n: 'ไฟเบอร์ธุรกิจ 2 Gbps + IP คงที่ 8 ตัว SLA 8 ชม.', down: 2000, up: 1000, price: 4900, days: 2 },
+  bfib2: { tier: 'M', n: 'ไฟเบอร์ธุรกิจ 2000/500 Mbps + IP คงที่ SLA 12 ชม.', down: 2000, up: 500, price: 3299, days: 2 },
   dia500m: { tier: 'M', n: 'DIA 500 Mbps SLA 99.9% (สายเฉพาะไม่แชร์)', down: 500, up: 500, price: 18800, days: 2, router: 1 },
   sdwan: { tier: 'M', n: 'วงจรเชื่อมสาขา SD-WAN/MPLS 500 Mbps (ทุกสาขา)', down: 500, up: 500, price: 18000, days: 3, router: 1 },
   bfib5: { tier: 'M', n: 'ไฟเบอร์ธุรกิจ 5 Gbps SLA 99.5%', down: 5000, up: 2500, price: 9900, days: 2, router: 1 },
