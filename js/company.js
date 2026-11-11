@@ -27,10 +27,10 @@ const BIZ_NET = {
 const SIM_PLANS = { s10: { n: 'ซิมเน็ต 10GB/เดือน', gb: 10, price: 150 }, s20: { n: 'ซิมเน็ต 20GB/เดือน', gb: 20, price: 220 }, s100: { n: 'ซิมเน็ต 100GB/เดือน', gb: 100, price: 450 }, s500: { n: 'ซิมเน็ต 500GB/เดือน', gb: 500, price: 899 } };
 const CO_SITES = {
   home: { n: 'ใช้บ้านตัวเองเป็นที่ตั้งสำนักงาน', rent: 0, kinds: ['it', 'sec', 'solar'] },
-  office: { n: 'ห้องสำนักงาน อาคารพาณิชย์ทุ่งทอง', rent: 12000, kinds: ['it', 'sec', 'solar', 'logistics'] },
-  shop: { n: 'อาคารพาณิชย์ 2 คูหา เมืองภูผาใหม่', rent: 25000, kinds: ['cafe', 'sec', 'it', 'logistics'] },
-  land: { n: 'ที่ดินเปล่าติดถนนใหญ่ 2 ไร่ + อาคารสำเร็จรูป', rent: 45000, kinds: ['ev', 'dc', 'food', 'logistics'] },
-  factory: { n: 'โรงงานสำเร็จรูป 1,000 ตร.ม. พร้อมห้องเซิร์ฟเวอร์', rent: 80000, kinds: ['food', 'dc', 'logistics'] },
+  office: { n: 'อาคารสำนักงาน หมู่บ้านสุขใจ (ฝั่งตะวันตก)', rent: 12000, kinds: ['it', 'sec', 'solar', 'logistics'] },
+  shop: { n: 'อาคารพาณิชย์ 2 คูหา หมู่บ้านสุขใจ (ฝั่งตะวันออก)', rent: 25000, kinds: ['cafe', 'sec', 'it', 'logistics'] },
+  land: { n: 'ที่ดินเปล่า 2 ไร่ + อาคารสำเร็จรูป หมู่บ้านสุขใจ', rent: 45000, kinds: ['ev', 'dc', 'food', 'logistics'] },
+  factory: { n: 'โรงงานสำเร็จรูป 1,000 ตร.ม. พร้อมห้องเซิร์ฟเวอร์ หมู่บ้านสุขใจ', rent: 80000, kinds: ['food', 'dc', 'logistics'] },
 };
 const CO_LIC = {
   vat: { n: 'จดทะเบียนภาษีมูลค่าเพิ่ม ภ.พ.20 (กรมสรรพากร)', fee: 0, days: 1 },

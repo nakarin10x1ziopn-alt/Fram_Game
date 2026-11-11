@@ -2,11 +2,13 @@
 // ---------- Companies on the map (buildings you can walk into, with staff, racks and chargers that match what you bought),
 // B2B contracts you price and build in the network planner, cyber security incidents, and a stock market with
 // investor rounds and an IPO for your own company ----------
+// v194: the four kinds of company premises stood in towns that were removed later (ทุ่งทอง / ภูผาใหม่, see v99_fivetowns): the building was wiped, the door could not be used and a taxi
+// ride there ended with "เมืองนี้ปิดแล้ว". They now stand on free flat ground inside หมู่บ้านสุขใจ: offices west of the main road, shop units and the big plots east of it
 const CO_SPOTS = {
-  office: [{ x: 226, z: -262, rot: -Math.PI / 2 }, { x: 226, z: -238, rot: -Math.PI / 2 }],
-  shop: [{ x: -152, z: -392, rot: Math.PI / 2 }, { x: -152, z: -372, rot: Math.PI / 2 }],
-  land: [{ x: -136, z: -470, rot: Math.PI / 2 }, { x: -136, z: -500, rot: Math.PI / 2 }],
-  factory: [{ x: -72, z: -472, rot: -Math.PI / 2 }, { x: -72, z: -504, rot: -Math.PI / 2 }],
+  office: [{ x: -60, z: -218, rot: Math.PI / 2 }, { x: -60, z: -198, rot: Math.PI / 2 }],
+  shop: [{ x: 60, z: -276, rot: -Math.PI / 2 }, { x: 60, z: -256, rot: -Math.PI / 2 }],
+  land: [{ x: 52, z: -232, rot: -Math.PI / 2 }, { x: -67, z: -298, rot: Math.PI / 2 }],
+  factory: [{ x: 56, z: -314, rot: -Math.PI / 2 }, { x: 68, z: -294, rot: -Math.PI / 2 }],
 };
 for (const L of Object.values(CO_SPOTS)) for (const p of L) FLAT_PADS.push({ x: p.x, z: p.z, r: 14 });
 ROOM_KIND.office = { w: 14, d: 11, floor: 0xcfd8dc, wall: 0xf5f5f5, title: 'สำนักงาน' };

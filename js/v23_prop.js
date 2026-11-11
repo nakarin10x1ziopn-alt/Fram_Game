@@ -107,8 +107,11 @@ const Prop23 = {
       else if (c.site === 'home') L.push({ k: 'co:' + c.id, i: T.i, n: c.name, d: `บริษัท · ${st} · ที่ทำการอยู่ที่บ้านของคุณ`, x: hd.x, z: hd.z });
       else L.push({ k: 'co:' + c.id, i: T.i, n: c.name, d: `บริษัท · ${st} · ยังไม่มีสถานที่ตั้ง (เลือกสถานที่ตอนเตรียมสำนักงาน)`, x: null, z: null });
     }
+    // v194: a place that still lies inside a removed town cannot be visited (the taxi used to take the fare and the player was thrown back with "เมืองนี้ปิดแล้ว")
+    for (const p of L) if (p.x != null && this.closed(p.x, p.z)) { p.x = null; p.z = null; p.d += ' · อยู่ในเมืองที่ปิดแล้ว (ไปไม่ได้)'; }
     return L;
   },
+  closed(x, z) { try { return !!(window.FiveTowns99 && FiveTowns99.inRect(x, z, 0)); } catch (e) { return false; } },
   fare(x, z) { const p = G.away ? { x: 0, z: -100 } : G.player.pos; return Math.min(300, 30 + Math.round(Math.hypot(x - p.x, z - p.z) * 0.25)); },
   go(i) {
     const p = this.list()[+i]; if (!p || p.x == null) { UI.toast('ที่นี่ยังไม่มีสถานที่ให้ไป', '📍'); return; }
@@ -492,6 +495,7 @@ const Prop23 = {
     });
   },
   goXZ(x, z, name) {
+    if (this.closed(x, z)) { UI.toast(`${name} อยู่ในเมืองที่ปิดแล้ว ไปไม่ได้ (ไม่คิดค่าแท็กซี่)`, '🚧'); return; }
     if (G.driving) { UI.toast('ลงจากรถก่อนเรียกแท็กซี่', '🚕'); return; }
     const fee = this.fare(x, z); if (S.money < fee) { UI.toast(`ค่าแท็กซี่ ${baht(fee)} เงินไม่พอ`, '💸'); return; }
     S.money -= fee; Bank2.log('ค่าแท็กซี่ไป ' + name, -fee); Phone.app = null; UI.close();
