@@ -15,9 +15,9 @@ const Slots = {
     const cur = n === this.cur();
     this.deleting = n;
     safeDel(this.key(n)); safeDel(this.key(n) + '_bak');
-    const pid = safeGet('raisukjai3d_pid'), id = pid ? pid + (n > 1 ? '_s' + n : '') : null;
+    const pid = safeGet('raisukjai3d_pid'), id = Net.cloud ? Net.cloudId(n) : (pid ? pid + (n > 1 ? '_s' + n : '') : null);
     const done = () => { if (cur) { location.reload(); return; } this.deleting = 0; { const box = document.getElementById('slots'); if (box) box.innerHTML = this.html(); UI.toast(`ลบเซฟช่อง ${n} แล้ว`, '🗑️'); if (UI.cur && UI.cur.render) UI.renderBody(); } };
-    if (Net.on && id) { const t = setTimeout(done, 2500); Net.api('save', { id, save: null }).catch(() => {}).finally(() => { clearTimeout(t); done(); }); } else done();
+    if ((Net.on || Net.cloud) && id) { const t = setTimeout(done, 2500); Net.api('save', { id, save: null }).catch(() => {}).finally(() => { clearTimeout(t); done(); }); } else done();
   },
   use(n) { if (G.started && S) saveGame(true); const go = () => { safeSet('raisukjai3d_slot', String(n)); location.reload(); }; G.started && S ? Net.flush(go) : go(); },
   initStart() {

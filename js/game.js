@@ -62,6 +62,7 @@ function saveGame(silent) {
   // inside a shop or the barn: save the spot at its door, not a spot in the hidden room
   if (G.inRoom && typeof Rooms !== 'undefined' && Rooms.cur && Rooms.cur.back) S.p = { x: Rooms.cur.back.x, z: Rooms.cur.back.z, r: p.rot, inside: false };
   if (G.driving) { S.p.x = G.driving.d.x + 2; S.p.z = G.driving.d.z; }
+  S.savedAt = Date.now();   // the newer copy wins when the same save exists on this device and in the cloud
   const ok = safeSet(saveKey(), JSON.stringify(S)); Net.saveRemote(!silent);
   if (!silent) UI.toast(ok ? 'บันทึกเกมแล้ว' : 'บันทึกไม่สำเร็จ (เบราว์เซอร์ไม่อนุญาตพื้นที่เก็บข้อมูล)', ok ? '💾' : '⚠️');
 }

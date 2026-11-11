@@ -2,7 +2,33 @@
 // ---------- Online play: talks to server.py on the same origin (any IP / port), offline when no server ----------
 const Net = {
   on: false, others: new Map(), chat: [], chatN: 0, saveT: 0,
+  // ---- v197 cloud save: on a host that has only /api/ping + /api/save (Vercel) every save slot is kept in the cloud under the player's own secret sync code, so the save follows the player to any
+  // browser or device (and survives clearing the browsing history). `cloud` is separate from `on`: the live online features (presence, chat, mail) stay off there.
+  cloud: false, cloudAt: 0, cloudErr: '', pulled: [],
+  CLOUD_A: 'abcdefghjkmnpqrstuvwxyz23456789',
+  cloudCode() {
+    let c = safeGet('raisukjai3d_cloud');
+    if (!c || !/^[a-z0-9]{16}$/.test(c)) { const a = new Uint8Array(16); (window.crypto || window.msCrypto).getRandomValues(a); c = Array.from(a, v => this.CLOUD_A[v % this.CLOUD_A.length]).join(''); safeSet('raisukjai3d_cloud', c); }
+    return c;
+  },
+  cloudCodeShown() { return this.cloudCode().replace(/(.{4})(?=.)/g, '$1-'); },
+  cloudId(n) { return this.cloudCode() + (n > 1 ? '_s' + n : ''); },
+  setCloudCode(txt) { const c = String(txt || '').toLowerCase().replace(/[^a-z0-9]/g, ''); if (!/^[a-z0-9]{16}$/.test(c)) return false; safeSet('raisukjai3d_cloud', c); return true; },
+  // download every slot of this code; the NEWER copy (by savedAt) wins, the replaced local save is kept as the automatic backup; local-only saves are uploaded
+  async pullAll() {
+    const T = (p, ms) => Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), ms))]);
+    const stamp = raw => { try { return (JSON.parse(raw) || {}).savedAt || 0; } catch (e) { return 0; } };
+    await Promise.all([1, 2, 3].map(async n => {
+      try {
+        const key = Slots.key(n), id = this.cloudId(n), r = await T(this.api('save?id=' + id), 8000), local = safeGet(key), lt = local && local.length > 100 ? stamp(local) : -1;
+        if (r && r.save && (lt < 0 || (r.ts || 0) > lt + 500)) { if (local && local.length > 100) safeSet(key + '_bak', local); safeSet(key, JSON.stringify(r.save)); this.pulled.push(n); }
+        else if (lt >= 0 && (!r || !r.save || lt > (r.ts || 0) + 500)) { let o = null; try { o = JSON.parse(local); } catch (e) { } if (o) await T(this.api('save', { id, save: o, ts: lt || Date.now() }), 8000); }
+      } catch (e) { this.cloudErr = String(e && e.message || e); }
+    }));
+    this.cloudAt = Date.now();
+  },
   id() {
+    if (this.cloud) return this.cloudId(Slots.cur());
     let id = safeGet('raisukjai3d_pid');
     if (!id) { id = 'p' + Math.random().toString(36).slice(2, 12); safeSet('raisukjai3d_pid', id); }
     return id + (Slots.cur() > 1 ? '_s' + Slots.cur() : '');
@@ -16,8 +42,10 @@ const Net = {
   async probe() {
     if (location.protocol === 'file:') return;
     try {
-      const ping = await Promise.race([this.api('ping'), new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), location.hostname.endsWith('netlify.app') ? 6000 : 1500))]);
+      const lan = /^(localhost|127\.|192\.168\.|10\.|172\.(1[6-9]|2\d|3[01])\.|\[)/.test(location.hostname);
+      const ping = await Promise.race([this.api('ping'), new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), lan ? 1500 : 8000))]);
       if (!ping || !ping.ok) return;
+      if (ping.cloud) { this.cloud = true; try { await this.pullAll(); } catch (e) { this.cloudErr = String(e && e.message || e); } return; }   // cloud-save host: no presence / chat
       this.on = true;
       const s = await this.api('save?id=' + this.id());
       if (s && s.save) this.remoteSave = JSON.stringify(s.save);
@@ -32,12 +60,18 @@ const Net = {
     setInterval(() => this.pullChat(), lan ? 2000 : 5000);
   },
   saveRemote(force) {
-    if (!this.on || (!force && performance.now() - this.saveT < 3000)) return;
+    if ((!this.on && !this.cloud) || (!force && performance.now() - this.saveT < (this.cloud ? 15000 : 3000))) return;
     this.saveT = performance.now();
-    this.api('save', { id: this.id(), save: S }).catch(() => {});
+    if (this.cloud) {   // one upload at a time, always the latest state afterwards: two requests can never arrive out of order and leave an OLD save in the cloud
+      if (this.inflight) { this.again = true; return this.inflight; }
+      const send = () => this.api('save', { id: this.id(), save: S, ts: S && S.savedAt || Date.now() }).then(r => { this.cloudAt = Date.now(); this.cloudErr = ''; return r; }).catch(e => { this.cloudErr = String(e && e.message || e); });
+      this.inflight = send().finally(() => { this.inflight = null; if (this.again) { this.again = false; this.saveT = 0; this.saveRemote(true); } });
+      return this.inflight;
+    }
+    return this.api('save', { id: this.id(), save: S, ts: S && S.savedAt || Date.now() }).catch(() => {});
   },
   // reload / slot switch / new game: wait for the server copy so an older one can't win on the next load
-  flush(fn, save) { if (!this.on) return fn(); const t = setTimeout(fn, 1500); this.api('save', { id: this.id(), save: save === undefined ? S : save }).catch(() => {}).finally(() => { clearTimeout(t); fn(); }); },
+  flush(fn, save) { if (!this.on && !this.cloud) return fn(); const t = setTimeout(fn, 1500); this.api('save', { id: this.id(), save: save === undefined ? S : save, ts: Date.now() }).catch(() => {}).finally(() => { clearTimeout(t); fn(); }); },
   async tick() {
     if (!G.started || this.busy) return; this.busy = true; setTimeout(() => { this.busy = false; }, 2000);
     const p = G.driving ? G.driving.g.position : G.player.pos;

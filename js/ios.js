@@ -26,7 +26,7 @@ body.ios .btn,body.ios button{touch-action:manipulation}
   },
   // 2. Safari freezes or discards background tabs: save on the way out, wake the sound on the way back
   lifecycle() {
-    const out = () => { try { if (G.started) { saveGame(true); if (Net.on) Net.saveRemote(true); } } catch (e) { } };
+    const out = () => { try { if (G.started) { saveGame(true); if (Net.on || Net.cloud) Net.saveRemote(true); } } catch (e) { } };
     addEventListener('pagehide', out);
     document.addEventListener('visibilitychange', () => { if (document.hidden) out(); else { Sfx.resume(); _clock.getDelta(); } });
     // the audio context comes back "interrupted" after a call or another app: resume on the next touch
