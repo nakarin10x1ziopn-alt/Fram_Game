@@ -56,7 +56,7 @@ V23.add('v196_savefile', () => {
       box.parentNode.insertBefore(row, box.nextSibling);
       document.getElementById('sfExp196').onclick = () => exportSlot(Slots.cur()); document.getElementById('sfImp196').onclick = () => importFile(); document.getElementById('sfCloud196').onclick = () => UI.H.cloudsave(); } catch (e) { console.warn('v196 savefile', e); } }; }
   // a reminder once in a while (not more than every 5 real days, only when the save is worth keeping)
-  setTimeout(() => { try { const last = +localStorage.getItem('raisukjai_lastexp') || 0, rem = +localStorage.getItem('raisukjai_lastrem') || 0, now = Date.now(); if (G.started && S && S.day > 3 && now - last > 5 * 86400000 && now - rem > 5 * 86400000) { localStorage.setItem('raisukjai_lastrem', String(now)); toast('อย่าลืมสำรองเซฟเป็นไฟล์: เมนูช่องบันทึกเกม → ⬇️ ส่งออก (กันเซฟหายถ้าล้างประวัติเว็บ)', '💾'); } } catch (e) { } }, 20000);
+  setTimeout(() => { try { const last = +localStorage.getItem('raisukjai_lastexp') || 0, rem = +localStorage.getItem('raisukjai_lastrem') || 0, now = Date.now(); if (!Net.cloud && G.started && S && S.day > 3 && now - last > 5 * 86400000 && now - rem > 5 * 86400000) { localStorage.setItem('raisukjai_lastrem', String(now)); toast('อย่าลืมสำรองเซฟเป็นไฟล์: เมนูช่องบันทึกเกม → ⬇️ ส่งออก (กันเซฟหายถ้าล้างประวัติเว็บ)', '💾'); } } catch (e) { } }, 20000);
   // ---- cloud save window (only when the host offers /api/save: framgame.vercel.app) ----
   const hhmm = t => { const d = new Date(t), p = n => String(n).padStart(2, '0'); return `${p(d.getHours())}:${p(d.getMinutes())}`; };
   const cloudHtml = () => {
@@ -82,7 +82,6 @@ V23.add('v196_savefile', () => {
     if (!Net.pulled.length && Net.cloudErr) { Slots.deleting = 0; safeSet('raisukjai3d_cloud', old); toast('ติดต่อเซิร์ฟเวอร์ไม่ได้ ยังใช้รหัสเดิมอยู่ ลองใหม่อีกครั้ง', '⚠️'); return; }
     toast(Net.pulled.length ? `พบเซฟช่อง ${Net.pulled.join(', ')} กำลังโหลดใหม่...` : 'ยังไม่มีเซฟในรหัสนี้ (รหัสใหม่) กำลังโหลดใหม่...', '✅'); setTimeout(() => location.reload(), 900);
   };
-  // first time on a cloud host: show the code once so it gets written down
-  setTimeout(() => { try { if (Net.cloud && G.started && !localStorage.getItem('raisukjai_cloudseen') && !UI.isOpen()) { localStorage.setItem('raisukjai_cloudseen', '1'); UI.H.cloudsave(); } } catch (e) { } }, 7000);
+  // no pop-up on its own: the cloud code is in the start screen (☁️ button) and the slot window
   window.SaveFile196 = { exportSlot, importFile };
 });
