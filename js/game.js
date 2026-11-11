@@ -239,6 +239,7 @@ function nearestCorner(x, z) {
 }
 const ANIMAL_Y = { chicken: 0.95, sheep: 1.65, cow: 2.2, pig: 1.45 };
 function addAnimalObj(a) {
+  if (!a || typeof a !== 'object') return;   // v198: an empty entry in the animal list must not stop the game from loading ("undefined is not an object (evaluating 'a.x')")
   const m = Models.animal(a.type);
   if (a.x == null) { a.x = U.lerp(PEN.x0 + 3, PEN.x1 - 3, Math.random()); a.z = U.lerp(PEN.z0 + 4, PEN.z1 - 3, Math.random()); }
   m.position.set(a.x, 0, a.z); World.dyn.add(m);
