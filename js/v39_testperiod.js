@@ -15,8 +15,8 @@ V23.add('v39_testperiod', function () {
   const CFG = {
     START: '2026-11-01T00:00:00+07:00',      // 1 Nov 2569
     CUTOFF: '2026-12-01T00:00:00+07:00',     // 1 Dec 2569 00:00 Thai time: from here on the reset applies
-    START_CASH: 5000,                        // cash in the wallet of a new save (5,000 THB)
-    TEST_MONEY: 1000000000,                   // a new save: savings account (1,000,000,000 THB)
+    START_CASH: 2000,                        // cash in the wallet of a new save (2,000 THB)
+    TEST_MONEY: 4500000000,                   // a new save: savings account (4,500,000,000 THB = 4,500 million)
     TEST_LEVEL: () => 50,   // 'เลเวลต้น' = the maximum level; the number comes from js/v39_levels.js (fallback 50)
     AFTER_MONEY: 30000,                       // in the bank; plus 10,000 cash in the wallet (v49_bank)                       // every save after the cutoff
     AFTER_LEVEL: 1,
