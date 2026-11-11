@@ -140,7 +140,7 @@ V23.add('v59_phone', () => {
       const L = CATS.map(c => ({ id: c[0], i: c[1], n: c[2], ids: c[3].filter(id => btnOf[id]) })); if (rest.length) L.push({ id: 'other', i: '✨', n: 'อื่น ๆ', ids: rest.map(a => a.id) });
       const unread = this.unread();
       const tile = c => `<button data-a="pcat" data-v="${c.id}" data-n="${E(c.n)}"><span>${c.i}${c.id === 'social' && unread ? `<i>${unread}</i>` : ''}</span>${c.n}</button>`;
-      let html = top + `<input id="phSearch" placeholder="🔍 ค้นหาแอป..." autocomplete="off" style="width:100%;margin:2px 0 8px" oninput="Phone59.search(this.value)"><div id="phRes"></div><div class="apps" id="phCats">${L.filter(c => c.ids.length).map(tile).join('')}</div>` + sos;
+      let html = top + `<input id="phSearch" placeholder="🔍 ค้นหาแอป..." autocomplete="off" style="width:100%;margin:2px 0 8px" oninput="Phone59.search(this.value)"><div id="phRes"></div><div class="apps" id="phCats">${L.filter(c => c.ids.length).map(c => c.ids.length === 1 ? (c.ids[0] === 'mbank49' ? '' : btnOf[c.ids[0]]) : tile(c)).join('')}</div>` + sos;
       const open = L.find(c => c.id === Phone.cat);
       if (open && open.ids.length) html += `<div class="pc59bg" data-a="pcat" data-v=""></div><div class="pc59"><div class="pc59h"><b>${open.i} ${open.n}</b><button class="btn ghost" data-a="pcat" data-v="">✕ ปิด</button></div><div class="apps">${open.ids.map(id => btnOf[id]).join('')}</div></div>`;
       return html;
