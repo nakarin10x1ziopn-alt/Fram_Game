@@ -7,12 +7,13 @@ V23.add('v201_kbfix', () => {
   const v2 = new THREE.Vector2();
   const fit = () => {
     try {
+      if (window.Typing202 && Typing202()) return; // typing: leave the layout alone
       const r = G.renderer; if (!r) return;
       r.getSize(v2); const w = innerWidth, h = innerHeight;
       if (Math.abs(v2.x - w) > 1 || Math.abs(v2.y - h) > 1 || Math.abs(cv.clientHeight - h) > 2 || Math.abs(cv.clientWidth - w) > 2) dispatchEvent(new Event('resize'));
     } catch (e) { }
   };
-  const back = () => { try { if (scrollY || scrollX) scrollTo(0, 0); } catch (e) { } fit(); };
+  const back = () => { if (window.Typing202 && Typing202()) return; try { if (scrollY || scrollX) scrollTo(0, 0); } catch (e) { } fit(); };
   const later = () => { for (const ms of [60, 300, 800, 1600]) setTimeout(back, ms); };
   document.addEventListener('focusout', e => { const t = e.target; if (t && /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName || '')) later(); }, true);
   if (window.visualViewport) { visualViewport.addEventListener('resize', later); visualViewport.addEventListener('scroll', () => setTimeout(fit, 120)); }
