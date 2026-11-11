@@ -34,7 +34,7 @@ V23.add('v31_farm', () => {
   };
   try { for (const k in NEWD) if (!Gov24.docs[k]) Gov24.docs[k] = NEWD[k]; } catch (e) { }
   const grantDoc = (id, data) => {
-    try { const D = Gov24.docs[id], x = Gov24.st(); x.n = (x.n || 0) + 1; x.docs[id] = { no: `${id.slice(0, 3).toUpperCase()}-${String(S.day).padStart(4, '0')}-${String(x.n).padStart(3, '0')}`, issued: S.day, exp: D.life ? S.day + D.life : 0, data: data || {} }; UI.toast(`${D.i} ได้รับ${D.n}แล้ว`, '✅'); msg('หน่วยงานรัฐ', `ออก${D.n} เลขที่ ${x.docs[id].no} ${D.life ? `ใช้ได้ถึง${RD(x.docs[id].exp)}` : ''}`); } catch (e) { console.warn('v31f grant', e); }
+    try { const D = Gov24.docs[id], x = Gov24.st(); x.n = (x.n || 0) + 1; x.docs[id] = { no: `${id.slice(0, 3).toUpperCase()}-${String(S.day).padStart(4, '0')}-${String(x.n).padStart(3, '0')}`, issued: S.day, exp: D.life ? (window.DocRules ? DocRules.expFor(id, x.docs[id]) : S.day + D.life) : 0, data: data || {} }; UI.toast(`${D.i} ได้รับ${D.n}แล้ว`, '✅'); msg('หน่วยงานรัฐ', `ออก${D.n} เลขที่ ${x.docs[id].no} ${D.life ? `ใช้ได้ถึง${RD(x.docs[id].exp)}` : ''}`); } catch (e) { console.warn('v31f grant', e); }
   };
 
   // ================= animals: genetics-lite =================

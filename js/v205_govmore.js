@@ -34,10 +34,10 @@ V23.add('v205_govmore', () => {
     Rooms.build = function (def, K) {
       _rb.call(this, def, K);
       if (def.kind !== 'gov' || !window.Agency26) return;
-      const g = this.group, X = RM0.x, Z = RM0.z, W = K.w, D = K.d, L = Agency26.agencies, per = [9, 9], zs = [-D / 2 + 20.6, -D / 2 + 26.6];
+      const g = this.group, X = RM0.x, Z = RM0.z, W = K.w, D = K.d, L = Agency26.agencies, per = [9, 9, 9], zs = [-D / 2 + 20.6, -D / 2 + 26.6, -D / 2 + 32.6];
       const looks = ['toon:suit', 'Olivia', 'toon:civil', 'Erika', 'toon:chic', 'Lydia', 'toon:jacket', 'Kate'];
       let n = 0;
-      for (let r = 0; r < 2; r++) for (let c = 0; c < per[r]; c++, n++) {
+      for (let r = 0; r < 3; r++) for (let c = 0; c < per[r]; c++, n++) {
         const a = L[n]; if (!a) continue;
         const x = -W / 2 + 2.2 + c * ((W - 4.4) / (per[r] - 1)), z = zs[r];
         U.mk(g, GEO.box, mc(0x8d6e63), [X + x, 0.53, Z + z], [2.5, 1.05, 0.7]); this.cols.push(Col.box(X + x, Z + z, 1.25, 0.35, 0));

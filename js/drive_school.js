@@ -61,7 +61,7 @@ const DriveSchool = {
     const o = T_.o; o.speed = 0; if (G.driving === o) exitCar();
     World.dyn.remove(o.g); if (o.col) Col.remove(o.col); G.cars.splice(G.cars.indexOf(o), 1);
     if (ok && T_.type !== 'sedan') { S.lic2 = 1; Prog.add(40); Life2.note('สอบใบขับขี่รถบรรทุก (ประเภท 2) ผ่านแล้ว! 🚛'); UI.toast('สอบผ่าน! ได้ใบขับขี่รถบรรทุกแล้ว', '🚛'); }
-    else if (ok) { S.license = 1; S.licExp = S.day + 5 * (typeof YEAR_DAYS !== 'undefined' ? YEAR_DAYS : 84); Stations2.st().points = 0; Prog.add(40); Life2.note('สอบใบขับขี่ผ่านแล้ว! 🪪'); UI.toast('ยินดีด้วย! สอบผ่าน ได้ใบขับขี่แล้ว 🪪', '🎉'); }
+    else if (ok) { S.license = 1; S.licExp = S.day + 2 * (typeof YEAR_DAYS !== 'undefined' ? YEAR_DAYS : 84); S.licFirst = 1; Stations2.st().points = 0; Prog.add(40); Life2.note('สอบใบขับขี่ผ่านแล้ว! 🪪'); UI.toast('ยินดีด้วย! สอบผ่าน ได้ใบขับขี่แล้ว 🪪', '🎉'); }
     else UI.toast(`สอบไม่ผ่าน: ${why} ลองสอบใหม่ได้ (500 ฿)`, '❌');
   },
 };

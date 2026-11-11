@@ -92,8 +92,7 @@ V23.add('v26_docs', () => {
   const problem = a => {
     const m = missing(a); if (m.length) return 'ขาดเอกสาร: ' + m.join(', ');
     const p = a.pre && a.pre(); if (p) return p;
-    if (a.doc && has(a.doc) && !/^(pet|comm)$/.test(a.k)) return `มี${docN(a.doc)}ที่ยังไม่หมดอายุอยู่แล้ว`;
-    if (a.doc && has(a.doc)) return `มี${docN(a.doc)}อยู่แล้ว`;
+    if (a.doc && has(a.doc) && !(window.DocRules && DocRules.canRenew(a.doc))) return `มี${docN(a.doc)}ที่ยังไม่หมดอายุอยู่แล้ว${window.DocRules ? ' (' + DocRules.renewText(a.doc) + ')' : ''}`;
     if (st().apps.some(x => x.k === a.k && x.st === 'pending')) return 'มีคำขอเรื่องนี้ค้างอยู่';
     if (S.money < a.fee) return `เงินไม่พอค่าธรรมเนียม ${baht(a.fee)}`;
     return null;
@@ -103,7 +102,7 @@ V23.add('v26_docs', () => {
   const grantDoc = a => {
     const D0 = D[a.doc], x = gst();
     x.n = (x.n || 0) + 1;
-    x.docs[a.doc] = { no: `${a.doc.slice(0, 3).toUpperCase()}-${String(S.day).padStart(4, '0')}-${String(x.n).padStart(3, '0')}`, issued: S.day, exp: D0.life ? S.day + D0.life : 0, data: {} };
+    x.docs[a.doc] = { no: `${a.doc.slice(0, 3).toUpperCase()}-${String(S.day).padStart(4, '0')}-${String(x.n).padStart(3, '0')}`, issued: S.day, exp: D0.life ? (window.DocRules ? DocRules.expFor(a.doc, x.docs[a.doc]) : S.day + D0.life) : 0, data: {} };
     if (a.pay) st().pay[a.doc] = S.day;
   };
   const finish = a => {

@@ -126,7 +126,7 @@ const Company = {
     const site = Sec.site('co:' + c.id).dev, has = t => site.filter(d => t.split('|').includes(DEV[d.k].t) || t.split('|').includes(d.k)).length;
     ok(c.st === 'setup' || c.st === 'open', 'จดทะเบียนนิติบุคคลเรียบร้อย');
     ok(c.staff.length === 0 || c.lic.sso, 'ขึ้นทะเบียนนายจ้างกับประกันสังคม (ภายใน 30 วันหลังจ้างงาน)');
-    for (const [r, n] of Object.entries(T.staff)) { const have = c.staff.filter(s => s.r === r).length + (r === 'eng' && typeof Career !== 'undefined' && Career.is('electrician') && Career.st().rank >= 4 ? 1 : 0) + (r === 'installer' && Career.is('electrician') ? 1 : 0); ok(have >= n, `พนักงาน ${ROLES[r].n} ${have}/${n} คน`); }
+    for (const [r, n] of Object.entries(T.staff)) { const have = c.staff.filter(s => s.r === r).length + (r === 'eng' && typeof Career !== 'undefined' && Career.is('electrician') && Career.st().rank >= 4 ? 1 : 0) + (r === 'installer' && Career.is('electrician') ? 1 : 0) + (r === 'eng' && window.Gov24 && Gov24.has('lic_eng') ? 1 : 0); ok(have >= n, `พนักงาน ${ROLES[r].n} ${have}/${n} คน`); }
     for (const k of T.lic) ok(c.lic[k], CO_LIC[k].n);
     for (const [k, n] of Object.entries(T.eq)) ok((c.eq[k] || 0) >= n, `${CO_EQ[k].n} ${c.eq[k] || 0}/${n}`);
     const need = {}; for (const t of T.net) need[t] = (need[t] || 0) + 1;

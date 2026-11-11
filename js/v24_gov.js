@@ -101,7 +101,7 @@ V23.add('gov24', () => {
 
   const grant = (id, data, offName, label) => {
     const b = id.split(':')[0], D = DOCS[b], x = st();
-    const d = { no: id === 'idcard' ? (data && data.no13) || mkIdNo() : docNo(b), issued: S.day, exp: D && D.life ? S.day + D.life : 0, data: data || {} };
+    const d = { no: id === 'idcard' ? (data && data.no13) || mkIdNo() : docNo(b), issued: S.day, exp: D && D.life ? (window.DocRules ? DocRules.expFor(id, x.docs[id]) : S.day + D.life) : 0, data: data || {} };
     x.docs[id] = d; Life2.note && Life2.note('ได้รับ' + docName(id));
     UI.toast(`${D ? D.i : '📄'} ได้รับ${docName(id)} แล้ว`, '✅');
     msg(offName || 'ศูนย์ราชการอำเภอสุขใจ', `${label || 'ออก'}${docName(id)} เลขที่ ${id === 'idcard' ? fmtNo(d.no) : d.no} ${d.exp ? `ใช้ได้ถึง${RD(d.exp)}` : 'ไม่มีวันหมดอายุ'}`);
@@ -231,9 +231,9 @@ V23.add('gov24', () => {
 
   const OFFICES = [
     office('district', 'ฝ่ายทะเบียนราษฎร ที่ว่าการอำเภอสุขใจ', 'ทะเบียนราษฎร', '🏛️', [
-      sx('idcard', 'บัตรประจำตัวประชาชน (ทำใหม่ / ต่ออายุ / บัตรหาย)', '🪪', 'กรอกแบบฟอร์มจริง ถ่ายรูป สแกนลายนิ้วมือ บัตรอายุ 8 ปี', { run: () => { const d = rec('idcard'); const mode = !d ? 'new' : d.temp ? 'renew' : live(d) ? 'lost' : 'renew'; UI.open('คำขอบัตรประจำตัวประชาชน', null, () => (d && !d.temp && live(d) ? '<p class="dim">บัตรของคุณยังไม่หมดอายุ — ขอทำใหม่คิดค่าธรรมเนียม 100 ฿ (กรณีบัตรหาย/ชำรุด)</p>' : '') + idForm(mode)); }, st: () => status('idcard') }),
+      sx('idcard', 'บัตรประจำตัวประชาชน (ทำใหม่ / ต่ออายุ / บัตรหาย)', '🪪', 'กรอกแบบฟอร์มจริง ถ่ายรูป สแกนลายนิ้วมือ บัตรอายุ 8 ปี', { run: () => { const d = rec('idcard'); const mode = !d ? 'new' : d.temp ? 'renew' : live(d) && !(window.DocRules && DocRules.canRenew('idcard')) ? 'lost' : 'renew'; UI.open('คำขอบัตรประจำตัวประชาชน', null, () => (d && !d.temp && live(d) ? '<p class="dim">บัตรของคุณยังไม่หมดอายุ — ขอทำใหม่คิดค่าธรรมเนียม 100 ฿ (กรณีบัตรหาย/ชำรุด)</p>' : '') + idForm(mode)); }, st: () => status('idcard') }),
       sx('housereg', 'ทะเบียนบ้าน / ย้ายที่อยู่ (ท.ร.14)', '🏠', 'ต้องมีบัตรประชาชน ฟรี ออกทันที', { req: ['idcard'], run: () => UI.open('ท.ร.14', null, hrForm), st: () => status('housereg') }),
-      sx('resid', 'หนังสือรับรองถิ่นที่อยู่', '📄', 'ใช้ประกอบการสมัครงาน/เปิดบัญชี 20 ฿ อายุ 1 ปีเกม (84 วัน)', { req: ['idcard', 'housereg'], run: () => spend(10 + queue(), () => apply({ doc: 'resid', off: 'district', offName: 'ที่ว่าการอำเภอสุขใจ', fee: 20, days: 0 })), st: () => status('resid') }),
+      sx('resid', 'หนังสือรับรองถิ่นที่อยู่', '📄', 'ใช้ประกอบการสมัครงาน/เปิดบัญชี 20 ฿ อายุ 3 เดือน (7 วัน × 3 = 21 วันเกม)', { req: ['idcard', 'housereg'], run: () => spend(10 + queue(), () => apply({ doc: 'resid', off: 'district', offName: 'ที่ว่าการอำเภอสุขใจ', fee: 20, days: 0 })), st: () => status('resid') }),
     ]),
     office('land', 'สำนักงานที่ดินอำเภอสุขใจ', 'ที่ดิน', '🗺️', [
       sx('deeds', 'ตรวจสอบโฉนด/ทรัพย์สินที่ถือครอง', '📜', 'รายการทรัพย์สินที่โอนกรรมสิทธิ์แล้ว ภาระภาษี', { run: () => UI.open('ทะเบียนโฉนด', null, () => { const own = Estate.st().own, L = lotsOwned(); const rows = Object.keys(own).map(k => { const P = PROPS.find(p => p.k === k); return `<div class="card"><div class="ci">${P.i}</div><div class="cb"><h4>${esc(P.n)}</h4><p class="dim">โอนเมื่อ${RD(own[k].day)} · ราคาที่ซื้อ ${baht(own[k].paid)}</p></div></div>`; }).concat(L.map(l => `<div class="card"><div class="ci">🏗️</div><div class="cb"><h4>${esc(l.n)}</h4><p class="dim">โฉนดที่ดินของคุณ</p></div></div>`)); return rows.length ? `<div class="grid">${rows.join('')}</div>` : '<p class="empty">ยังไม่มีที่ดินหรืออสังหาริมทรัพย์ในชื่อคุณ</p>'; }) }),
@@ -246,11 +246,11 @@ V23.add('gov24', () => {
     office('revenue', 'สำนักงานสรรพากรพื้นที่สุขใจ', 'ภาษี', '🧾', [
       sx('tin', 'เลขประจำตัวผู้เสียภาษี (TIN)', '🔢', 'เลขเดียวกับเลขบัตรประชาชน 13 หลัก', { req: ['idcard'], run: () => UI.toast(`เลขประจำตัวผู้เสียภาษีของคุณ ${fmtNo(rec('idcard').no)}`, '🔢') }),
       sx('taxfile', 'ยื่นแบบภาษีเงินได้บุคคลธรรมดา (ภ.ง.ด.90)', '📝', 'ยื่น/ชำระภาษีประจำปี', { req: ['idcard'], run: () => { UI.close(); Phone.open('tax'); } }),
-      sx('taxcert', 'หนังสือรับรองรายได้/การเสียภาษี', '🧾', 'ใช้ขอสินเชื่อ ≥ 30,000 ฿ ค่าธรรมเนียม 100 ฿ อายุ 1 ปีเกม (84 วัน)', { req: ['idcard'], run: () => spend(15 + queue(), () => apply({ doc: 'taxcert', off: 'revenue', offName: 'สรรพากรพื้นที่สุขใจ', fee: 100, days: 0 })), st: () => status('taxcert') }),
+      sx('taxcert', 'หนังสือรับรองรายได้/การเสียภาษี', '🧾', 'ใช้ขอสินเชื่อ ≥ 30,000 ฿ ค่าธรรมเนียม 100 ฿ อายุ 3 เดือน (21 วันเกม)', { req: ['idcard'], run: () => spend(15 + queue(), () => apply({ doc: 'taxcert', off: 'revenue', offName: 'สรรพากรพื้นที่สุขใจ', fee: 100, days: 0 })), st: () => status('taxcert') }),
     ]),
     office('dbd', 'สำนักงานพัฒนาธุรกิจการค้าจังหวัดสุขใจ (DBD)', 'จดทะเบียนธุรกิจ', '🏢', [
       sx('reg', 'จองชื่อ/จดทะเบียนบริษัท จำกัด', '🏢', 'ช่วงทดสอบ (ถึง 30 พ.ย. 2569) จดคนเดียวได้ทุกประเภท · หลังจากนั้นธุรกิจใหญ่ (ทุน ≥ 2 ล้าน) ต้องมีผู้ถือหุ้น 2 คนขึ้นไป · กำหนดมูลค่าหุ้น กรรมการ ผู้สอบบัญชี ค่าธรรมเนียมตามทุน', { req: ['idcard'], run: () => { UI.close(); Phone.open('company'); } }),
-      sx('bizcert', 'หนังสือรับรองนิติบุคคล', '📑', 'ต้องมีบริษัทที่จดทะเบียนแล้ว 200 ฿ อายุ 2 ปีเกม (168 วัน)', { req: ['idcard'], can: () => (typeof Company !== 'undefined' && Company.list().some(c => !['name', 'named', 'reg'].includes(c.st))) ? '' : 'ยังไม่มีบริษัทที่จดทะเบียนเสร็จสมบูรณ์', run: () => spend(15 + queue(), () => apply({ doc: 'bizcert', off: 'dbd', offName: 'สำนักงานพัฒนาธุรกิจการค้า', fee: 200, days: 0 })), st: () => status('bizcert') }),
+      sx('bizcert', 'หนังสือรับรองนิติบุคคล', '📑', 'ต้องมีบริษัทที่จดทะเบียนแล้ว 200 ฿ อายุ 3 เดือน (21 วันเกม)', { req: ['idcard'], can: () => (typeof Company !== 'undefined' && Company.list().some(c => !['name', 'named', 'reg'].includes(c.st))) ? '' : 'ยังไม่มีบริษัทที่จดทะเบียนเสร็จสมบูรณ์', run: () => spend(15 + queue(), () => apply({ doc: 'bizcert', off: 'dbd', offName: 'สำนักงานพัฒนาธุรกิจการค้า', fee: 200, days: 0 })), st: () => status('bizcert') }),
     ]),
     office('sso', 'สำนักงานประกันสังคมจังหวัดสุขใจ', 'ประกันสังคม', '🛡️', [
       sx('ssoreg', 'สมัครผู้ประกันตนมาตรา 40 (อาชีพอิสระ/เกษตรกร)', '🛡️', 'ส่งเงินสมทบ 70 ฿ ทุก 28 วัน ได้สิทธิประกันสังคมเมื่อไม่มีนายจ้าง', { req: ['idcard'], run: () => spend(20 + queue(), () => apply({ doc: 'ssoreg', off: 'sso', offName: 'สำนักงานประกันสังคม', fee: 70, days: 0, data: { paidUntil: S.day + 28 } })), st: () => { const d = rec('ssoreg'); if (d && !d.data) d.data = { paidUntil: S.day }; return d ? `<span class="${d.data.paidUntil >= S.day ? 'good' : 'bad'}">${d.data.paidUntil >= S.day ? '✅' : '⛔'} ส่งเงินสมทบถึง${RD(d.data.paidUntil)}</span>` : status('ssoreg'); } }),
@@ -268,7 +268,7 @@ V23.add('gov24', () => {
       sx('landtax', 'ชำระภาษีที่ดินและสิ่งปลูกสร้าง', '🏘️', 'ออกใบแจ้งต้นปีภาษี ชำระภายใน 28 วัน เกินกำหนดปรับ 20%', { req: ['idcard'], run: () => landTaxUI(), st: () => unpaidBills().length ? `<span class="bad">ค้างชำระ ${unpaidBills().length} ใบ</span>` : '<span class="good">ไม่มีภาษีค้าง</span>' }),
     ]),
     office('police', 'กองทะเบียนประวัติอาชญากร (สถานีตำรวจสุขใจ)', 'ตำรวจ', '👮', [
-      sx('crimrec', 'ใบรับรองความประพฤติ (ประวัติอาชญากรรม)', '📃', 'ใช้สมัครงานราชการ/สมัครเลือกตั้ง 100 ฿ อายุ 1 ปีเกม (84 วัน) (ต้องไม่มีใบสั่งค้าง)', { req: ['idcard'], can: () => finesDue().length ? 'มีใบสั่งค้างชำระ ไปชำระที่ศาลหรือสถานีตำรวจก่อน' : '', run: () => spend(15 + queue(), () => apply({ doc: 'crimrec', off: 'police', offName: 'สถานีตำรวจภูธรสุขใจ', fee: 100, days: 0 })), st: () => status('crimrec') }),
+      sx('crimrec', 'ใบรับรองความประพฤติ (ประวัติอาชญากรรม)', '📃', 'ใช้สมัครงานราชการ/สมัครเลือกตั้ง 100 ฿ อายุ 3 เดือน (21 วันเกม) (ต้องไม่มีใบสั่งค้าง)', { req: ['idcard'], can: () => finesDue().length ? 'มีใบสั่งค้างชำระ ไปชำระที่ศาลหรือสถานีตำรวจก่อน' : '', run: () => spend(15 + queue(), () => apply({ doc: 'crimrec', off: 'police', offName: 'สถานีตำรวจภูธรสุขใจ', fee: 100, days: 0 })), st: () => status('crimrec') }),
       sx('fines', 'ชำระค่าปรับตามใบสั่งจราจร', '🚔', 'ชำระภายใน 15 วัน เกินกำหนดค่าปรับเพิ่มเป็น 2 เท่า', { run: () => fineUI(), st: () => finesDue().length ? `<span class="bad">ค้าง ${finesDue().length} ใบ</span>` : '<span class="good">ไม่มีใบสั่งค้าง</span>' }),
     ], { hrs: { all: 1 } }),
     office('fire', 'สำนักงานป้องกันและบรรเทาสาธารณภัยจังหวัด', 'อัคคีภัย', '🧯', [
@@ -394,7 +394,7 @@ V23.add('gov24', () => {
   if (typeof APP_GROUPS !== 'undefined') { const gr = APP_GROUPS.find(x => /บริการ/.test(x[0])) || APP_GROUPS[APP_GROUPS.length - 1]; if (gr) gr[1].unshift('gov24'); }
 
   // ================= the service centre building =================
-  ROOM_KIND.gov = { w: 32, d: 34, floor: 0xe8e0d0, wall: 0xfdf6e3, title: 'ศูนย์ราชการอำเภอสุขใจ' };
+  ROOM_KIND.gov = { w: 32, d: 40, floor: 0xe8e0d0, wall: 0xfdf6e3, title: 'ศูนย์ราชการอำเภอสุขใจ' };
   const _rb = Rooms.build;
   Rooms.build = function (def, K) {
     _rb.call(this, def, K);

@@ -64,7 +64,7 @@ V23.add('v26_agency', () => {
   const docNo = id => `${id.slice(0, 3).toUpperCase()}-${String(S.day).padStart(4, '0')}-${String(++st().n).padStart(3, '0')}`;
   const grant = (id, data, from, label) => {
     const D = G24.docs[id], x = G24.st();
-    x.docs[id] = { no: docNo(id), issued: S.day, exp: D.life ? S.day + D.life : 0, data: data || {} };
+    x.docs[id] = { no: docNo(id), issued: S.day, exp: D.life ? (window.DocRules ? DocRules.expFor(id, x.docs[id]) : S.day + D.life) : 0, data: data || {} };
     try { Life2.note && Life2.note('ได้รับ' + D.n); } catch (e) { }
     UI.toast(`${D.i} ได้รับ${D.n}แล้ว`, '✅');
     msg(from || 'หน่วยงานรัฐ', `${label || 'ออก'}${D.n} เลขที่ ${x.docs[id].no} ${D.life ? `ใช้ได้ถึง${RD(x.docs[id].exp)}` : 'ไม่มีวันหมดอายุ'}`);
@@ -537,6 +537,46 @@ V23.add('v26_agency', () => {
   agency('dopa2', 'กรมวิชาการเกษตร / ปศุสัตว์ — ศูนย์รับรองมาตรฐานฟาร์ม สุขใจ', 'GAP & ใบเคลื่อนย้ายสัตว์', '🌿', 'ใบรับรองแหล่งผลิตพืช GAP และใบอนุญาตเคลื่อนย้ายสัตว์', GOVH, [
     sv('gap', 'ใบรับรอง GAP / ใบเคลื่อนย้ายสัตว์', '🌿', 'ยื่นและตรวจฟาร์มในแอป 🌾 ฟาร์ม (แท็บใบรับรอง)', { req: ['idcard'], run: a => { UI.close(); setTimeout(() => { try { Phone.open('farm31'); } catch (e) { } }, 0); } }),
   ]);
+
+  // ================= v206: groundwater permits + professional councils =================
+  Object.assign(NEWD, {
+    wellperm: { n: 'ใบอนุญาตเจาะบ่อบาดาล', i: '🕳️', life: YD, off: 'v26', by: 'gwater' },
+    welluse: { n: 'ใบอนุญาตใช้น้ำบาดาล', i: '🚰', life: 5 * YD, off: 'v26', by: 'gwater' },
+    lic_eng: { n: 'ใบอนุญาตประกอบวิชาชีพวิศวกรรมควบคุม (สภาวิศวกร)', i: '📐', life: 5 * YD, off: 'v26', by: 'prof' },
+    lic_teach: { n: 'ใบอนุญาตประกอบวิชาชีพครู (คุรุสภา)', i: '👩‍🏫', life: 5 * YD, off: 'v26', by: 'prof' },
+    lic_law: { n: 'ใบอนุญาตให้เป็นทนายความ (สภาทนายความ)', i: '⚖️', life: 2 * YD, off: 'v26', by: 'prof' },
+    lic_nurse: { n: 'ใบอนุญาตประกอบวิชาชีพการพยาบาล (สภาการพยาบาล)', i: '👩‍⚕️', life: 5 * YD, off: 'v26', by: 'prof' },
+    lic_pharm: { n: 'ใบอนุญาตประกอบวิชาชีพเภสัชกรรม (สภาเภสัชกรรม)', i: '💊', life: 5 * YD, off: 'v26', by: 'prof' },
+    lic_vet: { n: 'ใบอนุญาตประกอบวิชาชีพการสัตวแพทย์ (สัตวแพทยสภา)', i: '🐾', life: 5 * YD, off: 'v26', by: 'prof' },
+  });
+  for (const k of ['wellperm', 'welluse', 'lic_eng', 'lic_teach', 'lic_law', 'lic_nurse', 'lic_pharm', 'lic_vet']) G24.docs[k] = NEWD[k];
+  const canRen = id => !window.DocRules || DocRules.canRenew(id);
+  const renTxt = id => window.DocRules ? DocRules.renewText(id) : '';
+  const degOk = mj => { try { if (typeof TestMode !== 'undefined' && TestMode.on()) return true; return mj.some(m => Edu24.hasDeg(m, 4)); } catch (e) { return false; } };
+  const PROFS = [
+    ['lic_eng', 'ขอ/ต่อใบอนุญาตวิศวกร (สภาวิศวกร)', '📐', 'ต้องจบปริญญาตรีคณะวิศวกรรมศาสตร์ ค่าธรรมเนียม 2,500 ฿ ใช้ 5 ปี · เซ็นแบบ/ควบคุมงานได้ นับเป็นวิศวกรของบริษัท และรับงานออกแบบ ~12,000 ฿/เดือน', ['engr'], 2500, 5, 'สภาวิศวกร'],
+    ['lic_teach', 'ขอ/ต่อใบอนุญาตครู (คุรุสภา)', '👩‍🏫', 'ต้องจบปริญญาตรีคณะครุศาสตร์ ค่าธรรมเนียม 500 ฿ ใช้ 5 ปี · จำเป็นต่อการสมัครเป็นครู', ['edu'], 500, 3, 'คุรุสภา'],
+    ['lic_law', 'ขอ/ต่อใบอนุญาตทนายความ (สภาทนายความ)', '⚖️', 'ต้องจบปริญญาตรีคณะนิติศาสตร์ ค่าธรรมเนียม 3,000 ฿ ใช้ 2 ปี · รับว่าความ ~9,000 ฿/เดือน', ['law'], 3000, 7, 'สภาทนายความ'],
+    ['lic_nurse', 'ขอ/ต่อใบอนุญาตพยาบาล (สภาการพยาบาล)', '👩‍⚕️', 'ต้องจบปริญญาตรีคณะพยาบาลศาสตร์ ค่าธรรมเนียม 1,500 ฿ ใช้ 5 ปี · จำเป็นต่อการสมัครเป็นพยาบาล', ['nurse'], 1500, 3, 'สภาการพยาบาล'],
+    ['lic_pharm', 'ขอ/ต่อใบอนุญาตเภสัชกร (สภาเภสัชกรรม)', '💊', 'ต้องจบปริญญาตรีสายวิทยาศาสตร์สุขภาพ (พยาบาล/สัตวแพทย์/เกษตร) ค่าธรรมเนียม 2,000 ฿ ใช้ 5 ปี · เภสัชกรเวร ~8,000 ฿/เดือน', ['nurse', 'vet', 'agri'], 2000, 5, 'สภาเภสัชกรรม'],
+    ['lic_vet', 'ขอ/ต่อใบอนุญาตสัตวแพทย์ (สัตวแพทยสภา)', '🐾', 'ต้องจบปริญญาตรีคณะสัตวแพทยศาสตร์ ค่าธรรมเนียม 1,500 ฿ ใช้ 5 ปี · จำเป็นต่อการสมัครเป็นสัตวแพทย์', ['vet'], 1500, 3, 'สัตวแพทยสภา'],
+  ];
+  const PROF_HRS = { wd: [8.5, 16.5], sat: null, sun: null, holOK: false };
+  agency('gwater', 'สำนักงานทรัพยากรน้ำบาดาลเขต สุขใจ (กรมทรัพยากรน้ำบาดาล)', 'น้ำบาดาล', '🕳️', 'ใบอนุญาตเจาะบ่อบาดาลและใบอนุญาตใช้น้ำบาดาล — เจาะบ่อที่บ้านต้องมีใบอนุญาตก่อน และใช้น้ำต้องมีใบอนุญาตใช้น้ำ', GOVH, [
+    sv('wellperm', 'ขอใบอนุญาตเจาะบ่อบาดาล', '🕳️', 'ต้องมีบัตรประชาชน + ทะเบียนบ้าน ค่าธรรมเนียม 1,000 ฿ พิจารณา 5 วัน อายุ 1 ปีเกม · ต้องมีก่อนสั่งช่างเจาะ', {
+      req: ['idcard', 'housereg'], st: () => { const d = G24.rec('wellperm'); return d ? `${dn('wellperm')}: ${d.exp && S.day > d.exp ? 'หมดอายุแล้ว' : 'ใช้ได้ถึง' + RD(d.exp)}` : ''; },
+      can: () => has('wellperm') && !canRen('wellperm') ? 'มีใบอนุญาตเจาะอยู่แล้ว (' + renTxt('wellperm') + ')' : '',
+      run: a => go(a, 30, () => { apply({ key: 'wellperm', doc: 'wellperm', ag: 'gwater', from: 'กรมทรัพยากรน้ำบาดาล', fee: 1000, days: 5, data: {} }); return false; }) }),
+    sv('welluse', 'ขอ/ต่อใบอนุญาตใช้น้ำบาดาล', '🚰', 'ต้องมีบ่อบาดาลแล้ว ค่าธรรมเนียม 500 ฿ พิจารณา 3 วัน อายุ 5 ปีเกม · ใช้น้ำโดยไม่มีใบอนุญาตถูกปรับ 5,000 ฿', {
+      req: ['idcard', 'housereg'], st: () => { const d = G24.rec('welluse'); return d ? `ใช้ได้ถึง${RD(d.exp)}` : ''; },
+      can: () => { try { if (!Water.st().well) return 'ยังไม่มีบ่อบาดาลในที่ดินของคุณ'; } catch (e) { } return has('welluse') && !canRen('welluse') ? 'มีใบอนุญาตใช้น้ำอยู่แล้ว (' + renTxt('welluse') + ')' : ''; },
+      run: a => go(a, 30, () => { apply({ key: 'welluse', doc: 'welluse', ag: 'gwater', from: 'กรมทรัพยากรน้ำบาดาล', fee: 500, days: 3, data: {} }); return false; }) }),
+  ]);
+  agency('prof', 'ศูนย์สภาวิชาชีพ (วิศวกร · ครู · ทนายความ · พยาบาล · เภสัช · สัตวแพทย์)', 'สภาวิชาชีพ', '🎖️', 'ใบอนุญาต/ใบประกอบวิชาชีพ ต้องมีวุฒิปริญญาตรีสาขานั้นและใบรับรองวุฒิ ต่ออายุได้ล่วงหน้า 3 เดือนก่อนหมดอายุ', PROF_HRS,
+    PROFS.map(([id, n, i, d, mj, fee, days, from]) => sv(id, n, i, d, {
+      req: ['idcard', 'edcert'], st: () => { const r = G24.rec(id); return r ? (r.exp && S.day > r.exp ? '<span class="bad">⛔ หมดอายุแล้ว</span>' : `<span class="good">✅ ใช้ได้ถึง${RD(r.exp)}</span>`) : ''; },
+      can: () => !degOk(mj) ? 'ยังไม่มีวุฒิปริญญาตรีสาขาที่กำหนด' : (has(id) && !canRen(id) ? 'มีใบอนุญาตที่ยังไม่หมดอายุ (' + renTxt(id) + ')' : ''),
+      run: a => go(a, 30, () => { apply({ key: id, doc: id, ag: 'prof', from, fee, days, data: {} }); return false; }) })));
 
   // ================= the phone app =================
   const myDocs = () => Object.keys(NEWD).filter(k => G24.rec(k));
