@@ -181,10 +181,12 @@ V23.add('v49_bank', () => {
   P.askOn = askOn;
   const quickBtn = ms => { const lm = V().lastM, m = lm && ms.find(x => x.k === lm && x.ok); return m && M[lm] ? `<div class="row"><button class="btn" data-a="p49m" data-v="${lm}">⚡ จ่ายด้วย${M[lm][1]}เหมือนครั้งก่อน</button></div>` : ''; };
   function ask(o) {
-    const prev = UI.cur ? { title: UI.cur.title, tabs: UI.cur.tabs, tab: UI.cur.tab, render: UI.cur.render, wide: UI.cur.wide } : null; pend = Object.assign({ prev }, o); P.demand = { amount: o.amount, label: o.label, payee: o.payee, fn: o.fn, day: S.day };
+    // v199: some payments (company capital and registration) may only be made by transfer / cheque / cashier's cheque: o.only (or the marker P.only set by the clicked button) lists the allowed ways
+    const only = o.only || P.only || null;
+    const prev = UI.cur ? { title: UI.cur.title, tabs: UI.cur.tabs, tab: UI.cur.tab, render: UI.cur.render, wide: UI.cur.wide } : null; pend = Object.assign({ prev }, o, { only }); P.demand = { amount: o.amount, label: o.label, payee: o.payee, fn: o.fn, day: S.day };
     UI.open('💳 เลือกวิธีชำระเงิน', null, () => {
-      const ms = methods(o.amount), high = o.amount >= HIGH;
-      return `${high ? highHelp(o.amount) : ''}<p class="lead">${esc(o.label || 'ชำระเงิน')} · <b>${baht(o.amount)}</b>${o.payee ? ` · ผู้รับ ${esc(o.payee)}` : ''}</p>
+      const ms = methods(o.amount).filter(m => !only || only.includes(m.k)), high = o.amount >= HIGH;
+      return `${high ? highHelp(o.amount) : ''}<p class="lead">${esc(o.label || 'ชำระเงิน')} · <b>${baht(o.amount)}</b>${o.payee ? ` · ผู้รับ ${esc(o.payee)}` : ''}</p>${only ? '<p class="dim">🏢 รายการนี้จ่ายได้เฉพาะ <b>โอนเงิน เช็ค หรือแคชเชียร์เช็ค</b> เท่านั้น (ไม่รับเงินสดและบัตร)</p>' : ''}
         <p class="dim">เงินสด ${baht(S._c)} · บัญชีออมทรัพย์ ${baht(Bank.st().sav)}${curAcct() ? ` · กระแสรายวัน ${baht(curAcct().bal)}` : ''}${high ? '<br>⚠️ ยอดตั้งแต่ 100,000 บาทต้องจ่ายด้วยเช็คหรือเบิกที่ธนาคารเท่านั้น' : ''}</p>
         ${quickBtn(ms)}<div class="grid">${ms.map(m => `<div class="card"><div class="ci">${M[m.k][0]}</div><div class="cb"><h4>${M[m.k][1]}</h4><p class="dim">${esc(m.why || '')}</p><div class="row"><button class="btn ${m.ok ? '' : 'ghost'}" data-a="p49m" data-v="${m.k}" ${m.ok ? '' : 'disabled'}>จ่ายด้วยวิธีนี้</button>${m.k === 'cheque' && !m.ok && topUp(o.amount) ? `<button class="btn" data-a="p49up">💸 โอนเข้ากระแสรายวัน ${baht(topUp(o.amount))} (จากออมทรัพย์)</button>` : ''}</div></div></div>`).join('')}</div>
         <div class="row end"><button class="btn ghost" data-a="p49c">ยกเลิก</button></div>`;
@@ -195,7 +197,7 @@ V23.add('v49_bank', () => {
   const gate = (fn, cancel, amt, kind) => { const run = () => (window.Otp169 && amt && window.Otp169.need(amt, kind) ? window.Otp169.ask(fn, cancel, amt) : fn()); return (kind !== 'card' && window.BankPlus && window.BankPlus.pinOn()) ? window.BankPlus.pin(run, cancel) : run(); };
   const needGate = (amt, kind) => (kind !== 'card' && window.BankPlus && window.BankPlus.pinOn()) || (window.Otp169 && window.Otp169.need(amt, kind));
   UI.H.p49m = d => {
-    const o = pend; if (!o) return; const ms = methods(o.amount).find(m => m.k === d.v); if (!ms || !ms.ok) return;
+    const o = pend; if (!o) return; if (o.only && !o.only.includes(d.v)) return; const ms = methods(o.amount).find(m => m.k === d.v); if (!ms || !ms.ok) return;
     const go = () => { pend = null; restore(o.prev); if (exec(d.v, o.amount, o.label, o.payee, o.fn)) P.demand = null; try { UI.renderBody(); } catch (e) { } };
     if (needSign(d.v)) window.Slip49.sign(signInfo(d.v, o.amount, o.label, o.payee), go, () => UI.H.p49c()); else if (d.v === 'app' || d.v === 'pp') gate(go, () => UI.H.p49c(), o.amount); else if (isCardM(d.v) && window.Otp169 && window.Otp169.need(o.amount, 'card')) gate(go, () => UI.H.p49c(), o.amount, 'card'); else go();
   };
