@@ -380,7 +380,7 @@ V23.add('gov24', () => {
       <h5>🚔 ใบสั่ง / ค่าปรับ</h5>${F.length ? F.map(f => `<p class="lead bad">${esc(f.what)} ${baht(f.amt)} (ครบกำหนด${RD(f.due)})</p>`).join('') : '<p class="empty">ไม่มีใบสั่งค้าง</p>'}
       <h5>🏘️ ภาษีที่ดิน</h5>${B.length ? B.map(f => `<p class="lead bad">${esc(f.what)} ${baht(f.amt)} (ครบกำหนด${RD(f.due)})</p>`).join('') : '<p class="empty">ไม่มีภาษีค้าง</p>'}`;
   };
-  const dirHtml = () => `<p class="lead">🏛️ ${hallWhere()} — ${OFFICES.length} หน่วยงานในอาคารเดียว (เดินเข้าไปที่เคาน์เตอร์แต่ละแห่ง) เวลาทำการ: จ-ศ 07:30–18:00 · ส 08:00–16:00 · วันหยุดราชการเปิดบางเคาน์เตอร์ 09:00–15:00</p><div class="grid">${OFFICES.map(o => `<div class="card"><div class="ci">${o.i}</div><div class="cb"><h4>${esc(o.n)}</h4><p class="dim">${esc(o.sv.map(s => s.n).join(' · '))}</p><p class="dim">${isOpen(o) ? '🟢' : '🔴'} ${hoursText(o)}</p></div></div>`).join('')}</div>`;
+  const dirHtml = () => `<p class="lead">🏛️ ${hallWhere()} — ${OFFICES.length + (window.Agency26 ? Agency26.agencies.length : 0)} หน่วยงานในอาคารเดียว (เดินเข้าไปที่เคาน์เตอร์แต่ละแห่ง) เวลาทำการ: จ-ศ 07:30–18:00 · ส 08:00–16:00 · วันหยุดราชการเปิดบางเคาน์เตอร์ 09:00–15:00</p><div class="grid">${OFFICES.map(o => `<div class="card"><div class="ci">${o.i}</div><div class="cb"><h4>${esc(o.n)}</h4><p class="dim">${esc(o.sv.map(s => s.n).join(' · '))}</p><p class="dim">${isOpen(o) ? '🟢' : '🔴'} ${hoursText(o)}</p></div></div>`).join('')}${(window.Agency26 ? Agency26.agencies : []).map(o => `<div class="card"><div class="ci">${o.i}</div><div class="cb"><h4>${esc(o.n)}</h4><p class="dim">${esc(o.sv.map(s => s.n).join(' · '))}</p><p class="dim">${Agency26.isOpen(o) ? '🟢' : '🔴'} ${(window.Hours36 ? Hours36.text(o.id) : '')}</p></div></div>`).join('')}</div>`;
   const onlineHtml = () => {
     const L = carList().filter(({ c }) => c.reg), F = finesDue(), B = unpaidBills();
     return `<p class="lead">บริการออนไลน์ (ตลอด 24 ชม. ต้องมีบัตรประชาชนที่ไม่หมดอายุ)</p>
@@ -394,12 +394,12 @@ V23.add('gov24', () => {
   if (typeof APP_GROUPS !== 'undefined') { const gr = APP_GROUPS.find(x => /บริการ/.test(x[0])) || APP_GROUPS[APP_GROUPS.length - 1]; if (gr) gr[1].unshift('gov24'); }
 
   // ================= the service centre building =================
-  ROOM_KIND.gov = { w: 32, d: 20, floor: 0xe8e0d0, wall: 0xfdf6e3, title: 'ศูนย์ราชการอำเภอสุขใจ' };
+  ROOM_KIND.gov = { w: 32, d: 34, floor: 0xe8e0d0, wall: 0xfdf6e3, title: 'ศูนย์ราชการอำเภอสุขใจ' };
   const _rb = Rooms.build;
   Rooms.build = function (def, K) {
     _rb.call(this, def, K);
     if (def.kind !== 'gov') return;
-    const g = this.group, X = RM0.x, Z = RM0.z, W = K.w, D = K.d, per = [9, 9, 8], zs = [-D / 2 + 2.6, -1.4, 4.6];
+    const g = this.group, X = RM0.x, Z = RM0.z, W = K.w, D = K.d, per = [9, 9, 8], zs = [-D / 2 + 2.6, -D / 2 + 8.6, -D / 2 + 14.6];
     const looks = ['toon:chic', 'toon:suit', 'Olivia', 'Erika', 'toon:civil', 'toon:jacket', 'Lydia', 'Kate'];
     let n = 0;
     for (let r = 0; r < 3; r++) for (let c = 0; c < per[r]; c++, n++) {
