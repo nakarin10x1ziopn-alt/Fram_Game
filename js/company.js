@@ -242,5 +242,7 @@ function coInject(c, n) {
   if (!c) return;
   if (!(n >= 1000)) { UI.toast('ใส่จำนวนเงินเพิ่มทุนอย่างน้อย 1,000 ฿', '⚠️'); return; }
   if (S.money < n) { UI.toast('เงินสดไม่พอ ต้องใช้ ' + baht(n), '💸'); return; }
-  S.money -= n; c.cash += n; c.paid += n; UI.toast('เพิ่มทุนเข้าบริษัท ' + baht(n), '💰');
+  // the money always goes into the company account; paid-up capital can not pass the registered capital (which stays as it is)
+  const room = Math.max(0, (c.cap || 0) - (c.paid || 0)), toPaid = Math.min(n, room);
+  S.money -= n; c.cash += n; c.paid += toPaid; UI.toast('เพิ่มทุนเข้าบริษัท ' + baht(n) + (toPaid < n ? ` (ทุนชำระแล้วเพิ่มได้อีก ${baht(room)} ตามทุนจดทะเบียน)` : ''), '💰');
 }
