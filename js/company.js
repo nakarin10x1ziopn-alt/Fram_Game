@@ -186,7 +186,7 @@ const Company = {
     const stName = { name: '🕓 รออนุมัติชื่อ', named: '📜 จองชื่อแล้ว รอจดทะเบียน', reg: '🕓 นายทะเบียนกำลังพิจารณา', setup: '🛠️ จดทะเบียนแล้ว กำลังเตรียมเปิด', open: '🟢 เปิดดำเนินการ' }[c.st];
     return `<div class="row">${L.map(x => `<button class="btn ${x.id === c.id ? '' : 'ghost'}" data-a="cosel" data-v="${x.id}">${CO_TYPES[x.type].i} ${esc(x.name)}</button>`).join('')}</div>
       <p class="lead">${T.i} <b>${esc(c.name)}</b> · ${stName}${c.regNo ? ` · เลขนิติบุคคล ${c.regNo}` : ''}${c.cap ? ` · ทุน ${baht(c.cap)} ชำระแล้ว ${baht(c.paid)} · ผู้ถือหุ้น: คุณ, ${esc(c.partner)}` : ''}${c.site ? ` · ที่ตั้ง: ${CO_SITES[c.site].n}` : ''}</p>
-      ${['setup', 'open'].includes(c.st) ? `<p class="lead">💰 บัญชีบริษัท ${baht(Math.round(c.cash))} · ชื่อเสียง ${c.rep}/100 · กำไรสะสมปีนี้ ${baht(Math.round(c.ytd))} <button class="btn ghost" data-a="coinject" data-v="${c.id}">เพิ่มทุน 100,000</button><button class="btn ghost" data-a="codiv" data-v="${c.id}">ปันผล 100,000 (หัก 10%)</button></p>
+      ${['setup', 'open'].includes(c.st) ? `<p class="lead">💰 บัญชีบริษัท ${baht(Math.round(c.cash))} · ชื่อเสียง ${c.rep}/100 · กำไรสะสมปีนี้ ${baht(Math.round(c.ytd))} <button class="btn ghost" data-a="coinject" data-v="${c.id}" data-p="5000000">เพิ่มทุน 5,000,000</button><button class="btn ghost" data-a="coinject" data-v="${c.id}" data-p="10000000">เพิ่มทุน 10,000,000</button><input id="coamt${c.id}" inputmode="numeric" placeholder="จำนวนเอง ฿" style="width:8em;font-size:14px;padding:6px;border-radius:10px;border:1px solid #ccc"><button class="btn ghost" data-a="coinjectx" data-v="${c.id}">เพิ่มทุนตามจำนวน</button><button class="btn ghost" data-a="codiv" data-v="${c.id}">ปันผล 100,000 (หัก 10%)</button></p>
       <h5>เงื่อนไขก่อนเปิดดำเนินการ</h5><ul class="lead">${ch.map(([ok, t]) => `<li>${ok ? '✅' : '❌'} ${esc(t)}</li>`).join('')}</ul>
       <div class="row">${c.st === 'setup' ? `<button class="btn" data-a="coopen" data-v="${c.id}" ${ready ? '' : 'disabled'}>เปิดดำเนินการ</button>` : ''}<button class="btn ghost" data-a="cosec" data-v="${c.id}">ผังเครือข่าย/กล้องที่บริษัท</button><button class="btn ghost" data-a="cogrid">ขอไฟฟ้าที่การไฟฟ้า</button></div>
       <h5>ใบอนุญาต</h5><div class="row">${['vat', ...T.lic].map(k => `<button class="btn ${c.lic[k] ? 'ghost' : ''}" data-a="colic" data-v="${c.id}" data-k="${k}" ${c.lic[k] || c.licApp[k] ? 'disabled' : ''}>${c.lic[k] ? '✅ ' : c.licApp[k] ? '🕓 ' : ''}${CO_LIC[k].n}${!c.lic[k] && !c.licApp[k] ? ` (${baht(CO_LIC[k].fee)}, ${CO_LIC[k].days} วัน)` : ''}</button>`).join('')}${c.staff.length && !c.lic.sso ? `<button class="btn" data-a="cosso" data-v="${c.id}">ขึ้นทะเบียนนายจ้างประกันสังคม</button>` : ''}</div>
@@ -215,7 +215,8 @@ Object.assign(UI.H, {
   coeq: d => { const c = Company.get(d.v), X = CO_EQ[d.k]; if (!['setup', 'open'].includes(c.st)) return; if (!pay(c, X.price)) return; c.eq[d.k] = (c.eq[d.k] || 0) + 1; UI.toast('จัดซื้อ ' + X.n + ' แล้ว', '📦'); },
   cohire: d => { const c = Company.get(d.v); if (!['setup', 'open'].includes(c.st)) return; c.staff.push({ r: d.k, sal: ROLES[d.k].sal, name: U.pick(STAFF_NAMES) }); UI.toast(`จ้าง${ROLES[d.k].n}แล้ว (อย่าลืมขึ้นทะเบียนประกันสังคม)`, '🤝'); },
   cofire: d => { const c = Company.get(d.v), s = c.staff[+d.k]; if (!s) return; if (pay(c, s.sal)) { c.staff.splice(+d.k, 1); UI.toast('เลิกจ้างแล้ว จ่ายค่าชดเชยตามกฎหมายแรงงาน 1 เดือน', '📄'); } },
-  coinject: d => { const c = Company.get(d.v); if (S.money < 100000) { UI.toast('เงินสดไม่พอ ต้องใช้ ' + baht(100000), '💸'); return; } S.money -= 100000; c.cash += 100000; c.paid += 100000; UI.toast('เพิ่มทุนเข้าบริษัท 100,000 ฿', '💰'); },
+  coinject: d => coInject(Company.get(d.v), +d.p),
+  coinjectx: d => coInject(Company.get(d.v), +String((document.getElementById('coamt' + d.v) || {}).value || '').replace(/[^0-9]/g, '')),
   codiv: d => { const c = Company.get(d.v); if (c.cash < 100000 || c.ytd <= 0) { UI.toast('จ่ายปันผลได้เมื่อบริษัทมีกำไรและเงินพอ', '💰'); return; } c.cash -= 100000; earn(90000); Bank2.income('เงินปันผลบริษัท (หักภาษี ณ ที่จ่าย 10%)', 90000); },
   coclose: d => { const c = Company.get(d.v); const back = Math.max(0, Math.round(c.cash - 20000)); c.st = 'closed'; if (back) { earn(back); Bank2.income('คืนทุนหลังชำระบัญชี', back); } UI.toast(`จดทะเบียนเลิกบริษัทและชำระบัญชีแล้ว ได้เงินคืน ${baht(back)}`, '📕'); },
   cosec: d => { UI.close(); Sec.ui('co:' + d.v); },
@@ -235,3 +236,11 @@ const SIMs = {
 };
 Object.assign(UI.H, { simadd: d => SIMs.add(d.v, d.k), simdel: d => { SIMs.list().splice(+d.v, 1); SIMs.sync(); } });
 { const _h = ISP.html.bind(ISP); ISP.html = t => _h(t) + (t === 1 ? SIMs.html() : ''); }
+
+// v198: capital injection by the owner: any amount (typed or one of the quick buttons), taken from the cash in hand, goes to the company account and to paid-up capital
+function coInject(c, n) {
+  if (!c) return;
+  if (!(n >= 1000)) { UI.toast('ใส่จำนวนเงินเพิ่มทุนอย่างน้อย 1,000 ฿', '⚠️'); return; }
+  if (S.money < n) { UI.toast('เงินสดไม่พอ ต้องใช้ ' + baht(n), '💸'); return; }
+  S.money -= n; c.cash += n; c.paid += n; UI.toast('เพิ่มทุนเข้าบริษัท ' + baht(n), '💰');
+}
