@@ -48,6 +48,8 @@ function loadState() {
     const out = Object.assign(d, s);
     for (const k of ['up', 'stats', 'decor', 'can', 'weather', 'p', 'tips']) out[k] = Object.assign(newState()[k], s[k] || {});
     out.decor.hide = out.decor.hide || {};
+    // v196: a hole (null / undefined) inside a list of things left by an old bug must never stop the game from loading ("undefined is not an object (evaluating 'a.x')")
+    for (const k of ['animals', 'cars', 'plots']) if (Array.isArray(out[k])) out[k] = out[k].filter(x => x != null && typeof x === 'object');
     return out;
   } catch (e) { return null; }
 }
@@ -1601,7 +1603,21 @@ function startGame(fresh) {
   else if (!S.tips.welcome) { S.tips.welcome = 1; setTimeout(() => UI.help(), 400); }
   setTimeout(() => Tutorial.start(false), 1500);
 }
+// v196: a load failure (usually old and new game files mixed in the browser cache of a phone / iPad) repairs itself: the app cache and the service worker are cleared (the SAVE is never touched) and the page reloads once;
+// if it still fails a button does the same. Players no longer have to clear their browsing data (which also deletes the save).
+function recoverCache() {
+  try { sessionStorage.setItem('raisukjai_recov', String(Date.now())); } catch (e) { }
+  const jobs = [];
+  try { if (navigator.serviceWorker) jobs.push(navigator.serviceWorker.getRegistrations().then(rs => Promise.all(rs.map(r => r.unregister())))); } catch (e) { }
+  try { if (window.caches) jobs.push(caches.keys().then(ks => Promise.all(ks.filter(k => k.indexOf('raisukjai') === 0).map(k => caches.delete(k))))); } catch (e) { }
+  return Promise.all(jobs.map(j => j.catch(() => { }))).then(() => location.reload());
+}
 window.addEventListener('load', () => boot().catch(e => {
   console.error(e);
-  document.getElementById('loadMsg').textContent = 'โหลดเกมไม่สำเร็จ: ' + e.message;
+  const m = document.getElementById('loadMsg'); m.textContent = 'โหลดเกมไม่สำเร็จ: ' + e.message;
+  try { window.__bootErr = String(e && e.stack || e).split(String.fromCharCode(10)).slice(0, 4).join(' | ').slice(0, 400); } catch (x) { }
+  let last = 0; try { last = +sessionStorage.getItem('raisukjai_recov') || 0; } catch (x) { }
+  if (!last || Date.now() - last > 60000) { m.textContent += ' · กำลังซ่อมแอปให้อัตโนมัติ (เซฟไม่หาย)...'; setTimeout(recoverCache, 800); return; }
+  const b = document.createElement('button'); b.className = 'btn'; b.textContent = '🔧 ซ่อมแล้วลองใหม่ (เซฟไม่หาย)'; b.style.marginTop = '10px'; b.onclick = () => recoverCache(); m.appendChild(document.createElement('br')); m.appendChild(b);
+  if (window.__bootErr) { const d = document.createElement('div'); d.style.cssText = 'font-size:10px;opacity:.6;margin-top:8px;max-width:90vw;word-break:break-all'; d.textContent = window.__bootErr; m.appendChild(d); }
 }));
