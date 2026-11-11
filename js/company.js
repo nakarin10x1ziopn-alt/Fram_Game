@@ -16,13 +16,28 @@ Object.assign(METERS, {
   tr2000: { n: 'หม้อแปลงเฉพาะราย 2,000 kVA (22 kV)', kw: 1600, fee: 260000, dep: 1100000, mv: 1, kva: 2000 },
 });
 // business internet (per company site) and data SIM plans
+// tier: S small business (shop, SME) · M medium · L large (enterprise) · X data-centre / carrier level (v202: many more plans in every tier)
+const BIZ_TIERS = [['S', '🏪 ธุรกิจขนาดเล็ก (ร้านค้า · SME เริ่มต้น)'], ['M', '🏢 ธุรกิจขนาดกลาง (สำนักงาน · หลายสาขา)'], ['L', '🏭 ธุรกิจขนาดใหญ่ (องค์กร · โรงงาน)'], ['X', '🗄️ ระดับดาต้าเซ็นเตอร์ / ผู้ให้บริการ']];
 const BIZ_NET = {
-  bfib: { n: 'ไฟเบอร์ธุรกิจ 1Gbps + Fixed IP', down: 1000, up: 500, price: 1990, days: 1 },
-  dia1: { n: 'Dedicated Internet (DIA) 1 Gbps SLA 99.9%', down: 1000, up: 1000, price: 25000, days: 2, router: 1 },
-  dia10: { n: 'DIA 10 Gbps SLA 99.95%', down: 10000, up: 10000, price: 150000, days: 3, fw: 1 },
-  dia20: { n: 'DIA 20 Gbps (2 เส้นทางสำรองกัน)', down: 20000, up: 20000, price: 260000, days: 3, fw: 1 },
-  dia100: { n: 'IP Transit 100 Gbps (ระดับดาต้าเซ็นเตอร์)', down: 100000, up: 100000, price: 1100000, days: 4, fw: 1, dc: 1 },
-  dia500: { n: 'IP Transit 500 Gbps (ระดับผู้ให้บริการ)', down: 500000, up: 500000, price: 4500000, days: 5, fw: 1, dc: 1 },
+  sfib100: { tier: 'S', n: 'ไฟเบอร์ธุรกิจ SOHO 100/100 Mbps + IP คงที่ 1 ตัว', down: 100, up: 100, price: 890, days: 1 },
+  sfib300: { tier: 'S', n: 'ไฟเบอร์ธุรกิจ SME 300/300 Mbps + IP คงที่ 1 ตัว', down: 300, up: 300, price: 1290, days: 1 },
+  sfib500: { tier: 'S', n: 'ไฟเบอร์ธุรกิจ SME 500/500 Mbps + IP คงที่ 2 ตัว', down: 500, up: 500, price: 1590, days: 1 },
+  s5gb: { tier: 'S', n: 'เน็ต 5G ธุรกิจ 300/60 Mbps (สายสำรอง ไม่ต้องรอช่าง)', down: 300, up: 60, price: 1490, days: 1 },
+  bfib: { tier: 'M', n: 'ไฟเบอร์ธุรกิจ 1Gbps + Fixed IP', down: 1000, up: 500, price: 1990, days: 1 },
+  bfib2: { tier: 'M', n: 'ไฟเบอร์ธุรกิจ 2 Gbps + IP คงที่ 8 ตัว SLA 8 ชม.', down: 2000, up: 1000, price: 4900, days: 2 },
+  dia500m: { tier: 'M', n: 'DIA 500 Mbps SLA 99.9% (สายเฉพาะไม่แชร์)', down: 500, up: 500, price: 12500, days: 2, router: 1 },
+  sdwan: { tier: 'M', n: 'วงจรเชื่อมสาขา SD-WAN/MPLS 500 Mbps (ทุกสาขา)', down: 500, up: 500, price: 18000, days: 3, router: 1 },
+  bfib5: { tier: 'M', n: 'ไฟเบอร์ธุรกิจ 5 Gbps SLA 99.5%', down: 5000, up: 2500, price: 9900, days: 2, router: 1 },
+  dia1: { tier: 'M', n: 'Dedicated Internet (DIA) 1 Gbps SLA 99.9%', down: 1000, up: 1000, price: 25000, days: 2, router: 1 },
+  dia2: { tier: 'L', n: 'DIA 2 Gbps SLA 99.9% + BGP', down: 2000, up: 2000, price: 46000, days: 3, router: 1 },
+  dia5: { tier: 'L', n: 'DIA 5 Gbps SLA 99.95% + BGP', down: 5000, up: 5000, price: 95000, days: 3, router: 1 },
+  dia10: { tier: 'L', n: 'DIA 10 Gbps SLA 99.95%', down: 10000, up: 10000, price: 150000, days: 3, fw: 1 },
+  dia20: { tier: 'L', n: 'DIA 20 Gbps (2 เส้นทางสำรองกัน)', down: 20000, up: 20000, price: 260000, days: 3, fw: 1 },
+  dia40: { tier: 'L', n: 'DIA 40 Gbps (4 เส้นทางสำรองกัน SLA 99.99%)', down: 40000, up: 40000, price: 480000, days: 4, fw: 1 },
+  dia100: { tier: 'X', n: 'IP Transit 100 Gbps (ระดับดาต้าเซ็นเตอร์)', down: 100000, up: 100000, price: 1100000, days: 4, fw: 1, dc: 1 },
+  dia200: { tier: 'X', n: 'IP Transit 200 Gbps (2 × 100G)', down: 200000, up: 200000, price: 2000000, days: 5, fw: 1, dc: 1 },
+  dia500: { tier: 'X', n: 'IP Transit 500 Gbps (ระดับผู้ให้บริการ)', down: 500000, up: 500000, price: 4500000, days: 5, fw: 1, dc: 1 },
+  dia1t: { tier: 'X', n: 'IP Transit 1 Tbps (ระดับ Tier-1 ผู้ให้บริการ)', down: 1000000, up: 1000000, price: 8500000, days: 6, fw: 1, dc: 1 },
 };
 const SIM_PLANS = { s10: { n: 'ซิมเน็ต 10GB/เดือน', gb: 10, price: 150 }, s20: { n: 'ซิมเน็ต 20GB/เดือน', gb: 20, price: 220 }, s100: { n: 'ซิมเน็ต 100GB/เดือน', gb: 100, price: 450 }, s500: { n: 'ซิมเน็ต 500GB/เดือน', gb: 500, price: 899 } };
 const CO_SITES = {
@@ -191,7 +206,7 @@ const Company = {
       <div class="row">${c.st === 'setup' ? `<button class="btn" data-a="coopen" data-v="${c.id}" ${ready ? '' : 'disabled'}>เปิดดำเนินการ</button>` : ''}<button class="btn ghost" data-a="cosec" data-v="${c.id}">ผังเครือข่าย/กล้องที่บริษัท</button><button class="btn ghost" data-a="cogrid">ขอไฟฟ้าที่การไฟฟ้า</button></div>
       <h5>ใบอนุญาต</h5><div class="row">${['vat', ...T.lic].map(k => `<button class="btn ${c.lic[k] ? 'ghost' : ''}" data-a="colic" data-v="${c.id}" data-k="${k}" ${c.lic[k] || c.licApp[k] ? 'disabled' : ''}>${c.lic[k] ? '✅ ' : c.licApp[k] ? '🕓 ' : ''}${CO_LIC[k].n}${!c.lic[k] && !c.licApp[k] ? ` (${baht(CO_LIC[k].fee)}, ${CO_LIC[k].days} วัน)` : ''}</button>`).join('')}${c.staff.length && !c.lic.sso ? `<button class="btn" data-a="cosso" data-v="${c.id}">ขึ้นทะเบียนนายจ้างประกันสังคม</button>` : ''}</div>
       <h5>ระบบไฟฟ้าภายในอาคาร</h5><div class="row">${c.elec ? `<span class="dim">✅ ${c.elec === 'mv' ? 'หม้อแปลงแรงสูงพร้อม' : 'ระบบไฟฟ้าแรงต่ำ 3 เฟสพร้อม'}</span>` : ''}${c.elec !== 'mv' ? `<button class="btn ghost" data-a="coelec" data-v="${c.id}" data-k="${c.elec ? 'mv' : 'lv'}">${c.elec ? 'ติดตั้งหม้อแปลง+ไฟแรงสูง 1,250,000 ฿' : 'เดินระบบไฟอาคาร 3 เฟส 85,000 ฿'}</button>${!c.elec ? `<button class="btn ghost" data-a="coelec" data-v="${c.id}" data-k="mv">ทำระบบแรงสูง+หม้อแปลงเลย 1,250,000 ฿</button>` : ''}` : ''}</div>
-      <h5>อินเทอร์เน็ตธุรกิจ</h5><div class="row">${Object.entries(BIZ_NET).map(([k, X]) => `<button class="btn ${c.net === k ? '' : 'ghost'}" data-a="conet" data-v="${c.id}" data-k="${k}" ${c.net === k || (c.netWait && c.netWait.k === k) ? 'disabled' : ''}>${X.n} · ${baht(X.price)}/เดือน</button>`).join('')}</div>
+      <h5>อินเทอร์เน็ตธุรกิจ</h5>${BIZ_TIERS.map(([tk, tn]) => `<p class="dim" style="margin:8px 0 2px"><b>${tn}</b></p><div class="row">${Object.entries(BIZ_NET).filter(([, X]) => X.tier === tk).map(([k, X]) => `<button class="btn ${c.net === k ? '' : 'ghost'}" data-a="conet" data-v="${c.id}" data-k="${k}" ${c.net === k || (c.netWait && c.netWait.k === k) ? 'disabled' : ''}>${X.n} · ${baht(X.price)}/เดือน${X.fw ? ' · ต้องมีไฟร์วอลล์ 10G' : X.router ? ' · ต้องมีเราเตอร์' : ''}${X.dc ? ' · เฉพาะดาต้าเซ็นเตอร์' : ''}</button>`).join('')}</div>`).join('')}
       <h5>อุปกรณ์/ทรัพย์สิน</h5><div class="row">${Object.entries(CO_EQ).filter(([k]) => T.eq[k] != null || ['ws', 'evac', 'gen', 'tools'].includes(k)).map(([k, X]) => `<button class="btn ghost" data-a="coeq" data-v="${c.id}" data-k="${k}" ${!CO_EQ[k].multi && c.eq[k] ? 'disabled' : ''}>${X.n} ${baht(X.price)}${c.eq[k] ? ' (มี ' + c.eq[k] + ')' : ''}</button>`).join('')}</div>
       <h5>พนักงาน ${c.staff.length} คน</h5><div class="row">${Object.keys(T.staff).concat(['admin', 'guard']).filter((v, i, a) => a.indexOf(v) === i).map(r => `<button class="btn ghost" data-a="cohire" data-v="${c.id}" data-k="${r}">จ้าง${ROLES[r].n} ${baht(ROLES[r].sal)}/เดือน</button>`).join('')}</div>
       ${c.staff.length ? `<p class="dim">${c.staff.map((s, i) => `${esc(s.name)} (${ROLES[s.r].n}) <button class="btn ghost" data-a="cofire" data-v="${c.id}" data-k="${i}">เลิกจ้าง</button>`).join(' · ')}</p>` : ''}

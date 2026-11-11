@@ -32,9 +32,16 @@ V23.add('v36_net', () => {
     satl: { isp: 'sky', n: 'ดาวเทียม Lite 100/10 Mbps', down: 100, up: 10, price: 1490, router: 'จาน + เราเตอร์ WiFi', contract: 0, sat: 1, setup: 12900 },
     sats: { isp: 'sky', n: 'ดาวเทียม Standard 200/20 Mbps', down: 200, up: 20, price: 1990, router: 'จาน + เราเตอร์ WiFi 6', contract: 0, sat: 1, setup: 14900 },
     satp: { isp: 'sky', n: 'ดาวเทียม Priority 350/40 Mbps', down: 350, up: 40, price: 3990, router: 'จานแบน + เราเตอร์ WiFi 6', contract: 0, sat: 1, setup: 14900 },
+    bsoho: { isp: 'biz', n: 'วงจรธุรกิจ SOHO 50/50 Mbps + IP คงที่ 1 ตัว (ร้านเล็ก)', down: 50, up: 50, price: 1900, router: 'เราเตอร์ธุรกิจ', contract: 12, biz: 1 },
+    bwl: { isp: 'biz', n: 'เน็ต 5G/4G ธุรกิจสายสำรอง 200/50 Mbps (150GB)', down: 200, up: 50, price: 1990, router: '5G CPE ธุรกิจ', contract: 12, biz: 1, wireless: 1, cap: 150 },
     b100: { isp: 'biz', n: 'วงจรธุรกิจ 100/100 Mbps SLA 4 ชม. + IP คงที่', down: 100, up: 100, price: 4500, router: 'เราเตอร์ธุรกิจ', contract: 12, biz: 1 },
+    b300: { isp: 'biz', n: 'วงจรธุรกิจ SME 300/300 Mbps SLA 8 ชม. + IP คงที่ 2 ตัว', down: 300, up: 300, price: 5900, router: 'เราเตอร์ธุรกิจ', contract: 12, biz: 1 },
+    b500: { isp: 'biz', n: 'วงจรธุรกิจ 500/500 Mbps SLA 4 ชม. + IP คงที่ 4 ตัว', down: 500, up: 500, price: 8900, router: 'เราเตอร์ธุรกิจ + สวิตช์', contract: 12, biz: 1 },
     b1g: { isp: 'biz', n: 'วงจรธุรกิจ 1 Gbps SLA + IP คงที่ 5 ตัว', down: 1000, up: 1000, price: 14900, router: 'เราเตอร์ธุรกิจ + สวิตช์', contract: 24, biz: 1 },
+    b2g: { isp: 'biz', n: 'วงจรธุรกิจ 2 Gbps SLA 99.9% + IP คงที่ 8 ตัว', down: 2000, up: 2000, price: 29000, router: 'เราเตอร์ธุรกิจ 10G + สวิตช์', contract: 24, biz: 1 },
+    b5g: { isp: 'biz', n: 'วงจรธุรกิจ 5 Gbps เฉพาะ SLA 99.95%', down: 5000, up: 5000, price: 42000, router: 'เราเตอร์ Carrier 10G', contract: 24, biz: 1 },
     b10g: { isp: 'biz', n: 'วงจรธุรกิจ 10 Gbps เฉพาะ (Dedicated)', down: 10000, up: 10000, price: 59000, router: 'เราเตอร์ Carrier 10G', contract: 36, biz: 1 },
+    b20g: { isp: 'biz', n: 'วงจรธุรกิจ 20 Gbps เฉพาะ 2 เส้นทางสำรอง', down: 20000, up: 20000, price: 118000, router: 'เราเตอร์ Carrier 100G', contract: 36, biz: 1 },
   };
   for (const k in PK) NET_PKGS[k] = PK[k];
 
