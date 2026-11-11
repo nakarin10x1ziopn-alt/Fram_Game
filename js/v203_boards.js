@@ -221,7 +221,7 @@ V23.add('v203_boards', () => {
     eqsell: d => sell(d.v, +d.p),
     eqxfer: d => xfer(d.v, ($('xfWho') || {}).value, +($('xfPct') || {}).value, d.g === '1'),
     bdopen: d => { U2.key = d.v; if (UI.cur) UI.cur.tab = 2; },
-    bdadd: () => { const k = U2.key, v = String(($('bdAg') || {}).value || '').split('|'); if (!k || !v[0]) return; const d = st().draft[k] = st().draft[k] || []; if (d.length >= 4) { UI.toast('เพิ่มวาระได้ไม่เกิน 4 วาระ', '🗓️'); return; } const o = AG[v[0]].opts.find(x => String(x.v) === v[1]); d.push({ t: v[0], v: o ? o.v : +v[1] }); },
+    bdadd: () => { const k = U2.key, v = String(($('bdAg') || {}).value || '').split('|'); if (!k || !v[0]) return; const d = st().draft[k] = st().draft[k] || []; if (d.length >= 4) { UI.toast('เพิ่มวาระได้ไม่เกิน 4 วาระ', '🗓️'); return; } const o = AG[v[0]].opts.find(x => String(x.v) === v[1]); const it = { t: v[0], v: o ? o.v : +v[1] }, ex = d.findIndex(x => x.t === it.t); if (ex >= 0) d[ex] = it; else d.push(it); },
     bdrm: d => { const L = st().draft[U2.key] || []; L.splice(+d.i, 1); },
     bdsend: () => { const k = U2.key, d = st().draft[k] || [], dd = +(($('bdDay') || {}).value || 3); if (!k || !d.length) return; if (!k.startsWith('co:') && holders(k).me < 0.1) { UI.toast('ต้องถือหุ้นอย่างน้อย 10% จึงเรียกประชุมได้', '🗓️'); return; } mk(k, d, S.day + Math.max(3, dd), 'me'); st().draft[k] = []; UI.toast('ส่งหนังสือนัดประชุมแล้ว วันประชุมจะมีข้อความแจ้งเตือน', '🗓️'); },
     bdvote: d => { const m = st().mt.find(x => x.id == d.v); if (m) m.votes[+d.i] = d.y === '1'; },

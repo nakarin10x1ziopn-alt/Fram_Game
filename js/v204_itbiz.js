@@ -48,6 +48,10 @@ V23.add('v204_itbiz', () => {
     else if (/^shop/.test(k)) add(k, SHOPK);
     else add(k, BIG);
   }
+  // 11 older types (bakery, noodle shop, tea, catering, web agency, app studio, data, IT outsource, smart home, courier, moving) had no premises they could be registered at: give each the same sites as the type it is based on
+  const BASE = { bakery: 'cafe', noodle: 'cafe', tea: 'cafe', catering: 'cafe', webag: 'it', appdev: 'it', data: 'it', itsupport: 'it', smarti: 'sec', courier: 'logistics', moving: 'logistics' };
+  for (const [k, b] of Object.entries(BASE)) if (CO_TYPES[k]) for (const s of Object.keys(CO_SITES)) if (CO_SITES[s].kinds.includes(b)) add(s, [k]);
+  for (const k of Object.keys(CO_TYPES)) if (!Object.values(CO_SITES).some(x => x.kinds.includes(k))) add('office', [k]);   // anything else still gets an office
   // opening companies is not limited, and a co-shareholder is always available (an independent investor when no friend is close enough)
   if (!Company.partners.__v204) { const _p = Company.partners.bind(Company); Company.partners = () => { const L = _p(); if (!L.includes('นักลงทุนอิสระ')) L.push('นักลงทุนอิสระ'); return L; }; Company.partners.__v204 = 1; }
 });
