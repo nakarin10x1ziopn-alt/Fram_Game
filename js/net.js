@@ -27,6 +27,12 @@ const Net = {
     }));
     this.cloudAt = Date.now();
   },
+  // the "save" button in the settings: wait for any upload in progress, then upload the current save and report whether it really reached the server
+  async saveNow() {
+    if (!this.cloud) return null;
+    try { let n = 0; while (this.inflight && n++ < 5) await this.inflight; this.saveT = 0; await this.saveRemote(true); } catch (e) { this.cloudErr = String(e && e.message || e); }
+    return !this.cloudErr;
+  },
   id() {
     if (this.cloud) return this.cloudId(Slots.cur());
     let id = safeGet('raisukjai3d_pid');
