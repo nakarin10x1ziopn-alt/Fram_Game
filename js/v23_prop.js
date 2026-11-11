@@ -103,7 +103,9 @@ const Prop23 = {
     for (const c of Company.list()) {
       const T = CO_TYPES[c.type] || { i: '🏢' }, g = CoMap.g[c.id];
       const st = { name: 'จองชื่อแล้ว', named: 'ชื่อผ่านแล้ว', reg: 'จดทะเบียนแล้ว', setup: 'กำลังเตรียมสถานที่', open: 'เปิดดำเนินการ' }[c.st] || c.st;
-      if (g) L.push({ k: 'co:' + c.id, i: T.i, n: c.name, d: `บริษัท · ${st}`, x: g.poi.x, z: g.poi.z });
+      const tw = (typeof CO_SITES !== 'undefined' && CO_SITES[c.site] && CO_SITES[c.site].town) || null;
+      if (g) L.push({ k: 'co:' + c.id, i: T.i, n: c.name, d: `บริษัท · ${st}${tw ? ' · ' + Town2.areas[tw].n : ''}`, x: g.poi.x, z: g.poi.z, away: tw });
+      else if (tw && ['setup', 'open'].includes(c.st) && CoMap.doorOf(c)) { const dr = CoMap.doorOf(c); L.push({ k: 'co:' + c.id, i: T.i, n: c.name, d: `บริษัท · ${st} · ${Town2.areas[tw].n}`, x: dr.x, z: dr.z, away: tw }); }
       else if (c.site === 'home') L.push({ k: 'co:' + c.id, i: T.i, n: c.name, d: `บริษัท · ${st} · ที่ทำการอยู่ที่บ้านของคุณ`, x: hd.x, z: hd.z });
       else L.push({ k: 'co:' + c.id, i: T.i, n: c.name, d: `บริษัท · ${st} · ยังไม่มีสถานที่ตั้ง (เลือกสถานที่ตอนเตรียมสำนักงาน)`, x: null, z: null });
     }
@@ -118,6 +120,12 @@ const Prop23 = {
     if (G.driving) { UI.toast('ลงจากรถก่อนเรียกแท็กซี่', '🚕'); return; }
     const fee = this.fare(p.x, p.z); if (S.money < fee) { UI.toast(`ค่าแท็กซี่ ${baht(fee)} เงินไม่พอ`, '💸'); return; }
     S.money -= fee; Bank2.log('ค่าแท็กซี่ไป ' + p.n, -fee); Phone.app = null; UI.close();
+    if (p.away) {   // a company in another town: build the town if it is the first visit, enter it, and arrive at the company door
+      try { Town3.ensure(p.away); } catch (e) { }
+      const A = Town2.areas[p.away];
+      fade(() => { leaveIndoors(); if (G.away && G.away !== A) G.away.g.visible = false; tick(90); G.away = A; A.g.visible = true; G.player.pos.set(p.x, A.y || 0, p.z); G.player.rot = 0; snapCam(); UI.toast(`แท็กซี่ส่งถึง ${p.n} แล้ว (${baht(fee)})`, '🚕'); });
+      return;
+    }
     fade(() => {
       if (typeof Town2 !== 'undefined' && G.away) Town2.leaveAway(true);
       leaveIndoors(); tick(Math.max(5, Math.round(fee / 4)));

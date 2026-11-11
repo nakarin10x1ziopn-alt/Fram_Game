@@ -13,21 +13,38 @@ const CO_SPOTS = {
 for (const L of Object.values(CO_SPOTS)) for (const p of L) FLAT_PADS.push({ x: p.x, z: p.z, r: 14 });
 ROOM_KIND.office = { w: 14, d: 11, floor: 0xcfd8dc, wall: 0xf5f5f5, title: 'สำนักงาน' };
 
+// v195: premises in the towns that still exist (สุขนครมหานคร / สวนทองเมือง / บ้านทุ่งทานตะวัน): site key = <kind>_<town>, positions are offsets from the town centre (checked free of roads, buildings and colliders)
+const CO_TOWN_SPOTS = {
+  office_metro: [{ town: 'metro', dx: -78, dz: 34, rot: Math.PI / 2 }, { town: 'metro', dx: -78, dz: 48, rot: Math.PI / 2 }],
+  land_metro: [{ town: 'metro', dx: -76, dz: -34, rot: Math.PI / 2 }],
+  shop_metro: [{ town: 'metro', dx: 78, dz: -24, rot: -Math.PI / 2 }, { town: 'metro', dx: 74, dz: 0, rot: -Math.PI / 2 }],
+  factory_metro: [{ town: 'metro', dx: 74, dz: -46, rot: -Math.PI / 2 }],
+  office_orchard: [{ town: 'orchard', dx: -60, dz: -26, rot: Math.PI / 2 }],
+  land_orchard: [{ town: 'orchard', dx: -58, dz: -56, rot: Math.PI / 2 }],
+  shop_orchard: [{ town: 'orchard', dx: 60, dz: -50, rot: -Math.PI / 2 }, { town: 'orchard', dx: 60, dz: -22, rot: -Math.PI / 2 }],
+  office_sunflower: [{ town: 'sunflower', dx: 60, dz: -42, rot: -Math.PI / 2 }],
+  shop_sunflower: [{ town: 'sunflower', dx: -60, dz: -58, rot: Math.PI / 2 }, { town: 'sunflower', dx: -60, dz: -44, rot: Math.PI / 2 }],
+};
+const coBase = site => String(site || '').split('_')[0];
 const CoMap = {
   g: {},
   spotOf(c) {
     if (!c.site || c.site === 'home') return null;
+    const L = CO_SPOTS[c.site] || CO_TOWN_SPOTS[c.site]; if (!L) return null;
     const used = Company.list().filter(o => o !== c && o.site === c.site && o.spot != null).map(o => o.spot);
-    if (c.spot == null) { const i = CO_SPOTS[c.site].findIndex((_, k) => !used.includes(k)); if (i < 0) return null; c.spot = i; }
-    return CO_SPOTS[c.site][c.spot];
+    if (c.spot == null) { const i = L.findIndex((_, k) => !used.includes(k)); if (i < 0) return null; c.spot = i; }
+    const p = L[c.spot]; if (!p) return null;
+    if (p.town) { const A = Town2.areas[p.town]; if (!A) return null; return { x: A.cx + p.dx, z: A.cz + p.dz, rot: p.rot, town: p.town }; }
+    return p;
   },
   draw(c) {
-    if (this.g[c.id]) { World.outdoor.remove(this.g[c.id].g); this.g[c.id].cols.forEach(x => Col.remove(x)); const i = World.pois.indexOf(this.g[c.id].poi); if (i >= 0) World.pois.splice(i, 1); delete this.g[c.id]; }
+    if (this.g[c.id]) { const o0 = this.g[c.id].g; (o0.parent || World.outdoor).remove(o0); this.g[c.id].cols.forEach(x => Col.remove(x)); const i = World.pois.indexOf(this.g[c.id].poi); if (i >= 0) World.pois.splice(i, 1); delete this.g[c.id]; }
     if (!['setup', 'open'].includes(c.st)) return;
     const p = this.spotOf(c); if (!p) return;
-    const T = CO_TYPES[c.type], g = new THREE.Group(), y = World.groundY(p.x, p.z); g.position.set(p.x, y, p.z); g.rotation.y = p.rot; World.outdoor.add(g);
-    const big = c.site === 'factory' || c.site === 'land', o = big ? { w: 16, d: 12, h: 6, flat: true, wall: 0xeceff1, roof: 0x607d8b, glassFront: true } : { w: 10, d: 8, h: c.site === 'office' ? 9 : 5, rows: 2, flat: true, glassFront: true, wall: 0xfafafa, roof: 0x90a4ae };
-    const b = World.building(o); g.add(b); World.clearNear(p.x, p.z, 12, true);
+    const TA = p.town ? Town2.areas[p.town] : null; if (p.town && (!TA || TA.lazy || !TA.g)) return;   // a far town is built on the first visit: the building is drawn right after (see v195_cotown.js)
+    const T = CO_TYPES[c.type], g = new THREE.Group(), y = TA ? TA.y : World.groundY(p.x, p.z); g.position.set(p.x, y, p.z); g.rotation.y = p.rot; (TA ? TA.g : World.outdoor).add(g);
+    const bs = coBase(c.site), big = bs === 'factory' || bs === 'land', o = big ? { w: 16, d: 12, h: 6, flat: true, wall: 0xeceff1, roof: 0x607d8b, glassFront: true } : { w: 10, d: 8, h: bs === 'office' ? 9 : 5, rows: 2, flat: true, glassFront: true, wall: 0xfafafa, roof: 0x90a4ae };
+    const b = World.building(o); g.add(b); if (!TA) World.clearNear(p.x, p.z, 12, true);
     const sign = new THREE.Mesh(new THREE.PlaneGeometry(o.w * 0.8, 0.9), new THREE.MeshStandardMaterial({ map: U.signTex(`${T.i} ${c.name}`, { w: 1024, h: 112, bg: c.st === 'open' ? '#1565c0' : '#757575' }) })); sign.position.set(0, o.h + 0.9, o.d / 2 + 0.06); g.add(sign);
     // what the business owns shows outside: chargers under a canopy, generator, rooftop AC units
     if (c.type === 'ev') { const n = (c.eq.evdc || 0) + (c.eq.evac || 0); if (c.eq.canopy) { U.mk(g, GEO.box, mc(0x00897b), [0, 4.2, o.d / 2 + 6], [Math.max(6, n * 3.2), 0.3, 6]); for (const sx of [-1, 1]) U.mk(g, GEO.box, M.trim, [sx * Math.max(3, n * 1.6) * 0.9, 2.1, o.d / 2 + 6], [0.25, 4.2, 0.25]); } for (let i = 0; i < n; i++) { const x = (i - (n - 1) / 2) * 3.2; U.mk(g, GEO.box, mc(i < (c.eq.evdc || 0) ? 0x263238 : 0xeceff1), [x, 1, o.d / 2 + 6], [0.8, 2, 0.5]); U.mk(g, GEO.box, new THREE.MeshBasicMaterial({ color: 0x00e5ff, toneMapped: false }), [x, 1.5, o.d / 2 + 6.26], [0.5, 0.3, 0.02]); } }
@@ -35,10 +52,11 @@ const CoMap = {
     if (c.type === 'dc') for (let i = 0; i < 4; i++) U.mk(g, GEO.box, mc(0xb0bec5), [-o.w / 2 + 2 + i * 3.5, o.h + 0.8, -2], [2.2, 1.2, 1.6]);
     const cols = [Col.box(p.x, p.z, o.w / 2 + 0.3, o.d / 2 + 0.3, p.rot, 'bld')];
     const door = l2w(p.x, p.z, p.rot, 0, o.d / 2 + 1.7);
-    const poi = { kind: 'act', x: door.x, z: door.z, r: 2.6, label: c.name, icon: T.i, map: true, act: () => ({ icon: '🚪', label: 'เข้าไปใน ' + c.name, fn: () => Rooms.enter(poi) }) };
+    const poi = { kind: 'act', x: door.x, z: door.z, r: 2.6, label: c.name, icon: T.i, map: !TA, town: p.town || null, act: () => (TA && G.away !== TA) ? null : ({ icon: '🚪', label: 'เข้าไปใน ' + c.name, fn: () => Rooms.enter(poi) }) };
     poi.room = { kind: 'office', title: c.name, coId: c.id, staff: { name: c.staff[0] ? c.staff[0].name : 'พนักงานต้อนรับ', avatar: 'toon:jacket' }, service: () => { Company.sel = c.id; Company.open(); } };
     World.pois.push(poi); this.g[c.id] = { g, cols, poi };
   },
+  doorOf(c) { const p = this.spotOf(c); if (!p) return null; const bs = coBase(c.site), d = (bs === 'factory' || bs === 'land') ? 12 : 8; return l2w(p.x, p.z, p.rot, 0, d / 2 + 1.7); },
   drawAll() { for (const c of Company.st().list) this.draw(c); },
   // inside: desks for every employee, server racks for every installed rack, the boss's desk opens the company screen
   room(def, K) {

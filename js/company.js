@@ -31,6 +31,16 @@ const CO_SITES = {
   shop: { n: 'อาคารพาณิชย์ 2 คูหา หมู่บ้านสุขใจ (ฝั่งตะวันออก)', rent: 25000, kinds: ['cafe', 'sec', 'it', 'logistics'] },
   land: { n: 'ที่ดินเปล่า 2 ไร่ + อาคารสำเร็จรูป หมู่บ้านสุขใจ', rent: 45000, kinds: ['ev', 'dc', 'food', 'logistics'] },
   factory: { n: 'โรงงานสำเร็จรูป 1,000 ตร.ม. พร้อมห้องเซิร์ฟเวอร์ หมู่บ้านสุขใจ', rent: 80000, kinds: ['food', 'dc', 'logistics'] },
+  // v195: premises in the other towns (rent follows the size of the town)
+  office_metro: { n: 'อาคารสำนักงาน สุขนครมหานคร', rent: 18000, kinds: ['it', 'sec', 'solar', 'logistics'], town: 'metro' },
+  shop_metro: { n: 'อาคารพาณิชย์ 2 คูหา สุขนครมหานคร', rent: 37500, kinds: ['cafe', 'sec', 'it', 'logistics'], town: 'metro' },
+  land_metro: { n: 'ที่ดินเปล่า 2 ไร่ + อาคารสำเร็จรูป สุขนครมหานคร', rent: 67500, kinds: ['ev', 'dc', 'food', 'logistics'], town: 'metro' },
+  factory_metro: { n: 'โรงงานสำเร็จรูป 1,000 ตร.ม. พร้อมห้องเซิร์ฟเวอร์ สุขนครมหานคร', rent: 120000, kinds: ['food', 'dc', 'logistics'], town: 'metro' },
+  office_orchard: { n: 'อาคารสำนักงาน สวนทองเมือง', rent: 12000, kinds: ['it', 'sec', 'solar', 'logistics'], town: 'orchard' },
+  shop_orchard: { n: 'อาคารพาณิชย์ 2 คูหา สวนทองเมือง', rent: 25000, kinds: ['cafe', 'sec', 'it', 'logistics'], town: 'orchard' },
+  land_orchard: { n: 'ที่ดินเปล่า 2 ไร่ + อาคารสำเร็จรูป สวนทองเมือง', rent: 45000, kinds: ['ev', 'dc', 'food', 'logistics'], town: 'orchard' },
+  office_sunflower: { n: 'อาคารสำนักงานเล็ก บ้านทุ่งทานตะวัน', rent: 8000, kinds: ['it', 'sec', 'solar', 'logistics'], town: 'sunflower' },
+  shop_sunflower: { n: 'อาคารพาณิชย์ 2 คูหา บ้านทุ่งทานตะวัน', rent: 17500, kinds: ['cafe', 'sec', 'it', 'logistics'], town: 'sunflower' },
 };
 const CO_LIC = {
   vat: { n: 'จดทะเบียนภาษีมูลค่าเพิ่ม ภ.พ.20 (กรมสรรพากร)', fee: 0, days: 1 },
