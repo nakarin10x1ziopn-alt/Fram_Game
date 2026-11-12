@@ -1,6 +1,5 @@
 'use strict';
-// ---------- v28_walkin: the paperwork becomes a place you walk into. A combined "ศูนย์รวมบริการภาครัฐ" stands in the main district around the
-// village square (document counters + the 10 v26 agencies); the four large cities get the same counters inside their existing government
+// ---------- v28_walkin: the paperwork becomes a place you walk into. A combined "ศูนย์รวมบริการภาครัฐ" stands just outside the village (past the school, on the road to the seaside town) (document counters + the 10 v26 agencies); the four large cities get the same counters inside their existing government
 // buildings. Every counter has a queue ticket (wait depends on the hour / weekday), opening hours with public-holiday closure and a clerk
 // at the window. Applications that need original papers can no longer be filed from the phone (the phone says where to go and offers a taxi),
 // and approved documents are collected at the counter (auto-posted after 30 days, no late fee). ----------
@@ -139,11 +138,13 @@ V23.add('v28_walkin', () => {
   // ===================== 5. keep the phone honest =====================
   const centreDoor = () => { const c = st().centre; return c ? c.door : null; };
   const feeTo = p => Math.max(40, Math.round(40 + Math.hypot(p.x, p.z + 62) * 0.35));
+  // the centre stands OUTSIDE the village, past the school on the road to the seaside town (the place is chosen per save: describe it by its real distance from the fountain square)
+  const whereCentre = () => { const c = st().centre, d = c ? Math.round(Math.hypot(c.x + 14, c.z + 258) / 5) * 5 : 0; return `อยู่นอกหมู่บ้านสุขใจ ปลายทางไปเมืองริมทะเล${d ? ` ห่างลานน้ำพุประมาณ ${d} เมตร` : ''}`; };
   const goHtml = (title, what, ctr) => {
     const i = TAXI_DEST.findIndex(t => t.n === NAME), t = TAXI_DEST[i];
     const cities = (V25.cityList ? V25.cityList() : []).filter(c => c.size === 'large' && c.visited);
     return `<p class="lead">${esc(what)} ต้องไปที่เคาน์เตอร์ด้วยตัวเอง (ตรวจเอกสารตัวจริงและเซ็นต่อหน้าเจ้าหน้าที่)</p>
-      <div class="card"><div class="ci">🏛️</div><div class="cb"><h4>${NAME}</h4><p class="dim">อยู่ในหมู่บ้านสุขใจ ใกล้ลานน้ำพุ (หา 🏛️ บนแผนที่) · เคาน์เตอร์ "${esc(ctr || title)}" · ต้องกดบัตรคิวก่อนเข้าเคาน์เตอร์</p>
+      <div class="card"><div class="ci">🏛️</div><div class="cb"><h4>${NAME}</h4><p class="dim">${whereCentre()} (หา 🏛️ บนแผนที่) · เคาน์เตอร์ "${esc(ctr || title)}" · ต้องกดบัตรคิวก่อนเข้าเคาน์เตอร์</p>
       ${t && !G.inRoom ? `<div class="row end"><button class="btn" data-a="w28go" ${S.money < t.fee ? 'disabled' : ''}>🚕 ไปเลย ${baht(t.fee)}</button></div>` : '<p class="dim">(ออกไปข้างนอกก่อน แล้วเรียกแท็กซี่)</p>'}</div></div>
       ${cities.map(c => `<div class="card"><div class="ci">${c.icon}</div><div class="cb"><h4>ศาลากลางและศูนย์บริการ ${esc(c.n)}</h4><p class="dim">เคาน์เตอร์ชุดเดียวกันมีใน${esc(c.n)} (เมืองใหญ่)</p><div class="row end"><button class="btn ghost" data-a="v25go" data-v="${c.key}" ${S.money < c.fee ? 'disabled' : ''}>🚕 ${baht(c.fee)}</button></div></div></div>`).join('')}`;
   };
@@ -203,24 +204,26 @@ V23.add('v28_walkin', () => {
   const centreItems = room => {
     const out = DOCS_CT.map(d => docCounter(d, room));
     out.push(rcvCounter(room));
-    for (const id of AG_ORDER) { const c = agCounter(id, room); if (c) out.push(c); }
+    for (const id of AG_ORDER.concat(Agency26.agencies.map(a => a.id).filter(id => !AG_ORDER.includes(id)))) { const c = agCounter(id, room); if (c) out.push(c); }   // every agency of the game, the 10 classic ones first
     return out;
   };
   const toItem = c => ({ label: c.s, icon: c.i, fn: () => serve(c) });
   const roomSize = n => { const per = Math.min(Math.max(n, 1), 6), rows = Math.ceil(Math.max(n, 1) / per); return { w: Math.max(16, Math.round(per * 3.4 + 4)), d: Math.max(11, 7 + rows * 4), per, rows }; };
   const looks = ['toon:chic', 'toon:suit', 'Olivia', 'Erika', 'toon:civil', 'toon:jacket', 'Lydia', 'Kate'];
-  ROOM_KIND.v28wk = { w: 24, d: 19, floor: 0xe8e0d0, wall: 0xf4fbf8, title: NAME };
+  // the centre holds every counter: rows of 6 (the room is as deep as the number of rows needs: 4.2 m per row + the waiting area)
+  const CENTRE_N = DOCS_CT.length + 1 + Agency26.agencies.length, CENTRE_ROWS = Math.ceil(CENTRE_N / 6);
+  ROOM_KIND.v28wk = { w: 24, d: Math.max(19, Math.round(2.6 + CENTRE_ROWS * 4.2 + 8)), floor: 0xe8e0d0, wall: 0xf4fbf8, title: NAME };
   const _rb = Rooms.build;
   Rooms.build = function (def, K) {
     _rb.call(this, def, K);
     if (!def.v28) return;
     const g = this.group, X = RM0.x, Z = RM0.z, Wd = K.w, D = K.d, items = def.v28.items(), per = 6;
     const zone = (txt, z) => { const sg = new THREE.Mesh(new THREE.PlaneGeometry(4.6, 0.7), new THREE.MeshBasicMaterial({ map: U.signTex(txt, { w: 512, h: 90, bg: '#00695c' }) })); sg.position.set(X - Wd / 2 + 0.16, 2.6, Z + z); sg.rotation.y = Math.PI / 2; g.add(sg); };
-    const zs = [-D / 2 + 2.6, -D / 2 + 2.6 + 4.2, -D / 2 + 2.6 + 8.4];
-    zone('โซน A · เอกสารและทะเบียน', zs[0]); zone('โซน B · หน่วยงานรัฐและครอบครัว', zs[1]); zone('โซน C · การเงิน สุขภาพ เอกชน', zs[2]);
-    const rowOf = n => n < 6 ? 0 : n < 12 ? 1 : 2, colOf = n => n < 6 ? n : n < 12 ? n - 6 : n - 12, inRow = r => r === 0 ? 6 : r === 1 ? 6 : items.length - 12;
+    const rows = Math.ceil(items.length / per), zs = Array.from({ length: rows }, (_, r) => -D / 2 + 2.6 + r * 4.2);
+    const zr = [[0, 'โซน A · เอกสารและทะเบียน'], [Math.min(2, rows - 1), 'โซน B · หน่วยงานรัฐและครอบครัว'], [Math.min(Math.ceil(rows * 0.55), rows - 1), 'โซน C · ใบอนุญาต การเงิน สุขภาพ']];
+    for (const [r, txt] of zr) zone(txt, zs[r]);
     items.forEach((c, n) => {
-      const r = rowOf(n), cc = colOf(n), k = inRow(r), x = k === 1 ? 0 : -Wd / 2 + 3 + cc * ((Wd - 6) / (k - 1)), z = zs[r];
+      const r = Math.floor(n / per), cc = n % per, k = Math.min(per, items.length - r * per), x = k === 1 ? 0 : -Wd / 2 + 3 + cc * ((Wd - 6) / (k > 1 ? Math.max(1, Math.min(per, 6) - 1) : 1)), z = zs[r];
       U.mk(g, GEO.box, mc(0x8d6e63), [X + x, 0.53, Z + z], [2.5, 1.05, 0.7]); this.cols.push(Col.box(X + x, Z + z, 1.25, 0.35, 0));
       U.mk(g, GEO.box, mc(0xeeeeee), [X + x, 1.08, Z + z], [2.6, 0.06, 0.8]);
       const sg = new THREE.Mesh(new THREE.PlaneGeometry(2.4, 0.55), new THREE.MeshBasicMaterial({ map: U.signTex(c.s, { w: 384, h: 90, bg: '#00695c' }) })); sg.position.set(X + x, 2.3, Z + z - 0.45); g.add(sg);
@@ -228,7 +231,7 @@ V23.add('v28_walkin', () => {
       this.pois.push({ kind: 'act', x: X + x, z: Z + z + 1.0, r: 1.45, label: c.s, icon: c.i, act: () => ({ icon: c.i, label: c.s, fn: () => serve(c) }) });
     });
     // low glass partitions between the three zones, a waiting area and the ticket kiosk
-    for (let r = 0; r < 2; r++) U.mk(g, GEO.box, M.glass, [X, 0.55, Z + (zs[r] + zs[r + 1]) / 2 + 0.6], [Wd - 1, 1.1, 0.05]);
+    for (const r of [zr[1][0], zr[2][0]]) if (r > 0) U.mk(g, GEO.box, M.glass, [X, 0.55, Z + (zs[r - 1] + zs[r]) / 2 + 0.6], [Wd - 1, 1.1, 0.05]);
     for (const bx of [-5, 0, 5]) { U.mk(g, GEO.box, mc(0x455a64), [X + bx, 0.28, Z + D / 2 - 3.6], [3.2, 0.5, 0.7]); this.cols.push(Col.box(X + bx, Z + D / 2 - 3.6, 1.6, 0.35, 0)); }
     this.pois.push({ kind: 'act', x: X + Wd / 2 - 2, z: Z + D / 2 - 1.4, r: 1.5, label: 'ตู้กดบัตรคิว / ข้อมูลเคาน์เตอร์', icon: '🎫', act: () => ({ icon: '🎫', label: 'ดูคิวและเวลาทำการทุกเคาน์เตอร์', fn: () => UI.open('🎫 ตู้กดบัตรคิว', null, () => kioskHtml(items)) }) });
     this.pois.push({ kind: 'act', x: X - Wd / 2 + 2, z: Z + D / 2 - 1.4, r: 1.5, label: 'กระเป๋าเอกสารของฉัน', icon: '🪪', act: () => ({ icon: '🪪', label: 'ดูเอกสารที่มี', fn: () => UI.open('กระเป๋าเอกสาร', null, Gov24.wallet) }) });

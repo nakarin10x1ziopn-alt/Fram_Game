@@ -40,7 +40,19 @@ const Net = {
     return id + (Slots.cur() > 1 ? '_s' + Slots.cur() : '');
   },
   async api(path, body) {
-    const r = await fetch('api/' + path, body ? { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body), cache: 'no-store' } : { cache: 'no-store' });
+    // a save is sent as text once; on the laptop server a big one (over ~4 MB) goes as the raw body of /api/save?id=..&ts=.. so the server streams it to disk without holding it in memory
+    let url = 'api/' + path, txt = null;
+    if (body) {
+      if (path === 'save' && body.save && typeof body.save === 'object') {
+        const payload = JSON.stringify(body.save);
+        if (this.on && !this.cloud && payload.length > 4000000) { txt = payload; url += '?id=' + encodeURIComponent(body.id) + '&ts=' + (+body.ts || Date.now()) + (body.force ? '&force=1' : ''); }
+        else txt = '{"id":' + JSON.stringify(body.id) + ',"save":' + payload + ',"ts":' + (+body.ts || Date.now()) + (body.force ? ',"force":1' : '') + '}';
+      } else txt = JSON.stringify(body);
+    }
+    // keepalive lets a small save still reach the server while the page is closing (iPad: swipe away / lock the screen); the browser limit is 64 KB in BYTES (Thai text is 3 bytes a character), so measure the encoded size; over the limit it falls back to a normal request
+    let ka = false; if (txt && txt.length < 70000) { try { ka = new TextEncoder().encode(txt).length < 60000; } catch (e) { ka = false; } }
+    const go = k => fetch(url, body ? { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: txt, cache: 'no-store', keepalive: k } : { cache: 'no-store' });
+    let r; try { r = await go(ka); } catch (e) { if (!ka) throw e; r = await go(false); }
     if (!r.ok) throw new Error(r.status);
     return r.json();
   },
@@ -74,7 +86,27 @@ const Net = {
       this.inflight = send().finally(() => { this.inflight = null; if (this.again) { this.again = false; this.saveT = 0; this.saveRemote(true); } });
       return this.inflight;
     }
-    return this.api('save', { id: this.id(), save: S, ts: S && S.savedAt || Date.now() }).catch(() => {});
+    // v209: the LAN / laptop server: remember whether the file really reached saves\ on that computer (Net.lan), retry a failed one, never leave an older request to land after a newer one
+    if (this.lanBusy) { this.lanAgain = true; return this.lanBusy; }
+    const sendLan = () => this.api('save', { id: this.id(), save: S, ts: S && S.savedAt || Date.now() }).then(r => {
+      if (!r || r.ok === false) throw new Error((r && r.error) || 'server');
+      const was = this.lan.err; this.lan = { at: Date.now(), bytes: r.bytes || 0, file: r.file || '', err: '', n: (this.lan.n || 0) + 1 };
+      if (was) { try { UI.toast('💻 กลับมาเซฟลงเครื่องเซิร์ฟเวอร์ได้แล้ว', '✅'); } catch (e) { } }
+      this.lanChanged(); return r;
+    }).catch(e => {
+      const first = !this.lan.err; this.lan.err = String(e && e.message || e) || 'error'; this.lan.fails = (this.lan.fails || 0) + 1;
+      if (first) { try { UI.toast('⚠️ เซฟลงเครื่องเซิร์ฟเวอร์ไม่สำเร็จ (' + this.lan.err + ') เกมยังเซฟในเบราว์เซอร์อยู่ และจะลองส่งใหม่อัตโนมัติ', '⚠️'); } catch (x) { } }
+      clearTimeout(this.lanRetry); this.lanRetry = setTimeout(() => { this.saveT = 0; this.saveRemote(true); }, 8000);
+      this.lanChanged(); return { ok: false, error: this.lan.err };
+    });
+    this.lanBusy = sendLan().finally(() => { this.lanBusy = null; if (this.lanAgain) { this.lanAgain = false; this.saveT = 0; this.saveRemote(true); } });
+    return this.lanBusy;
+  },
+  lan: { at: 0, bytes: 0, file: '', err: '', n: 0 }, lanChanged() { try { if (this.onLan) this.onLan(this.lan); } catch (e) { } },
+  // the "save" button on the laptop server: wait for the upload and report the real result
+  async saveNowLan() {
+    if (!this.on) return null;
+    try { let n = 0; while (this.lanBusy && n++ < 5) await this.lanBusy; this.saveT = 0; const r = await this.saveRemote(true); return r && r.ok !== false ? r : null; } catch (e) { return null; }
   },
   // reload / slot switch / new game: wait for the server copy so an older one can't win on the next load
   flush(fn, save) { if (!this.on && !this.cloud) return fn(); const t = setTimeout(fn, 1500); this.api('save', { id: this.id(), save: save === undefined ? S : save, ts: Date.now() }).catch(() => {}).finally(() => { clearTimeout(t); fn(); }); },

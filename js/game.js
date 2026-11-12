@@ -42,7 +42,10 @@ function newState() {
   };
 }
 function loadState() {
-  const raw = (typeof Net !== 'undefined' && Net.remoteSave) || safeGet(saveKey()); if (!raw) return null;
+  // v209: the copy kept on the laptop server and the copy in this browser: the NEWER one (savedAt) wins, so a save made while the server was unreachable is never replaced by an older server copy
+  let raw = (typeof Net !== 'undefined' && Net.remoteSave) || null; const loc = safeGet(saveKey());
+  if (raw && loc && loc.length > 100) { try { const rt = (JSON.parse(raw) || {}).savedAt || 0, lt = (JSON.parse(loc) || {}).savedAt || 0; if (lt > rt + 500) { try { safeSet(saveKey() + '_srvold', raw); } catch (e) { } raw = loc; Net.pushLocalNewer = true; } } catch (e) { } }
+  raw = raw || loc; if (!raw) return null;
   try {
     const s = JSON.parse(raw), d = newState();
     const out = Object.assign(d, s);
@@ -64,7 +67,7 @@ function saveGame(silent) {
   if (G.driving) { S.p.x = G.driving.d.x + 2; S.p.z = G.driving.d.z; }
   S.savedAt = Date.now();   // the newer copy wins when the same save exists on this device and in the cloud
   const ok = safeSet(saveKey(), JSON.stringify(S)); Net.saveRemote(!silent);
-  if (!silent) UI.toast(ok ? 'บันทึกเกมแล้ว' : 'บันทึกไม่สำเร็จ (เบราว์เซอร์ไม่อนุญาตพื้นที่เก็บข้อมูล)', ok ? '💾' : '⚠️');
+  if (!silent) UI.toast(ok ? 'บันทึกเกมแล้ว' : (Net.on ? 'เซฟใหญ่เกินที่เก็บในเบราว์เซอร์ ส่งลงเครื่องแม่ข่ายแทนแล้ว (ดูป้าย 💻)' : 'บันทึกไม่สำเร็จ (เบราว์เซอร์ไม่อนุญาตพื้นที่เก็บข้อมูล)'), ok || Net.on ? '💾' : '⚠️');
 }
 
 // ---------- Inventory / energy ----------

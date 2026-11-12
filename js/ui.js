@@ -385,7 +385,7 @@ const UI = {
       saveGame();
       // v200: the button also saves to the cloud (server of the host) and says whether it reached it
       if (Net.cloud) Net.saveNow().then(ok => UI.toast(ok ? '☁️ บันทึกขึ้นเซิร์ฟเวอร์แล้ว (เปิดเกมจากเครื่องไหนก็ใช้รหัสเซฟเดิมได้)' : '⚠️ บันทึกในเครื่องแล้ว แต่ส่งขึ้นเซิร์ฟเวอร์ไม่สำเร็จ (' + Net.cloudErr + ') จะลองใหม่อัตโนมัติ', ok ? '☁️' : '⚠️'));
-      else if (location.protocol !== 'file:') UI.toast('บันทึกในเครื่องนี้แล้ว · เซฟออนไลน์ใช้ได้เมื่อเล่นที่ framgame.vercel.app', 'ℹ️');
+      else if (location.protocol !== 'file:' && !Net.on) UI.toast('บันทึกในเบราว์เซอร์นี้แล้ว · ไม่ได้ต่อกับเซิร์ฟเวอร์ (เปิดเกมด้วย start-game.bat ที่โน้ตบุ๊ก แล้วเข้าด้วย IP ของโน้ตบุ๊ก เซฟจะลงไฟล์ในเครื่องแม่ข่าย)', 'ℹ️');
     },
     sound() { S.mute = !S.mute; Sfx.setOn(!S.mute); },
     q(d) { safeSet(Q_KEY, d.v); UI.toast('ตั้งค่ากราฟิกแล้ว จะมีผลหลังโหลดหน้าใหม่', '⚙️'); },
