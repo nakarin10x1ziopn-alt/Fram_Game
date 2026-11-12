@@ -256,7 +256,8 @@ function coInject(c, n) {
   if (!c) return;
   if (!(n >= 1000)) { UI.toast('ใส่จำนวนเงินเพิ่มทุนอย่างน้อย 1,000 ฿', '⚠️'); return; }
   if (S.money < n) { UI.toast('เงินสดไม่พอ ต้องใช้ ' + baht(n), '💸'); return; }
-  // the money always goes into the company account; paid-up capital can not pass the registered capital (which stays as it is)
-  const room = Math.max(0, (c.cap || 0) - (c.paid || 0)), toPaid = Math.min(n, room);
-  S.money -= n; c.cash += n; c.paid += toPaid; UI.toast('เพิ่มทุนเข้าบริษัท ' + baht(n) + (toPaid < n ? ` (ทุนชำระแล้วเพิ่มได้อีก ${baht(room)} ตามทุนจดทะเบียน)` : ''), '💰');
+  // the money goes into the company account and into paid-up capital; what is not covered by the unpaid part of the registered capital raises the registered capital too (capital increase)
+  const room = Math.max(0, (c.cap || 0) - (c.paid || 0)), raise = Math.max(0, n - room);
+  S.money -= n; c.cash += n; c.paid += n; if (raise) c.cap = (c.cap || 0) + raise;
+  UI.toast('เพิ่มทุนเข้าบริษัท ' + baht(n) + (raise ? ` · ทุนจดทะเบียนเพิ่มเป็น ${baht(c.cap)}` : ` · ชำระค่าหุ้นที่ยังค้างครบ ${baht(Math.min(n, room))}`), '💰');
 }
