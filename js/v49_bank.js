@@ -9,7 +9,7 @@
 //   Personal cheque: a current account with a chequebook, clears next business day (funds held), shops stop taking your cheques for 60 days after a bounce.
 //   Cashier's cheque / counter withdrawal: bank hours Mon-Fri 08:30-16:30, a small fee.
 V23.add('v49_bank', () => {
-  const BIZ_APP = 5000000, CASH_MAX = 50000, APP_MAX = 100000, APP_DAY = 200000, HIGH = 100000, AUTO_CASH = 300, START_CASH = 10000, LEAVES = 20;
+  const BIZ_APP = 100000000, CASH_MAX = 50000, APP_MAX = 100000, APP_DAY = 200000, HIGH = 100000, AUTO_CASH = 300, START_CASH = 10000, LEAVES = 20;
   const OWN_MAX = 10000000;      // moving money between your own accounts in the app: any typed amount, up to 10 million baht a time
   const PAYEES = ['ร้านค้าในหมู่บ้าน', 'ซูเปอร์มาร์เก็ตสุขใจมาร์ท', 'ร้านวัสดุก่อสร้าง', 'ร้านเฟอร์นิเจอร์สุขใจ', 'ร้านอุปกรณ์เกษตร', 'ร้านอาหาร', 'คาเฟ่', 'อู่ซ่อมรถ', 'โชว์รูมรถยนต์', 'คอมพิวเตอร์พลาซ่า', 'ห้างสุขใจพลาซ่า', 'โรงพยาบาล / คลินิก', 'ร้านขายยา', 'การไฟฟ้า', 'การประปา', 'โรงเรียน / สถาบันอบรม', 'ผู้รับเหมาก่อสร้าง', 'เจ้าของบ้านเช่า / ที่ดิน', 'ศูนย์ราชการ', 'บุคคลทั่วไป (พิมพ์ชื่อเอง)'];
   const PURPOSES = ['ค่าสินค้า', 'ค่าบริการ / ค่าซ่อม', 'ค่าเช่า', 'ค่าน้ำ / ค่าไฟ', 'ค่าเล่าเรียน / ค่าอบรม', 'ค่ารักษาพยาบาล', 'ค่าก่อสร้าง / ต่อเติม', 'ค่าผ่อนชำระ', 'ค่ามัดจำ', 'อื่น ๆ'];
