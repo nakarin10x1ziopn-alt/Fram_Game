@@ -140,30 +140,43 @@ V23.add('v41_bag', () => {
   const pager = (page, pages, a) => pages > 1 ? `<div class="pg41"><button class="btn ghost" data-a="${a}" data-v="-1" ${page <= 0 ? 'disabled' : ''}>◀</button><span>หน้า ${page + 1} / ${pages}</span><button class="btn ghost" data-a="${a}" data-v="1" ${page >= pages - 1 ? 'disabled' : ''}>▶</button></div>` : '';
 
   // bag entries of a tab: gear tab starts with what the hand can hold (empty hand, can, rod) that are not items
+  // v208: the bag tabs follow where things came from: own plots / shop / online order (the split is kept by Bag208 in v208_bagsrc.js); the first tab keeps the hand tools
+  const TABS = [
+    { k: 'gear', t: '✋ อุปกรณ์ประจำตัว', hint: 'สิ่งที่ถือในมือได้เสมอ: มือเปล่า บัวรดน้ำ คันเบ็ด · เมล็ดและปุ๋ยที่ซื้อมาอยู่ในหมวดซื้อจากร้าน เลือกแล้วกด “ถือ”' },
+    { k: 'f', t: '🌾 จากแปลง/ไร่', hint: 'ของที่เก็บเองจากแปลงผัก ต้นไม้ สัตว์ การตกปลา เหมืองและอาหารที่ทำเอง · ขายที่กล่องส่งขายหน้าบ้านหรือตลาดริมทะเล' },
+    { k: 's', t: '🏪 ซื้อจากร้านค้า', hint: 'ของที่ซื้อจากร้านค้าในหมู่บ้านและในเมือง: เมล็ด ปุ๋ย อุปกรณ์ เสื้อผ้า อาหารกล่อง' },
+    { k: 'o', t: '📦 สั่งออนไลน์', hint: 'พัสดุที่สั่งผ่านร้านออนไลน์ และอาหารที่ไรเดอร์ส่งถึงบ้าน' },
+  ];
+  const isFoodId = id => groupOf(id) === 'food' || id.startsWith('food_');
   const bagEntries = g => {
     const out = [];
-    if (g === 'gear') for (const s of UI.slots || []) if (!ITEMS[s.id] || !S.inv[s.id]) out.push({ id: s.id, i: s.i, n: s.n, c: s.c, o: s.id === 'hand' ? '' : 'อุปกรณ์', pseudo: 1 });
-    for (const id of listOf(S.inv, g)) out.push({ id, i: ITEMS[id].i, n: ITEMS[id].n, c: S.inv[id], o: origin(id) });
+    if (g === 'gear') { for (const s of UI.slots || []) if (!ITEMS[s.id] || !S.inv[s.id]) out.push({ id: s.id, i: s.i, n: s.n, c: s.c, o: s.id === 'hand' ? '' : 'อุปกรณ์', pseudo: 1 }); return out; }
+    const src = window.Bag208 ? window.Bag208.of(g) : listOf(S.inv).map(id => ({ id, c: S.inv[id] }));
+    sortIds(src.map(x => x.id).slice()).forEach(id => { const x = src.find(y => y.id === id); if (!B.food || isFoodId(id)) out.push({ id, i: ITEMS[id].i, n: ITEMS[id].n, c: x.c, o: origin(id) }); });
     return out;
   };
   UI.inventory = function (filter) {
-    const tab0 = filter === 'food' ? 2 : 0;
-    UI.open('🎒 กระเป๋า', GROUPS.map(g => g.t), tab => {
+    B.food = filter === 'food' ? 1 : 0;
+    // the fridge shows food: open the tab that has food in it (own cooking first, then shop, then online)
+    let tab0 = 0; if (filter === 'food') { tab0 = 1; for (const k of [1, 2, 3]) { if (bagEntries(TABS[k].k).length) { tab0 = k; break; } } }
+    UI.open('🎒 กระเป๋า', TABS.map(g => g.t), tab => {
       if (tab !== B.last) { B.last = tab; B.page[tab] = 0; B.sel = null; }
-      const g = GROUPS[tab], list = bagEntries(g.k), pages = Math.max(1, Math.ceil(list.length / PER));
+      const g = TABS[tab], list = bagEntries(g.k), pages = Math.max(1, Math.ceil(list.length / PER));
       const pg = B.page[tab] = Math.max(0, Math.min(pages - 1, B.page[tab] || 0));
       let h = `<p class="lead dim">${g.hint}</p>`;
       if (g.k === 'gear') h += `<p class="dim">🚿 บัวรดน้ำ ${S.can.water}/${CAN_CAP[S.up.can - 1]} · 🐄 อาหารสัตว์ในราง ${S.trough}</p>`;
+      else h += `<div class="ch41"><button class="${B.food ? '' : 'on'}" data-a="bgfood" data-v="0">ทั้งหมด</button><button class="${B.food ? 'on' : ''}" data-a="bgfood" data-v="1">🍳 เฉพาะอาหาร</button></div>`;
       const sel = list.find(c => c.id === B.sel);
-      if (sel) h += sel.pseudo ? `<div class="dt41"><div class="ci">${sel.i}</div><div class="cb"><h4>${esc(sel.n)}</h4><p class="dim">อุปกรณ์ประจำตัว ไม่ถูกใช้หมด</p><div class="row"><button class="btn" data-a="bghold" data-id="${sel.id}">${G.sel === sel.id ? 'ถืออยู่แล้ว' : '🤚 ถือ'}</button></div></div></div>` : detail(sel.id, S.inv, 'bag');
+      if (sel) h += sel.pseudo ? `<div class="dt41"><div class="ci">${sel.i}</div><div class="cb"><h4>${esc(sel.n)}</h4><p class="dim">อุปกรณ์ประจำตัว ไม่ถูกใช้หมด</p><div class="row"><button class="btn" data-a="bghold" data-id="${sel.id}">${G.sel === sel.id ? 'ถืออยู่แล้ว' : '🤚 ถือ'}</button></div></div></div>` : detail(sel.id, { [sel.id]: sel.c }, 'bag');
       else h += '<p class="dim">แตะที่ของเพื่อดูรายละเอียดและเลือกการใช้งาน</p>';
-      if (!list.length) return h + '<p class="empty">ยังไม่มีของในหมวดนี้</p>';
+      if (!list.length) return h + `<p class="empty">${B.food && g.k !== 'gear' ? 'ไม่มีอาหารในหมวดนี้' : 'ยังไม่มีของในหมวดนี้'}</p>`;
       h += cells(list.slice(pg * PER, pg * PER + PER), B.sel, id => G.sel === id) + pager(pg, pages, 'bgpg');
       h += `<div class="row end"><button class="btn ghost" data-a="bginfo">ℹ️ ที่เก็บของในเกม</button></div>`;
       return h;
     }, { tab: tab0 });
     B.last = -1; B.sel = null; UI.renderBody();
   };
+  UI.H.bgfood = d => { B.food = +d.v ? 1 : 0; const t = UI.cur ? UI.cur.tab : 0; B.page[t] = 0; B.sel = null; };
   UI.H.bgsel = d => { B.sel = B.sel === d.id ? null : d.id; };
   UI.H.bgpg = d => { const t = UI.cur ? UI.cur.tab : 0; B.page[t] = (B.page[t] || 0) + (+d.v || 0); B.sel = null; };
   UI.H.bghold = d => {
@@ -172,7 +185,7 @@ V23.add('v41_bag', () => {
   };
   UI.H.use = d => UI.H.bghold(d);               // the old “ถือใช้” button everywhere does the same
   UI.H.bginfo = () => UI.open('ที่เก็บของในเกม', null, () => `<div class="grid">${[
-    ['🎒', 'กระเป๋า', 'ของที่ติดตัว กดปุ่มกระเป๋าเพื่อเปิด มี 4 หมวด: เมล็ด/อุปกรณ์ · ผลผลิตไร่ · อาหาร · ของที่ซื้อ'],
+    ['🎒', 'กระเป๋า', 'ของที่ติดตัว กดปุ่มกระเป๋าเพื่อเปิด มี 4 หมวด: อุปกรณ์ประจำตัว · จากแปลง/ไร่ · ซื้อจากร้านค้า · สั่งออนไลน์ (ของจะเข้าหมวดตามที่มา)'],
     ['🧰', 'หีบในบ้าน', 'คลังเก็บของ ผลผลิตที่ลูกจ้างเก็บและของจากสัตว์จะมาลงที่หีบ เปิดที่หีบในบ้านเพื่อเก็บ/หยิบของ'],
     ['📦', 'กล่องส่งขาย', 'ขายแล้วของหายจากกระเป๋าทันที (หน้าบ้านหรือตลาดริมทะเล ราคาดีกว่า 50%)'],
     ['🧊', 'ตู้เย็น / โต๊ะอาหาร', 'เปิดกระเป๋าที่หมวดอาหาร เลือกกินเพื่อเพิ่มพลังงาน'],

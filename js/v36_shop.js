@@ -155,6 +155,7 @@ V23.add('v36_shop', () => {
   const deliver = o => {
     const tt = UI.toast, ok = [], fail = []; let extra = 0;
     UI.toast = () => { };
+    const acq0 = G.acq; G.acq = 'o';                                 // v208: everything delivered from an online order goes to the bag's "ordered online" pile
     try {
       for (const it of o.items) {
         const e = live(it.k); if (!e || e.block) { fail.push(it); continue; }
@@ -167,7 +168,7 @@ V23.add('v36_shop', () => {
         it.inv = d; it.ret = !!Object.keys(d).length && !/^(food|seed):/.test(it.k) && !/^food_|^seed_/.test(Object.keys(d)[0]);
         ok.push(it);
       }
-    } finally { UI.toast = tt; }
+    } finally { UI.toast = tt; G.acq = acq0; }
     if (fail.length || extra) { const refund = fail.reduce((a, it) => a + it.u * it.q, 0) + extra; if (o.pay === 'bank' && S.bank) S.bank.sav += refund; else if (window.Refund181) Refund181.give(refund, 'คืนเงินสินค้าที่ส่งไม่ได้ #' + o.id); else S.money += refund; log('คืนเงินสินค้าที่ส่งไม่ได้', refund); msg(`คำสั่งซื้อ #${o.id}: ส่งไม่ได้ ${fail.length} รายการ (${fail.map(i => i.name).join(', ')}) คืนเงิน ${baht(refund)} แล้ว`, true); }
     o.items = o.items.filter(i => !fail.includes(i)); o.status = 'done'; o.dday = S.day;
     if (!o.items.length) o.status = 'ret';

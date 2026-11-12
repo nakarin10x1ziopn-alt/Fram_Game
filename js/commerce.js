@@ -125,7 +125,7 @@ const Food = {
   update() {
     if (!S.deliv || !S.deliv.length) return;
     const now = S.day * 1440 + S.time;
-    for (const d of S.deliv.slice()) if (now >= d.at) { S.deliv.splice(S.deliv.indexOf(d), 1); addItem('food_' + d.id); Phone.msg('ไรเดอร์สุขใจ', `${FOODS[d.id].n} ส่งถึงแล้ว วางไว้หน้าบ้านให้แล้วนะครับ (เข้ากระเป๋าแล้ว)`); }
+    for (const d of S.deliv.slice()) if (now >= d.at) { S.deliv.splice(S.deliv.indexOf(d), 1); { const a0 = G.acq; G.acq = 'o'; try { addItem('food_' + d.id); } finally { G.acq = a0; } } Phone.msg('ไรเดอร์สุขใจ', `${FOODS[d.id].n} ส่งถึงแล้ว วางไว้หน้าบ้านให้แล้วนะครับ (เข้ากระเป๋าแล้ว)`); }
   },
 };
 
