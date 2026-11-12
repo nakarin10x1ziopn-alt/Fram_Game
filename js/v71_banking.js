@@ -18,7 +18,7 @@ V23.add('v71_banking', () => {
   // ======================= PayGate: cash is cash =======================
   const EXEMPT = new Set(['v24fund', 'v24loan', 'loan', 'repay', 'fbuy', 'fsell', 'insure', 'dep', 'wd', 'fix', 'pj', 'bj', 'nj', 'paybill', 'b49', 'c49x', 'p49m', 'p49c', 'cnt71', 'atm71', 'v71short']);
   const _toast = UI.toast.bind(UI);
-  UI.toast = function (t, i) { if (P.inter) P.sawToast = true; if (P.inter && typeof t === 'string' && /ไม่พอ|ไม่เพียงพอ|ขาดอีก|ต้องใช้ [\d,]+ ?฿|เงินไม่/.test(t)) P.refused = P.refused || t; return _toast(t, i); };
+  UI.toast = function (t, i) { if (P.inter) P.sawToast = true; if (P.inter && typeof t === 'string' && /ไม่พอ|ไม่เพียงพอ|ขาดอีก|ต้องใช้(?:เงิน)? ?[\d,]+ ?฿|เงินไม่/.test(t)) P.refused = P.refused || t; return _toast(t, i); };
   let prevUI = null;
   const snapUI = () => (UI.cur ? { title: UI.cur.title, tabs: UI.cur.tabs, tab: UI.cur.tab, render: UI.cur.render, wide: UI.cur.wide } : null);
   const restoreUI = p => { if (p && p.title) UI.open(p.title, p.tabs && p.tabs.length ? p.tabs : null, p.render, { tab: p.tab, wide: p.wide }); else UI.close(); };

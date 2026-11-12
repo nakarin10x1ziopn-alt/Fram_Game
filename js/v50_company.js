@@ -87,7 +87,7 @@ V23.add('v50_company', () => {
     c.of = c.of.filter(x => x !== o); toast(`${o.who} เป็นผู้ถือหุ้น ${c.name} ${Math.round(o.pct * 100)}% แล้ว`, '🤝'); try { Phone.msg(o.who, `ขอบคุณที่ขายหุ้นให้ครับ/ค่ะ ยินดีร่วมงานกับ ${c.name} 🙏`, true); } catch (e) { }
   }
   function buyOut(c, h) {
-    const price = Math.round(value(c) * h.pct * 1.1); if (S.money < price) { toast(`ต้องใช้เงิน ${baht(price)} (ราคา 110% ของมูลค่า)`, '💸'); return; }
+    const price = Math.round(value(c) * h.pct * 1.1); if (S.money < price) { toast(`เงินสดไม่พอ ต้องใช้ ${baht(price)} (ราคา 110% ของมูลค่า)`, '💸'); return; }
     S.money -= price; try { Bank2.log(`ซื้อหุ้นคืนจาก ${h.n}`, -price); } catch (e) { } c.mine = mine(c) + h.pct; c.h = holders(c).filter(x => x !== h); toast(`ซื้อหุ้นคืนจาก ${h.n} ${baht(price)}`, '🤝');
   }
   // dividends are shared by ownership: the old button paid you everything

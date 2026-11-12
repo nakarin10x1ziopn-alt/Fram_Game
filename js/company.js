@@ -115,7 +115,7 @@ const Company = {
     if (!partner) { UI.toast('บริษัทจำกัดต้องมีผู้ถือหุ้นอย่างน้อย 2 คน (คู่สมรสหรือเพื่อนสนิท 5 หัวใจขึ้นไป)', '👥'); return; }
     if (!CO_SITES[site].kinds.includes(c.type)) { UI.toast('ที่ตั้งนี้ใช้กับธุรกิจประเภทนี้ไม่ได้', '🏢'); return; }
     const paid = Math.round(cap * 0.25), fee = this.feeOf(cap), dep = CO_SITES[site].rent * 3;
-    if (S.money < paid + fee + dep) { UI.toast(`ต้องใช้เงิน ${baht(paid + fee + dep)} (ชำระค่าหุ้น 25% + ค่าธรรมเนียม + ค่าเช่าล่วงหน้า/มัดจำ 3 เดือน)`, '💸'); return; }
+    if (S.money < paid + fee + dep) { UI.toast(`เงินสดไม่พอ ต้องใช้ ${baht(paid + fee + dep)} (ชำระค่าหุ้น 25% + ค่าธรรมเนียม + ค่าเช่าล่วงหน้า/มัดจำ 3 เดือน)`, '💸'); return; }
     S.money -= paid + fee + dep; Bank2.log('จดทะเบียนบริษัท + ชำระค่าหุ้น', -(paid + fee + dep));
     Object.assign(c, { cap, paid, partner, site, st: 'reg', regDay: S.day + 1, cash: paid, rent: CO_SITES[site].rent });
     UI.close(); Phone.msg('สำนักงานพัฒนาธุรกิจการค้า', `ยื่นจดทะเบียน ${c.name} ทุน ${baht(cap)} (ชำระแล้ว ${baht(paid)}) ค่าธรรมเนียม ${baht(fee)} นายทะเบียนพิจารณาภายใน 1 วันทำการ`);

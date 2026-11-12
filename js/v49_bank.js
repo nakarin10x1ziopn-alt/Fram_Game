@@ -9,7 +9,7 @@
 //   Personal cheque: a current account with a chequebook, clears next business day (funds held), shops stop taking your cheques for 60 days after a bounce.
 //   Cashier's cheque / counter withdrawal: bank hours Mon-Fri 08:30-16:30, a small fee.
 V23.add('v49_bank', () => {
-  const CASH_MAX = 50000, APP_MAX = 100000, APP_DAY = 200000, HIGH = 100000, AUTO_CASH = 300, START_CASH = 10000, LEAVES = 20;
+  const BIZ_APP = 5000000, CASH_MAX = 50000, APP_MAX = 100000, APP_DAY = 200000, HIGH = 100000, AUTO_CASH = 300, START_CASH = 10000, LEAVES = 20;
   const OWN_MAX = 10000000;      // moving money between your own accounts in the app: any typed amount, up to 10 million baht a time
   const PAYEES = ['ร้านค้าในหมู่บ้าน', 'ซูเปอร์มาร์เก็ตสุขใจมาร์ท', 'ร้านวัสดุก่อสร้าง', 'ร้านเฟอร์นิเจอร์สุขใจ', 'ร้านอุปกรณ์เกษตร', 'ร้านอาหาร', 'คาเฟ่', 'อู่ซ่อมรถ', 'โชว์รูมรถยนต์', 'คอมพิวเตอร์พลาซ่า', 'ห้างสุขใจพลาซ่า', 'โรงพยาบาล / คลินิก', 'ร้านขายยา', 'การไฟฟ้า', 'การประปา', 'โรงเรียน / สถาบันอบรม', 'ผู้รับเหมาก่อสร้าง', 'เจ้าของบ้านเช่า / ที่ดิน', 'ศูนย์ราชการ', 'บุคคลทั่วไป (พิมพ์ชื่อเอง)'];
   const PURPOSES = ['ค่าสินค้า', 'ค่าบริการ / ค่าซ่อม', 'ค่าเช่า', 'ค่าน้ำ / ค่าไฟ', 'ค่าเล่าเรียน / ค่าอบรม', 'ค่ารักษาพยาบาล', 'ค่าก่อสร้าง / ต่อเติม', 'ค่าผ่อนชำระ', 'ค่ามัดจำ', 'อื่น ๆ'];
@@ -124,8 +124,10 @@ V23.add('v49_bank', () => {
     const v = V(), a = curAcct(), used = v.lim.d === S.day ? v.lim.used : 0, high = n >= HIGH, out = [];
     const add = (k, ok, why, fee = 0, extra = '') => out.push({ k, ok, why: ok ? extra : why, fee });
     add('cash', !high && n <= CASH_MAX && S._c >= n, high ? 'ยอด ≥ 100,000 จ่ายเงินสดไม่ได้' : n > CASH_MAX ? `เงินสดจ่ายได้ไม่เกิน ${baht(CASH_MAX)}` : `เงินสดในกระเป๋า ${baht(S._c)} ไม่พอ`, 0, `เหลือเงินสด ${baht(S._c - n)}`);
-    const appOk = !high && n <= APP_MAX && used + n <= dayLim() && Bank.st().sav >= n;
-    const appWhy = high ? 'ยอด ≥ 100,000 ต้องจ่ายเช็คหรือเบิกที่ธนาคาร' : n > APP_MAX ? `โอนผ่านแอปได้ไม่เกิน ${baht(APP_MAX)}/ครั้ง` : used + n > dayLim() ? `เกินวงเงินโอนต่อวัน ${baht(dayLim())}` : `เงินในบัญชีออมทรัพย์ ${baht(Bank.st().sav)} ไม่พอ`;
+    // v207: company payments (registration, capital, deposits) are business transfers: from the savings account by app up to BIZ_APP per payment, no 100,000 cap and no daily-limit cut (the OTP / PIN still applies)
+    const big = !!(pend && pend.only && pend.only.includes('app')) && n <= BIZ_APP;
+    const appOk = (!high || big) && (n <= APP_MAX || big) && (big || used + n <= dayLim()) && Bank.st().sav >= n;
+    const appWhy = big ? `เงินในบัญชีออมทรัพย์ ${baht(Bank.st().sav)} ไม่พอ (ต้องมี ${baht(n)})` : high ? 'ยอด ≥ 100,000 ต้องจ่ายเช็คหรือเบิกที่ธนาคาร' : n > APP_MAX ? `โอนผ่านแอปได้ไม่เกิน ${baht(APP_MAX)}/ครั้ง` : used + n > dayLim() ? `เกินวงเงินโอนต่อวัน ${baht(dayLim())}` : `เงินในบัญชีออมทรัพย์ ${baht(Bank.st().sav)} ไม่พอ`;
     add('app', appOk, appWhy, 0, `หักจากบัญชีออมทรัพย์ คงเหลือ ${baht(Bank.st().sav - n)}`);
     add('pp', appOk && hasId() && v.pp.reg, !hasId() ? 'ต้องมีบัตรประชาชนลงทะเบียนพร้อมเพย์' : !v.pp.reg ? 'ยังไม่ได้ลงทะเบียนพร้อมเพย์ (ในแอปธนาคาร > ตั้งค่า)' : appWhy, 0, 'หักจากบัญชีออมทรัพย์');
     add('cheque', !!a && v.book.left > 0 && a.bal >= n && accepts(), !a ? 'ต้องเปิดบัญชีกระแสรายวันก่อน: ไปที่สาขาธนาคาร (จ–ศ 08:30–16:30) ใช้บัตรประชาชน ฝากเริ่มต้น 2,000 ฿ จะได้สมุดเช็ค 20 ใบ' : v.book.left < 1 ? 'สมุดเช็คหมด ขอเล่มใหม่ในแอปธนาคาร > เช็ค (100 ฿)' : !accepts() ? 'เพิ่งมีเช็คคืน ร้านค้าไม่รับเช็คของคุณ (60 วัน)' : `เงินในบัญชีกระแสรายวัน ${baht(a.bal)} ไม่พอ ยังขาด ${baht(n - a.bal)}${Bank.st().sav >= n - a.bal ? ' · กดปุ่ม "โอนเข้ากระแสรายวัน" ด้านล่างเพื่อเติมจากออมทรัพย์แล้วจ่ายเช็คได้ทันที' : ' · ออมทรัพย์ก็ไม่พอ'}`, 0, `เช็คใบที่ ${v.book.next} · เคลียร์ ${RD(nextBiz(S.day))}`);
@@ -186,8 +188,8 @@ V23.add('v49_bank', () => {
     const prev = UI.cur ? { title: UI.cur.title, tabs: UI.cur.tabs, tab: UI.cur.tab, render: UI.cur.render, wide: UI.cur.wide } : null; pend = Object.assign({ prev }, o, { only }); P.demand = { amount: o.amount, label: o.label, payee: o.payee, fn: o.fn, day: S.day };
     UI.open('💳 เลือกวิธีชำระเงิน', null, () => {
       const ms = methods(o.amount).filter(m => !only || only.includes(m.k)), high = o.amount >= HIGH;
-      return `${high ? highHelp(o.amount) : ''}<p class="lead">${esc(o.label || 'ชำระเงิน')} · <b>${baht(o.amount)}</b>${o.payee ? ` · ผู้รับ ${esc(o.payee)}` : ''}</p>${only ? '<p class="dim">🏢 รายการนี้จ่ายได้เฉพาะ <b>โอนเงิน เช็ค หรือแคชเชียร์เช็ค</b> เท่านั้น (ไม่รับเงินสดและบัตร)</p>' : ''}
-        <p class="dim">เงินสด ${baht(S._c)} · บัญชีออมทรัพย์ ${baht(Bank.st().sav)}${curAcct() ? ` · กระแสรายวัน ${baht(curAcct().bal)}` : ''}${high ? '<br>⚠️ ยอดตั้งแต่ 100,000 บาทต้องจ่ายด้วยเช็คหรือเบิกที่ธนาคารเท่านั้น' : ''}</p>
+      return `${high && !(only && only.includes('app') && o.amount <= BIZ_APP) ? highHelp(o.amount) : ''}<p class="lead">${esc(o.label || 'ชำระเงิน')} · <b>${baht(o.amount)}</b>${o.payee ? ` · ผู้รับ ${esc(o.payee)}` : ''}</p>${only ? '<p class="dim">🏢 รายการนี้จ่ายได้เฉพาะ <b>โอนเงิน เช็ค หรือแคชเชียร์เช็ค</b> เท่านั้น (ไม่รับเงินสดและบัตร)</p>' : ''}
+        <p class="dim">เงินสด ${baht(S._c)} · บัญชีออมทรัพย์ ${baht(Bank.st().sav)}${curAcct() ? ` · กระแสรายวัน ${baht(curAcct().bal)}` : ''}${high && !(only && only.includes('app') && o.amount <= BIZ_APP) ? '<br>⚠️ ยอดตั้งแต่ 100,000 บาทต้องจ่ายด้วยเช็คหรือเบิกที่ธนาคารเท่านั้น' : ''}${only && only.includes('app') && o.amount <= BIZ_APP ? '<br>🏢 ธุรกรรมของบริษัท: โอนจากบัญชีออมทรัพย์ผ่านแอปได้สูงสุด ' + baht(BIZ_APP) + ' ต่อรายการ (ใช้รหัส OTP/PIN ตามปกติ)' : ''}</p>
         ${quickBtn(ms)}<div class="grid">${ms.map(m => `<div class="card"><div class="ci">${M[m.k][0]}</div><div class="cb"><h4>${M[m.k][1]}</h4><p class="dim">${esc(m.why || '')}</p><div class="row"><button class="btn ${m.ok ? '' : 'ghost'}" data-a="p49m" data-v="${m.k}" ${m.ok ? '' : 'disabled'}>จ่ายด้วยวิธีนี้</button>${m.k === 'cheque' && !m.ok && topUp(o.amount) ? `<button class="btn" data-a="p49up">💸 โอนเข้ากระแสรายวัน ${baht(topUp(o.amount))} (จากออมทรัพย์)</button>` : ''}</div></div></div>`).join('')}</div>
         <div class="row end"><button class="btn ghost" data-a="p49c">ยกเลิก</button></div>`;
     });

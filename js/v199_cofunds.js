@@ -5,8 +5,11 @@
 V23.add('v199_cofunds', () => {
   const P = window.Pay49; if (!P || typeof UI === 'undefined') return;
   const ONLY = ['app', 'pp', 'cheque', 'cashier', 'draw'];
+  // v207: the payment window names what is being paid (not the "cash is not enough" message) and offers the savings account (business transfer) as well as the cheques
+  const LAB = { coreg: { label: 'จดทะเบียนบริษัท: ค่าหุ้น 25% + ค่าธรรมเนียม + ค่าเช่า/มัดจำ 3 เดือน', payee: 'สำนักงานพัฒนาธุรกิจการค้า / เจ้าของสถานที่' }, coinject: { label: 'เพิ่มทุนเข้าบัญชีบริษัท', payee: 'บัญชีบริษัท' }, coinjectx: { label: 'เพิ่มทุนเข้าบัญชีบริษัท', payee: 'บัญชีบริษัท' } };
+  const B = window.Bank49; if (B && B.ask && !B.ask.__v207) { const _ask = B.ask; B.ask = function (o) { if (P.coLabel) o = Object.assign({}, o, P.coLabel); return _ask.call(B, o); }; B.ask.__v207 = 1; }
   for (const k of ['coinject', 'coinjectx', 'coreg']) {
     const h = UI.H[k]; if (typeof h !== 'function') continue;
-    UI.H[k] = function () { P.only = ONLY; setTimeout(() => { if (P.only === ONLY) P.only = null; }, 0); return h.apply(this, arguments); };
+    UI.H[k] = function () { P.only = ONLY; P.coLabel = LAB[k]; setTimeout(() => { if (P.only === ONLY) P.only = null; if (P.coLabel === LAB[k]) P.coLabel = null; }, 0); return h.apply(this, arguments); };
   }
 });
