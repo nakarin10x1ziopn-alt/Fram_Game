@@ -3,8 +3,7 @@
 // EV cars and a charging network, building your own houses on bought land, house extensions,
 // the smart-home phone app and multi-step AI commands with schedules ----------
 const LOTS = [
-  { id: 'east', n: 'ที่ดินแปลงใหญ่ท้ายไร่', x: 55, z: 50, rot: Math.PI, price: 35000 },
-  { id: 'south', n: 'ที่ดินริมบ่อน้ำท้ายไร่', x: 25, z: 50, rot: Math.PI, price: 30000 },
+  { id: 'south', n: 'ที่ดินเปล่า 100 ตารางวา (ในรั้วบ้าน)', x: 48, z: 30, rot: Math.PI, price: 60000 },
   { id: 'phupha', n: 'ที่ดินในเมืองภูผาใหม่', x: -132, z: -372, rot: Math.PI / 2, price: 60000 },
 ];
 const SOLAR_FARM = { x: -54, z: -6 };

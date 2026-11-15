@@ -112,7 +112,7 @@ const Company = {
   register(id, cap, partner, site) {
     const c = this.get(id), T = CO_TYPES[c.type]; if (!c || c.st !== 'named') return;
     if (cap < T.cap) { UI.toast(`ธุรกิจนี้ควรมีทุนจดทะเบียนอย่างน้อย ${baht(T.cap)}`, '💰'); return; }
-    if (!partner) { UI.toast('บริษัทจำกัดต้องมีผู้ถือหุ้นอย่างน้อย 2 คน (คู่สมรสหรือเพื่อนสนิท 5 หัวใจขึ้นไป)', '👥'); return; }
+    if (!partner) { UI.toast('บริษัทจำกัดต้องมีผู้ถือหุ้นอย่างน้อย 2 คน (เลือกจากรายชื่อนักลงทุนภายนอก)', '👥'); return; }
     if (!CO_SITES[site].kinds.includes(c.type)) { UI.toast('ที่ตั้งนี้ใช้กับธุรกิจประเภทนี้ไม่ได้', '🏢'); return; }
     const paid = Math.round(cap * 0.25), fee = this.feeOf(cap), dep = CO_SITES[site].rent * 3;
     if (S.money < paid + fee + dep) { UI.toast(`เงินสดไม่พอ ต้องใช้ ${baht(paid + fee + dep)} (ชำระค่าหุ้น 25% + ค่าธรรมเนียม + ค่าเช่าล่วงหน้า/มัดจำ 3 เดือน)`, '💸'); return; }
@@ -154,9 +154,9 @@ const Company = {
       if (c.st !== 'open') continue;
       // a day of business
       const T = CO_TYPES[c.type], fails = this.checks(c).filter(x => !x[0]);
-      if (fails.length) { c.hist.unshift(`${RD(S.day)}: หยุดดำเนินการ (${fails[0][1]})`); c.hist.length = Math.min(c.hist.length, 8); continue; }
+      if (fails.length) { c.haltDays = (c.haltDays || 0) + 1; c.hist.unshift(`${RD(S.day)}: หยุดดำเนินการ (${fails[0][1]})`); c.hist.length = Math.min(c.hist.length, 8); continue; }
       const M = METERS[Grid.st().lots['co:' + c.id]], load = this.load(c);
-      if (this.dark(c.id)) { c.rep = Math.max(0, c.rep - (c.type === 'dc' ? 8 : 2)); c.hist.unshift(`${RD(S.day)}: ไฟดับ ไม่มีไฟสำรอง ขายได้ 0`); continue; }
+      if (this.dark(c.id)) { c.haltDays = (c.haltDays || 0) + 1; c.rep = Math.max(0, c.rep - (c.type === 'dc' ? 8 : 2)); c.hist.unshift(`${RD(S.day)}: ไฟดับ ไม่มีไฟสำรอง ขายได้ 0`); continue; }
       const q = 0.75 + c.rep / 200 + Math.random() * 0.2, rev = Math.round(T.rev(c) * q), cost = Math.round(rev * T.cost);
       if (c.type === 'food') { let n = 40; for (const k of Object.keys(S.inv)) { if (!n) break; if (ITEMS[k] && ITEMS[k].cat === 'crop') { const t = Math.min(n, S.inv[k]); takeItem(k, t); earn(priceOf(k) * t); n -= t; } } }
       c.cash += rev - cost; this.book(c, rev, cost); c.rep = Math.min(100, c.rep + 1);
@@ -179,24 +179,30 @@ const Company = {
       c.kwh = 0; c.peak = 0; c.books = { rev: 0, cost: 0 };
       if (!c.lic.vat && c.ytd > 1800000) Phone.msg(c.name, 'รายได้เกิน 1.8 ล้านบาทต่อปี ต้องจดทะเบียนภาษีมูลค่าเพิ่ม (ภ.พ.20) ภายใน 30 วัน', true);
       if (c.cash < 0) { c.debtWeeks = (c.debtWeeks || 0) + 1; Phone.msg(c.name, `⚠️ บัญชีบริษัทติดลบ ${baht(Math.round(-c.cash))} เพิ่มทุนหรือลดค่าใช้จ่าย${c.debtWeeks >= 3 ? ' — ธนาคารระงับวงเงิน บริษัทหยุดดำเนินการ' : ''}`, true); if (c.debtWeeks >= 3 && c.st === 'open') c.st = 'setup'; } else c.debtWeeks = 0;
-      const yr = Math.floor((S.day - 1) / 84); if (yr !== c.year) { const p = Math.max(0, c.ytd), tax = Math.round(p <= 300000 ? 0 : p <= 3e6 ? (p - 300000) * 0.15 : 405000 + (p - 3e6) * 0.2); c.cash -= tax + 15000; Phone.msg(c.name, `ปิดงบประจำปี: กำไร ${baht(Math.round(c.ytd))} ภาษีเงินได้นิติบุคคล ${baht(tax)} ค่าผู้สอบบัญชี 15,000 ฿`, true); c.ytd = 0; c.year = yr; }
+      // v237: the corporate tax year is the real calendar year: the annual close is the December close (it used to be every 84 days)
+      { const t = Cal36.date(S.day); if (t.m === 11 && c.taxYear !== t.y) { c.taxYear = t.y; const p = Math.max(0, c.ytd), tax = Math.round(p <= 300000 ? 0 : p <= 3e6 ? (p - 300000) * 0.15 : 405000 + (p - 3e6) * 0.2); c.cash -= tax + 15000; Phone.msg(c.name, `ปิดงบประจำปี ${t.y + 543}: กำไร ${baht(Math.round(c.ytd))} ภาษีเงินได้นิติบุคคล ${baht(tax)} ค่าผู้สอบบัญชี 15,000 ฿`, true); c.ytd = 0; c.ytdFrom = S.day + 1; c.year = t.y; } }
     }
   },
   // ----- UI -----
   html(tab) {
     const L = this.list();
     if (tab === 1) {
-      const names = L.filter(c => c.st === 'named');
-      return `<p class="lead">ขั้นตอนจริง: ① จองชื่อ (อนุมัติวันถัดไป) → ② จดทะเบียนบริษัทจำกัด (ผู้ถือหุ้น 2 คนขึ้นไป ชำระค่าหุ้น 25% ค่าธรรมเนียมตามทุน มีที่ตั้งสำนักงาน) → ③ ขอใบอนุญาตเฉพาะธุรกิจ จัดหาสถานที่ ไฟฟ้า อินเทอร์เน็ต อุปกรณ์ จ้างพนักงาน → ④ เปิดดำเนินการ</p>
+      return `<p class="lead">ขั้นตอน: ① จองชื่อบริษัท (อนุมัติวันถัดไป) → ② ยื่นจดทะเบียนที่แท็บ "ยื่นจดทะเบียน" เมื่อชื่อได้รับอนุมัติแล้ว → ③ ขอใบอนุญาตเฉพาะธุรกิจ</p>
         <h5>① จองชื่อบริษัท</h5><div class="row"><input id="coName" maxlength="30" placeholder="เช่น สุขใจเทค" style="flex:1"><select id="coType">${Object.entries(CO_TYPES).map(([k, T]) => `<option value="${k}">${T.i} ${T.n}</option>`).join('')}</select><button class="btn" data-a="coreserve">ยื่นจองชื่อ</button></div>
         <div class="grid">${Object.entries(CO_TYPES).map(([k, T]) => `<div class="card"><div class="ci">${T.i}</div><div class="cb"><h4>${T.n}</h4><p class="dim">ทุนแนะนำ ${baht(T.cap)} · พนักงาน ${Object.entries(T.staff).map(([r, n]) => ROLES[r].n + ' ' + n).join(', ')} · ไฟ ${T.mv ? 'หม้อแปลงแรงสูง' : T.three ? '3 เฟส' : '1/3 เฟส'} ~${T.kw} kW+ · เน็ต ≥${T.mbps >= 1000 ? T.mbps / 1000 + 'Gbps' : T.mbps + 'Mbps'}${T.lic.length ? ' · ใบอนุญาต: ' + T.lic.map(x => CO_LIC[x].n).join(', ') : ''}</p></div></div>`).join('')}</div>
+        `;
+    }
+    if (tab === 3) {
+      const names = L.filter(c => c.st === 'named');
+      return `<p class="lead">ขั้นตอนที่ ② จดทะเบียนบริษัทจำกัด (ผู้ถือหุ้น 2 คนขึ้นไป ชำระค่าหุ้น 25% ค่าธรรมเนียมตามทุน มีที่ตั้งสำนักงาน) · แสดงเฉพาะชื่อที่ได้รับอนุมัติแล้ว</p>
         ${names.length ? `<h5>② จดทะเบียน (ชื่อที่อนุมัติแล้ว)</h5>${names.map(c => `<div class="card"><div class="ci">📜</div><div class="cb"><h4>${esc(c.name)}</h4><p class="dim">${CO_TYPES[c.type].n} · ชื่อใช้ได้ถึง${RD(c.nameOK + 30)}</p>
           <div class="row"><select id="coCap${c.id}">${[1e6, 2e6, 3e6, 5e6, 10e6].map(v => `<option value="${v}">ทุน ${baht(v)} (ค่าธรรมเนียม ${baht(this.feeOf(v))})</option>`).join('')}</select>
           <select id="coPartner${c.id}">${this.partners().map(n => `<option>${esc(n)}</option>`).join('') || '<option value="">— ไม่มีผู้ถือหุ้นร่วม —</option>'}</select>
           <select id="coSite${c.id}">${Object.entries(CO_SITES).filter(([, X]) => X.kinds.includes(c.type)).map(([k, X]) => `<option value="${k}">${X.n}${X.rent ? ' · เช่า ' + baht(X.rent) + '/เดือน' : ''}</option>`).join('')}</select>
-          <button class="btn" data-a="coreg" data-v="${c.id}">ยื่นจดทะเบียน</button></div></div></div>`).join('')}` : ''}`;
+          <button class="btn" data-a="coreg" data-v="${c.id}">ยื่นจดทะเบียน</button></div></div></div>`).join('')}` : ''}
+        ${names.length ? '' : '<p class="empty">ยังไม่มีชื่อบริษัทที่ได้รับอนุมัติ ไปที่แท็บ "จองชื่อบริษัท" ก่อน</p>'}`;
     }
-    if (!L.length) return '<p class="empty">ยังไม่มีบริษัท ไปที่แท็บ "จดทะเบียนบริษัทใหม่"</p>';
+    if (!L.length) return '<p class="empty">ยังไม่มีบริษัท ไปที่แท็บ "จองชื่อบริษัท"</p>';
     const c = this.get(this.sel) || L[0]; this.sel = c.id; const T = CO_TYPES[c.type], ch = ['setup', 'open'].includes(c.st) ? this.checks(c) : [], ready = ch.length && ch.every(x => x[0]);
     const stName = { name: '🕓 รออนุมัติชื่อ', named: '📜 จองชื่อแล้ว รอจดทะเบียน', reg: '🕓 นายทะเบียนกำลังพิจารณา', setup: '🛠️ จดทะเบียนแล้ว กำลังเตรียมเปิด', open: '🟢 เปิดดำเนินการ' }[c.st];
     return `<div class="row">${L.map(x => `<button class="btn ${x.id === c.id ? '' : 'ghost'}" data-a="cosel" data-v="${x.id}">${CO_TYPES[x.type].i} ${esc(x.name)}</button>`).join('')}</div>
@@ -213,7 +219,7 @@ const Company = {
       ${c.hist.length ? `<h5>บันทึกการดำเนินงาน</h5><p class="dim">${c.hist.map(esc).join('<br>')}</p>` : ''}
       <div class="row"><button class="btn danger" data-a="coclose" data-v="${c.id}">เลิกกิจการ/ชำระบัญชี</button></div>` : `<p class="dim">รอขั้นตอนทะเบียน</p>`}`;
   },
-  open() { UI.open('บริษัทของฉัน (ระบบจดทะเบียนนิติบุคคล)', ['บริษัทของฉัน', 'จดทะเบียนบริษัทใหม่'], t => this.html(t), { wide: true }); },
+  open() { UI.open('บริษัทของฉัน (ระบบจดทะเบียนนิติบุคคล)', ['บริษัทของฉัน', 'จองชื่อบริษัท', 'ผู้ถือหุ้น & นักลงทุน', 'ยื่นจดทะเบียน'], t => this.html(t), { wide: true }); },
   init() { this.st(); const _b = Life2.bill.bind(Life2); Life2.bill = () => { _b(); this.week(); SIMs.week(); }; },
 };
 const pay = (c, n, why) => { if (c.cash < n) { UI.toast(`เงินในบัญชีบริษัทไม่พอ (ต้อง ${baht(n)}) เพิ่มทุนก่อน`, '💸'); return false; } c.cash -= n; Company.book(c, 0, n); return true; };
@@ -222,7 +228,7 @@ Object.assign(UI.H, {
   coreserve: () => { Company.reserve(($('coName') || {}).value, ($('coType') || {}).value); },
   coreg: d => Company.register(+d.v, +($('coCap' + d.v) || {}).value, ($('coPartner' + d.v) || {}).value, ($('coSite' + d.v) || {}).value),
   cosel: d => { Company.sel = +d.v; },
-  coopen: d => { const c = Company.get(d.v); if (!Company.checks(c).every(x => x[0])) return; c.st = 'open'; Life2.note(c.name + ' เปิดดำเนินการ 🎉'); UI.toast('เปิดดำเนินการแล้ว! รายได้เข้าบัญชีบริษัททุกวัน ปิดงบทุกสัปดาห์', '🏢'); },
+  coopen: d => { const c = Company.get(d.v); if (!Company.checks(c).every(x => x[0])) return; c.st = 'open'; Life2.note(c.name + ' เปิดดำเนินการ 🎉'); UI.toast('เปิดดำเนินการแล้ว! รายได้เข้าบัญชีบริษัททุกวัน ปิดงบทุกเดือน', '🏢'); },
   colic: d => { const c = Company.get(d.v), L = CO_LIC[d.k]; const e = L.need ? L.need(c) : ''; if (e) { UI.toast(e, '📋'); return; } if (!pay(c, L.fee)) return; c.licApp[d.k] = S.day + L.days; UI.toast(`ยื่นขอ${L.n}แล้ว พิจารณา ${L.days} วัน`, '📄'); },
   cosso: d => { const c = Company.get(d.v); c.lic.sso = 1; UI.toast('ขึ้นทะเบียนนายจ้างแล้ว หักเงินสมทบ 5% (สูงสุด 875 ฿/คน) ทุกเดือน', '🏥'); },
   coelec: d => Company.elecWork(+d.v, d.k === 'mv'),
@@ -239,8 +245,22 @@ Object.assign(UI.H, {
   cohire: d => { const c = Company.get(d.v); if (!['setup', 'open'].includes(c.st)) return; c.staff.push({ r: d.k, sal: ROLES[d.k].sal, name: U.pick(STAFF_NAMES) }); UI.toast(`จ้าง${ROLES[d.k].n}แล้ว (อย่าลืมขึ้นทะเบียนประกันสังคม)`, '🤝'); },
   cofire: d => { const c = Company.get(d.v), s = c.staff[+d.k]; if (!s) return; if (pay(c, s.sal)) { c.staff.splice(+d.k, 1); UI.toast('เลิกจ้างแล้ว จ่ายค่าชดเชยตามกฎหมายแรงงาน 1 เดือน', '📄'); } },
   coinject: d => { const n = +d.p; if (![5e6, 1e7, 5e7, 1e8].includes(n)) { UI.toast('เพิ่มทุนได้เฉพาะ 5 / 10 / 50 / 100 ล้านบาท', '⚠️'); return; } coInject(Company.get(d.v), n); },
-  codiv: d => { const c = Company.get(d.v); if (c.cash < 100000 || c.ytd <= 0) { UI.toast('จ่ายปันผลได้เมื่อบริษัทมีกำไรและเงินพอ', '💰'); return; } c.cash -= 100000; earn(90000); Bank2.income('เงินปันผลบริษัท (หักภาษี ณ ที่จ่าย 10%)', 90000); },
-  coclose: d => { const c = Company.get(d.v); const back = Math.max(0, Math.round(c.cash - 20000)); c.st = 'closed'; if (back) { earn(back); Bank2.income('คืนทุนหลังชำระบัญชี', back); } UI.toast(`จดทะเบียนเลิกบริษัทและชำระบัญชีแล้ว ได้เงินคืน ${baht(back)}`, '📕'); },
+  codiv: d => { const c = Company.get(d.v); const room = window.Biz212 ? Biz212.distributable(c) : c.cash;   // v236: only from retained profit, never from the paid-up capital (same rule as the dividend box in v212)
+    if (!c || c.st === 'closed' || c.cash < 100000 || c.ytd <= 0 || room < 100000) { UI.toast(`จ่ายปันผลได้เมื่อบริษัทมีกำไรสะสมและเงินพอ (ไม่แตะทุนที่ชำระแล้ว) ตอนนี้จ่ายได้ ${baht(Math.max(0, room || 0))}`, '💰'); return; } c.cash -= 100000; earn(90000); Bank2.income('เงินปันผลบริษัท (หักภาษี ณ ที่จ่าย 10%)', 90000); },
+  // v236: the liquidation pays what the company owes first (staff severance, the company loan), returns the open branches' deposits, and shares what is left by ownership
+  coclose: d => {
+    const c = Company.get(d.v); if (!c || !['setup', 'open'].includes(c.st)) return;
+    const sev = (c.staff || []).reduce((a, s) => a + (Company.staffSev ? Company.staffSev(s) : (s.sal || 0)), 0), loan = Math.max(0, Math.round(c.loan || 0));
+    let dep = 0; for (const b of (c.br || [])) if (b.st === 'open') { b.st = 'closed'; dep += Math.round((b.dep || 0) * 0.8); }
+    const net = Math.max(0, Math.round(c.cash + dep - 20000 - sev - loan)), mine = c.mine == null ? 1 : c.mine, back = Math.round(net * mine);
+    // the shareholder register of the board room (c.reg: partner, placements, villagers) always adds up to everyone but the owner; c.h is the older, partial list
+    const R = window.Agm216 && Agm216.reg ? Agm216.reg(c) : (c.h || []);
+    for (const h of R) h.div = (h.div || 0) + Math.round(net * (h.p != null ? h.p : (h.pct || 0)));
+    c.staff = []; c.loan = 0; c.pend = []; c.cash = 0; c.st = 'closed';
+    try { for (const m of Equity.core.st().mt) if (m.key === 'co:' + c.id && (m.status === 'sched' || m.status === 'due')) { m.status = 'cancel'; m.note = 'บริษัทเลิกกิจการแล้ว'; } } catch (e) { }
+    if (back) { earn(back); Bank2.income('คืนทุนหลังชำระบัญชี', back); }
+    UI.toast(`จดทะเบียนเลิกบริษัทและชำระบัญชีแล้ว ชำระค่าชดเชยพนักงาน ${baht(sev)} หนี้เงินกู้ ${baht(loan)} ได้เงินคืน ${baht(back)}${mine < 1 ? ' (ส่วนของคุณ แบ่งให้ผู้ถือหุ้นอื่นตามสัดส่วน)' : ''}`, '📕');
+  },
   cosec: d => { UI.close(); Sec.ui('co:' + d.v); },
   cogrid: () => { UI.close(); GridApp.open(); UI.cur.tab = 1; UI.renderBody(); },
 });
@@ -267,5 +287,7 @@ function coInject(c, n) {
   // the money goes into the company account and into paid-up capital; what is not covered by the unpaid part of the registered capital raises the registered capital too (capital increase)
   const room = Math.max(0, (c.cap || 0) - (c.paid || 0)), raise = Math.max(0, n - room);
   S.money -= n; c.cash += n; c.paid += n; if (raise) c.cap = (c.cap || 0) + raise;
+  // v212: a capital increase issues new shares (to the owner), otherwise the price of one share explodes when the company is later listed on the stock market
+  if (raise && c.shares > 0 && c.par > 0) { const add = Math.round(raise / c.par), old = c.shares; c.shares = old + add; c.mine = ((c.mine == null ? 1 : c.mine) * old + add) / c.shares; }
   UI.toast('เพิ่มทุนเข้าบริษัท ' + baht(n) + (raise ? ` · ทุนจดทะเบียนเพิ่มเป็น ${baht(c.cap)}` : ` · ชำระค่าหุ้นที่ยังค้างครบ ${baht(Math.min(n, room))}`), '💰');
 }

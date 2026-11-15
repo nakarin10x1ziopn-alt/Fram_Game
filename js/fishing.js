@@ -46,7 +46,7 @@ const Fish = {
   },
   start(water) {
     if (this.st) return;
-    if (!S.up.rod) { UI.toast('ต้องมีคันเบ็ดก่อน ซื้อได้ที่ร้านเกษตรรุ่งเรือง', '🎣'); Sfx.error(); return; }
+    if (!S.up.rod) { UI.toast('ต้องมีคันเบ็ดก่อน ซื้อได้ที่ร้านวัสดุรุ่งเรือง', '🎣'); Sfx.error(); return; }
     if (!useEnergy(4)) return;
     const t = this.target(water), P = G.player;
     P.rot = Math.atan2(t.x - P.pos.x, t.z - P.pos.z);

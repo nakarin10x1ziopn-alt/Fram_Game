@@ -39,20 +39,28 @@ const Net = {
     if (!id) { id = 'p' + Math.random().toString(36).slice(2, 12); safeSet('raisukjai3d_pid', id); }
     return id + (Slots.cur() > 1 ? '_s' + Slots.cur() : '');
   },
+  // v211: this device (stable per browser), shown to the other device when both play the same save; and the optional access key of the server
+  devId() { let d = safeGet('raisukjai_dev'); if (!d) { d = 'd' + Math.random().toString(36).slice(2, 10); safeSet('raisukjai_dev', d); } return d; },
+  devName() { try { return (/iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1) ? 'ไอแพด/ไอโฟน' : /Android/.test(navigator.userAgent) ? 'มือถือ Android' : 'คอมพิวเตอร์') + ' ' + this.devId().slice(-4); } catch (e) { return 'อีกเครื่อง'; } },
+  askKey() { try { if (this.keyDeniedAt && Date.now() - this.keyDeniedAt < 600000) return false; const k = window.prompt('เซิร์ฟเวอร์เครื่องนี้ตั้งรหัสเข้าเล่นไว้ กรุณาใส่รหัส (จะจำไว้ในเครื่องนี้)'); if (k) { safeSet('raisukjai_key', k.trim()); this.keyDeniedAt = 0; return true; } this.keyDeniedAt = Date.now(); } catch (e) { } return false; },
   async api(path, body) {
+    if (this.keyDeniedAt && Date.now() - this.keyDeniedAt < 600000 && !safeGet('raisukjai_key') && path !== 'ping' && path !== 'files') throw new Error('401');   // the access key was refused: stop calling until the player taps the status pill
     // a save is sent as text once; on the laptop server a big one (over ~4 MB) goes as the raw body of /api/save?id=..&ts=.. so the server streams it to disk without holding it in memory
     let url = 'api/' + path, txt = null;
     if (body) {
       if (path === 'save' && body.save && typeof body.save === 'object') {
         const payload = JSON.stringify(body.save);
-        if (this.on && !this.cloud && payload.length > 4000000) { txt = payload; url += '?id=' + encodeURIComponent(body.id) + '&ts=' + (+body.ts || Date.now()) + (body.force ? '&force=1' : ''); }
-        else txt = '{"id":' + JSON.stringify(body.id) + ',"save":' + payload + ',"ts":' + (+body.ts || Date.now()) + (body.force ? ',"force":1' : '') + '}';
+        const dv = this.on && !this.cloud ? { dev: this.devId(), dn: this.devName() } : null;
+        if (this.on && !this.cloud && payload.length > 4000000) { txt = payload; url += '?id=' + encodeURIComponent(body.id) + '&ts=' + (+body.ts || Date.now()) + (body.force ? '&force=1' : '') + '&dev=' + encodeURIComponent(dv.dev) + '&dn=' + encodeURIComponent(dv.dn); }
+        else txt = '{"id":' + JSON.stringify(body.id) + ',"save":' + payload + ',"ts":' + (+body.ts || Date.now()) + (body.force ? ',"force":1' : '') + (dv ? ',"dev":' + JSON.stringify(dv.dev) + ',"dn":' + JSON.stringify(dv.dn) : '') + '}';
       } else txt = JSON.stringify(body);
     }
     // keepalive lets a small save still reach the server while the page is closing (iPad: swipe away / lock the screen); the browser limit is 64 KB in BYTES (Thai text is 3 bytes a character), so measure the encoded size; over the limit it falls back to a normal request
     let ka = false; if (txt && txt.length < 70000) { try { ka = new TextEncoder().encode(txt).length < 60000; } catch (e) { ka = false; } }
-    const go = k => fetch(url, body ? { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: txt, cache: 'no-store', keepalive: k } : { cache: 'no-store' });
+    const hd = () => { const h = { 'Content-Type': 'application/json' }, k = safeGet('raisukjai_key'); if (k) h['X-Game-Key'] = k; return h; };
+    const go = k => fetch(url, body ? { method: 'POST', headers: hd(), body: txt, cache: 'no-store', keepalive: k } : { cache: 'no-store', headers: hd() });
     let r; try { r = await go(ka); } catch (e) { if (!ka) throw e; r = await go(false); }
+    if (r.status === 401 && !this.keyAsking) { this.keyAsking = true; const ok = this.askKey(); this.keyAsking = false; if (ok) r = await go(false); }
     if (!r.ok) throw new Error(r.status);
     return r.json();
   },
@@ -90,7 +98,8 @@ const Net = {
     if (this.lanBusy) { this.lanAgain = true; return this.lanBusy; }
     const sendLan = () => this.api('save', { id: this.id(), save: S, ts: S && S.savedAt || Date.now() }).then(r => {
       if (!r || r.ok === false) throw new Error((r && r.error) || 'server');
-      const was = this.lan.err; this.lan = { at: Date.now(), bytes: r.bytes || 0, file: r.file || '', err: '', n: (this.lan.n || 0) + 1 };
+      const was = this.lan.err; this.lan = { at: Date.now(), bytes: r.bytes || 0, file: r.file || '', err: '', n: (this.lan.n || 0) + 1, conflict: r.conflict ? { other: r.other, secs: r.secs } : null };
+      if (r.conflict && this.onConflict) { try { this.onConflict(r); } catch (e) { } }
       if (was) { try { UI.toast('💻 กลับมาเซฟลงเครื่องเซิร์ฟเวอร์ได้แล้ว', '✅'); } catch (e) { } }
       this.lanChanged(); return r;
     }).catch(e => {
@@ -114,7 +123,7 @@ const Net = {
     if (!G.started || this.busy) return; this.busy = true; setTimeout(() => { this.busy = false; }, 2000);
     const p = G.driving ? G.driving.g.position : G.player.pos;
     try {
-      const r = await this.api('presence', { id: this.id(), name: S.name || 'ชาวไร่', x: +p.x.toFixed(2), y: +p.y.toFixed(2), z: +p.z.toFixed(2), r: +(G.driving ? G.driving.d.r : G.player.rot).toFixed(2), look: S.look, inside: G.inside, car: G.driving ? G.driving.d.type : null });
+      const r = await this.api('presence', { id: this.id(), name: S.name || 'ผู้เล่น', x: +p.x.toFixed(2), y: +p.y.toFixed(2), z: +p.z.toFixed(2), r: +(G.driving ? G.driving.d.r : G.player.rot).toFixed(2), look: S.look, inside: G.inside, car: G.driving ? G.driving.d.type : null });
       this.sync(r.others || {});
     } catch (e) { /* server went away: keep playing offline */ }
     this.busy = false;
@@ -154,5 +163,5 @@ const Net = {
       this.chatReady = true;
     } catch (e) { }
   },
-  say(text) { if (this.on && text.trim()) this.api('chat', { id: this.id(), name: S.name || 'ชาวไร่', text }).then(() => this.pullChat()).catch(() => {}); },
+  say(text) { if (this.on && text.trim()) this.api('chat', { id: this.id(), name: S.name || 'ผู้เล่น', text }).then(() => this.pullChat()).catch(() => {}); },
 };

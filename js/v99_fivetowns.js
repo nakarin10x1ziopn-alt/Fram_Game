@@ -21,7 +21,7 @@ V23.add('v99_fivetowns', () => {
   const sharedGeo = new Set(Object.values(typeof GEO !== 'undefined' ? GEO : {}));
   const freeGroup = g => { try { if (g.parent) g.parent.remove(g); g.traverse(o => { if (o.geometry && !sharedGeo.has(o.geometry)) o.geometry.dispose(); }); } catch (e) { } };
   const HUB = { x: -50, z: -255 }, COLS = 5, GX = 6.0, GZ = 5.2;
-  const MOVE = /โรงเรียนสอนขับรถ|รับสร้างบ้าน|การไฟฟ้า|ศูนย์ EV|ศูนย์สัตว์เลี้ยง|คลินิกผสมพันธุ์|สนามแข่งและประกวดสัตว์|ลีกแข่งม้า|ไอทีซีเคียวริตี้|ช่างวางระบบเครือข่าย|ไอทีซิตี้|ไอทีสโตร์|โชว์รูมรถทุ่งทอง|ซุปเปอร์คาร์|ร้านวัสดุก่อสร้าง|ร้านพันธุ์ไม้หายาก|บ้านสวยเฟอร์นิเจอร์|^ร้านของฉัน|^คอมพิวเตอร์พลาซ่า|เคาน์เตอร์ประกอบคอม|หอพัก|ตลาดริมทะเล|ตลาดน้ำริมทะเล|ร้านซีฟู้ด|ร้านดอกไม้ภูผา|คาเฟ่ริมเขา|ร้านอาหารจีน|กระดานภารกิจเมือง/;
+  const MOVE = /โรงเรียนสอนขับรถ|รับสร้างบ้าน|การไฟฟ้า|ศูนย์ EV|ศูนย์สัตว์เลี้ยง|คลินิกผสมพันธุ์|สนามแข่งและประกวดสัตว์|ไอทีซีเคียวริตี้|ช่างวางระบบเครือข่าย|ไอทีซิตี้|ไอทีสโตร์|โชว์รูมรถทุ่งทอง|ซุปเปอร์คาร์|ร้านวัสดุก่อสร้าง|ร้านต้นไม้ประดับ|บ้านสวยเฟอร์นิเจอร์|^ร้านของฉัน|^คอมพิวเตอร์พลาซ่า|เคาน์เตอร์ประกอบคอม|หอพัก|ตลาดน้ำริมทะเล|ร้านซีฟู้ด|ร้านดอกไม้ภูผา|คาเฟ่ริมเขา|ร้านอาหารจีน|กระดานภารกิจเมือง/;
   const NOMOVE = /^(ตู้|ป้าย)/;
   const FRIENDS = ['แก้ว', 'ภูผา'];
 
@@ -101,7 +101,8 @@ V23.add('v99_fivetowns', () => {
       toMetro.forEach((p, i) => {
         const col = i % CM, row = Math.floor(i / CM), lx = (col - (CM - 1) / 2) * GX, lz = (row - (rows - 1) / 2) * GZ, ci = i % mats.length;
         const b = new THREE.Mesh(body, mats[ci]); b.position.set(lx, 1.15, lz); g.add(b);
-        let lab = String(p.label || ''); if (lab === 'กระดานภารกิจเมือง') { lab += p._ox > 0 ? ' · ทุ่งทอง' : ' · ภูผา'; p.label = lab; }
+        let lab = String(p.label || ''); if (lab === 'กระดานภารกิจเมือง') { lab += p._ox > 0 ? ' · บอร์ด 2' : ' · บอร์ด 1'; p.label = lab; }
+        else { const l2 = lab.replace(/s*(ภูผา|ทุ่งทอง)(ใหม่)?/g, ''); if (l2 !== lab && l2) { lab = l2; p.label = lab; } }
         const sg = new THREE.Mesh(plane, sign(((p.icon || '') + ' ' + lab).slice(0, 26), BG[ci])); sg.position.set(lx, 2.75, lz + 0.93); g.add(sg);
         try { Col.box(px + lx, pz + lz, 1.65, 1.0, 0, 'bld'); } catch (e) { }
         p.x = px + lx; p.z = pz + lz + 2.3; p.r = Math.max(p.r || 2.4, 2.2); p.map = false; ensureRoom(p); World.pois.push(p); counts.moved++; counts.moved_names.push(lab + ' (สุขนคร)');

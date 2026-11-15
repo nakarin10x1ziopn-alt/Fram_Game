@@ -260,7 +260,7 @@ V23.add('v28_infra', () => {
     const rate = kind === 'e' ? 'อัตราบ้านอยู่อาศัยแบบก้าวหน้า + Ft + ค่าบริการ + VAT 7%' : 'อัตราประปาบ้านอยู่อาศัย ขั้นต่ำ 50 ฿ + VAT 7%';
     const nm = kind === 'e' ? '⚡ มิเตอร์ไฟฟ้าบ้านใหม่ (แยกจากบ้านหลัก)' : '🚰 มาตรน้ำบ้านใหม่ (แยกจากบ้านหลัก)';
     const unit = kind === 'e' ? 'หน่วย' : 'ลบ.ม.';
-    return `<h5>${nm}</h5><table class="tbl"><tr><th>บ้าน</th><th>เลขมิเตอร์</th><th>เลขอ่านสะสม (${unit})</th><th>รอบนี้ (${unit})</th><th>บิลล่าสุด</th><th>สถานะ</th></tr>${rows}</table><p class="dim">${rate} · บิลออกทุก 7 วันรวมกับบิลบ้านหลัก ไฟดับหรือยังไม่จ่ายบิลมิเตอร์ไม่เดิน</p>`;
+    return `<h5>${nm}</h5><table class="tbl"><tr><th>บ้าน</th><th>เลขมิเตอร์</th><th>เลขอ่านสะสม (${unit})</th><th>รอบนี้ (${unit})</th><th>บิลล่าสุด</th><th>สถานะ</th></tr>${rows}</table><p class="dim">${rate} · บิลออกทุกสิ้นเดือนรวมกับบิลบ้านหลัก ไฟดับหรือยังไม่จ่ายบิลมิเตอร์ไม่เดิน</p>`;
   };
   { const h = GridApp.html.bind(GridApp); GridApp.html = function (t) { const r = h(t); return t === 0 || t === 3 ? r + metersHtml('e') : r; }; }
   { const h = Water.html.bind(Water); Water.html = function () { return h() + metersHtml('w'); }; }

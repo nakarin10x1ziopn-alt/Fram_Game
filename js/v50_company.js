@@ -16,6 +16,8 @@ V23.add('v50_company', () => {
   const val = id => (document.getElementById(id) || {}).value;
   const St = () => { const v = S.v50 = S.v50 || {}; v.seq = v.seq || 0; v.f = v.f || {}; return v; };
   const AUD = { a: { n: 'สำนักงานบัญชีสุขใจ (ผู้สอบบัญชีรับอนุญาต)', fee: 18000 }, b: { n: 'บริษัท ตรวจสอบบัญชีทุ่งทอง จำกัด', fee: 36000 }, c: { n: 'ผู้สอบบัญชีอิสระ ราคาประหยัด', fee: 12000 } };
+  window.audName = c => { const a = c && c.aud; return a ? ((AUD[a] && AUD[a].n) || a) : ''; };   // the auditor's name: registration stores a code (a / b / c), a board resolution stores the name
+  window.dayTick50 = () => dayTick();   // for the self-tests
   const PAR = [10, 100, 1000];
   const money = (n, why) => { const b = Bank.st(); b.sav += n; try { Bank2.log(why, n); } catch (e) { } };
 
@@ -43,47 +45,59 @@ V23.add('v50_company', () => {
   const secPE = c => { try { return ({ it: 22, sec: 22, dc: 22, solar: 9, ev: 9, cafe: 13, food: 13, logistics: 10 })[c.type] || 12; } catch (e) { return 12; } };
   function value(c) {
     if (c.listed && c.px) return Math.round(c.px * c.shares);
-    const yd = Math.max(1, (S.day - 1) % 84 + 1), annual = Math.max(0, c.ytd || 0) * 84 / Math.max(28, yd), eq = Math.max(0, c.cash || 0) + (c.paid || 0) * 0.3;
+    // v237: ytd now runs over the real calendar year (reset at the December close); "annual" is still expressed per game year of 84 days, so company values keep their scale
+    const yStart = Number.isFinite(c.ytdFrom) ? c.ytdFrom : MonthCal.dayNum(Cal36.date(S.day).y, 0, 1), yd = Math.max(1, S.day - yStart + 1), annual = Math.max(0, c.ytd || 0) * 84 / Math.max(28, yd), eq = Math.max(0, c.cash || 0) + (c.paid || 0) * 0.3;
     return Math.max(100000, Math.round(eq * 0.6 + annual * secPE(c)));
   }
   const holders = c => (c.h = c.h || []);
   const mine = c => (c.mine ?? 1);
-  function addHolder(c, name, kind, pct) { const h = holders(c).find(x => x.n === name); if (h) h.pct += pct; else holders(c).push({ id: ++St().seq, n: name, k: kind, pct, div: 0 }); }
-  const kindIcon = k => k === 'online' ? '💻' : k === 'npc' ? '🧑' : '🏦';
-  const INV = ['คุณสมศักดิ์ นักลงทุนจากทุ่งทอง', 'คุณวรรณา เจ้าของโรงสี', 'คุณธนากร พ่อค้าตลาดริมทะเล', 'กองทุนหมู่บ้านสุขใจ', 'คุณอรทัย เจ้าของรีสอร์ต', 'คุณพิชัย ผู้รับเหมาภูผาใหม่'];
-  function investor() {
+  function addHolder(c, name, kind, pct, extra) { const h = holders(c).find(x => x.n === name); if (h) h.pct += pct; else holders(c).push(Object.assign({ id: ++St().seq, n: name, k: kind, pct, div: 0 }, extra || {})); }
+  const kindIcon = k => k === 'online' ? '💻' : k === 'ofc' ? '🎖️' : k === 'inv' ? '💼' : k === 'npc' ? '🧑' : '🏦';
+  const PITCH = { biz: 'นักธุรกิจ/เจ้าของกิจการ', rich: 'เศรษฐีและนักลงทุนส่วนบุคคล', officer: 'นายทหาร/ตำรวจยศสูง' }, PITCH_FEE = 30000;   // v241: the owner can pitch the company to a kind of investor
+  // v241: the people who ask to buy in are business owners, wealthy investors and senior police / military officers (not the villagers and friends, who rarely have the money); see v241_investors.js
+  function investor(V, m) {
     const online = (() => { try { return [...Net.others.values()].map(o => o.name).filter(Boolean); } catch (e) { return []; } })();
-    if (online.length && R() < 0.5) return { n: pick(online), k: 'online' };
-    const fr = Object.keys(S.friends || {}).filter(n => Friends.get(n) >= 2);
-    if (fr.length && R() < 0.5) return { n: pick(fr), k: 'npc' };
-    return { n: pick(INV), k: 'npc' };
+    if (online.length && R() < 0.3) return { n: pick(online), k: 'online' };
+    return window.Inv241 ? Inv241.pick(V || 2e6, m == null ? 1 : m) : null;
   }
   const live = c => c.st === 'setup' || c.st === 'open';
   function dayTick() {
     for (const c of Company.list()) {
       if (!live(c)) continue; c.of = c.of || []; c.of = c.of.filter(o => S.day <= o.exp);
-      // audit fee once per game year
-      if (c.aud && S.day > 1 && (S.day - 1) % 84 === 0 && c.auditYear !== Math.floor((S.day - 1) / 84)) { c.auditYear = Math.floor((S.day - 1) / 84); const f = AUD[c.aud].fee; if (c.cash >= f) { c.cash -= f; Company.book(c, 0, f); c.hist.unshift(`${RD(S.day)}: จ่ายค่าสอบบัญชีประจำปี ${baht(f)}`); } else { c.rep = Math.max(0, c.rep - 5); c.hist.unshift(`${RD(S.day)}: เงินบริษัทไม่พอจ่ายค่าสอบบัญชี ${baht(f)} ชื่อเสียงลดลง`); } }
+      // audit fee once per calendar year (v237: on 1 January; it was every 84 days)
+      const tY = Cal36.date(S.day);
+      if (c.aud && S.day > 1 && tY.m === 0 && tY.dom === 1 && c.auditYear !== tY.y) { c.auditYear = tY.y; const f = (AUD[c.aud] && AUD[c.aud].fee) || c.audFee || 18000; if (c.cash >= f) { c.cash -= f; Company.book(c, 0, f); c.hist.unshift(`${RD(S.day)}: จ่ายค่าสอบบัญชีประจำปี ${baht(f)}`); } else { c.rep = Math.max(0, c.rep - 5); c.hist.unshift(`${RD(S.day)}: เงินบริษัทไม่พอจ่ายค่าสอบบัญชี ${baht(f)} ชื่อเสียงลดลง`); } }
       // inbound interest: profitable, reputable companies attract investors
       const V = value(c);
       if (c.of.length < 2 && c.st === 'open' && S.day % 6 === 0 && R() < clamp(0.1 + c.rep / 400 + (c.ytd > 0 ? 0.12 : 0), 0, 0.5) && mine(c) > 0.2) {
-        const who = investor(), pct = pick([0.05, 0.1, 0.15, 0.2]), mode = R() < 0.5 ? 'new' : 'sec', bid = Math.round(V * pct * (0.8 + R() * 0.5));
-        if (mine(c) - pct >= 0.1) { c.of.push({ id: ++St().seq, who: who.n, kind: who.k, pct, mode, bid, exp: S.day + 10 }); try { Phone.msg(who.n, `สนใจเข้าร่วมถือหุ้น ${c.name} ${Math.round(pct * 100)}% เสนอ ${baht(bid)} (${mode === 'new' ? 'ซื้อหุ้นเพิ่มทุนใหม่ เงินเข้าบริษัท' : 'ซื้อหุ้นของคุณ เงินเข้าบัญชีคุณ'}) ดูที่แท็บผู้ถือหุ้นในแอปบริษัท`); } catch (e) { } }
+        const who = investor(V, mine(c)), pct = (who && who.pct) || pick([0.05, 0.1, 0.15, 0.2]), mode = R() < 0.5 ? 'new' : 'sec', bid = who ? Math.round(Math.min(V * pct * (0.8 + R() * 0.5), who.wealth ? who.wealth * 0.6 : Infinity)) : 0;
+        if (who && mine(c) - pct >= 0.1) { c.of.push({ id: ++St().seq, who: who.n, kind: who.k, pct, mode, bid, exp: S.day + 10, prof: who.prof || '', cls: who.cls || '', serving: !!who.serving, ret: !!who.ret }); try { Phone.msg(who.n, `${who.prof ? '(' + who.prof + ') ' : ''}สนใจเข้าร่วมถือหุ้น ${c.name} ${Math.round(pct * 100)}% เสนอ ${baht(bid)} (${mode === 'new' ? 'ซื้อหุ้นเพิ่มทุนใหม่ เงินเข้าบริษัท' : 'ซื้อหุ้นของคุณ เงินเข้าบัญชีคุณ'}) ดูที่แท็บผู้ถือหุ้นในแอปบริษัท`); } catch (e) { } }
+      }
+      // v241: the owner's pitch to a kind of investor is answered after 3 days: up to two of them come back with an offer for new shares
+      if (c.pitch && S.day >= c.pitch.due) {
+        const P = c.pitch; c.pitch = null; c.pitchNext = S.day + 14;
+        if (window.Inv241 && c.st === 'open') {
+          const prob = clamp(0.3 + c.rep / 250 + (c.ytd > 0 ? 0.2 : -0.1), 0.1, 0.85); let got = 0, noFit = false;
+          for (let i = 0; i < 2; i++) if (R() < (i ? prob * 0.5 : prob)) { const who = Inv241.pick(V, mine(c), { cls: P.cls, pct: P.pct }); if (!who) noFit = true; if (who && !c.of.some(o => o.who === who.n)) { const bid = Math.round(who.ticket * (0.9 + R() * 0.3)); c.of.push({ id: ++St().seq, who: who.n, kind: who.k, pct: who.pct, mode: 'new', bid, exp: S.day + 10, prof: who.prof, cls: who.cls, serving: !!who.serving, ret: !!who.ret, pitched: 1 }); got++; try { Phone.msg(who.n, `${who.prof ? '(' + who.prof + ') ' : ''}ได้ดูข้อเสนอของ ${c.name} แล้ว สนใจถือหุ้น ${Math.round(who.pct * 100)}% เสนอ ${baht(bid)} (หุ้นใหม่ เงินเข้าบริษัท) ดูที่แท็บผู้ถือหุ้นในแอปบริษัท`); } catch (e) { } } }
+          if (!got) { try { Phone.msg('ที่ปรึกษาจัดหาทุน', `การนำเสนอ ${c.name} ต่อ${PITCH[P.cls]} ${noFit ? 'มูลค่าบริษัทสูงกว่ากำลังเงินของกลุ่มนี้ หรือสัดส่วนที่เสนอเล็กเกินไปสำหรับเช็คที่เขาลงทุน ลองเลือกกลุ่มอื่นหรือเสนอสัดส่วนที่ใหญ่ขึ้น' : 'ยังไม่มีผู้ตอบรับในรอบนี้ ลองใหม่หลังปรับปรุงผลงานหรือชื่อเสียงของบริษัท'}`, true); } catch (e) { } }
+        }
       }
       // your own offer for sale: interested people answer over the next days
       if (c.out) {
-        const o = c.out, who = investor(), bid = Math.round(V * o.pct * (0.75 + R() * 0.5));
-        if (bid >= o.ask * 0.95 && R() < 0.6) { c.of.push({ id: ++St().seq, who: who.n, kind: who.k, pct: o.pct, mode: 'sec', bid: o.ask, exp: S.day + 10 }); c.out = null; try { Phone.msg(who.n, `ตกลงซื้อหุ้น ${c.name} ${Math.round(o.pct * 100)}% ตามราคาที่คุณเสนอ ${baht(o.ask)} · ยืนยันที่แท็บผู้ถือหุ้น`); } catch (e) { } }
-        else if (R() < 0.3 && bid > o.ask * 0.6) { c.of.push({ id: ++St().seq, who: who.n, kind: who.k, pct: o.pct, mode: 'sec', bid, exp: S.day + 7 }); try { Phone.msg(who.n, `ต่อรองหุ้น ${c.name} ${Math.round(o.pct * 100)}% เหลือ ${baht(bid)}`); } catch (e) { } }
+        const o = c.out, who = investor(V, 1) || { n: 'นักลงทุนนิรนาม', k: 'inv', prof: '', wealth: 0 }, bid = Math.round(V * o.pct * (0.75 + R() * 0.5)), meta = { prof: who.prof || '', cls: who.cls || '', serving: !!who.serving, ret: !!who.ret };
+        if (bid >= o.ask * 0.95 && R() < 0.6) { c.of.push(Object.assign({ id: ++St().seq, who: who.n, kind: who.k, pct: o.pct, mode: 'sec', bid: o.ask, exp: S.day + 10 }, meta)); c.out = null; try { Phone.msg(who.n, `ตกลงซื้อหุ้น ${c.name} ${Math.round(o.pct * 100)}% ตามราคาที่คุณเสนอ ${baht(o.ask)} · ยืนยันที่แท็บผู้ถือหุ้น`); } catch (e) { } }
+        else if (R() < 0.3 && bid > o.ask * 0.6) { c.of.push(Object.assign({ id: ++St().seq, who: who.n, kind: who.k, pct: o.pct, mode: 'sec', bid, exp: S.day + 7 }, meta)); try { Phone.msg(who.n, `ต่อรองหุ้น ${c.name} ${Math.round(o.pct * 100)}% เหลือ ${baht(bid)}`); } catch (e) { } }
         if (c.out && S.day - o.start >= 5) { c.out = null; try { Phone.msg('นายหน้าหุ้น', `ยังไม่มีผู้ซื้อหุ้น ${c.name} ในราคาที่คุณเสนอ ลองลดราคา`, true); } catch (e) { } }
       }
     }
   }
   function accept(c, o) {
     if (!live(c) || mine(c) - o.pct < 0.1) { toast('ต้องเหลือหุ้นของคุณอย่างน้อย 10%', '⚖️'); return; }
+    if (window.Inv241) Inv241.before(c);   // the shareholder register of the board room is brought up to date first, then gets the new holder (Inv241.after)
     if (o.mode === 'new') { c.shares = Math.round(c.shares / (1 - o.pct)); for (const h of holders(c)) h.pct *= (1 - o.pct); c.mine = mine(c) * (1 - o.pct); c.cash += o.bid; c.paid = (c.paid || 0) + o.bid; Company.book(c, 0, 0); c.hist.unshift(`${RD(S.day)}: ออกหุ้นใหม่ให้ ${o.who} ${Math.round(o.pct * 100)}% ได้เงินเข้าบริษัท ${baht(o.bid)}`); }
     else { c.mine = mine(c) - o.pct; const net = Math.round(o.bid * 0.99); money(net, `ขายหุ้น ${c.name} ให้ ${o.who}`); try { Bank2.income('ขายหุ้นบริษัท', net); } catch (e) { } }
-    addHolder(c, o.who, o.kind, o.mode === 'new' ? o.pct : o.pct);
+    addHolder(c, o.who, o.kind, o.pct, { prof: o.prof, serving: o.serving, ret: o.ret });
+    if (window.Inv241) Inv241.after(c, o);
     c.of = c.of.filter(x => x !== o); toast(`${o.who} เป็นผู้ถือหุ้น ${c.name} ${Math.round(o.pct * 100)}% แล้ว`, '🤝'); try { Phone.msg(o.who, `ขอบคุณที่ขายหุ้นให้ครับ/ค่ะ ยินดีร่วมงานกับ ${c.name} 🙏`, true); } catch (e) { }
   }
   function buyOut(c, h) {
@@ -106,8 +120,9 @@ V23.add('v50_company', () => {
       <p class="lead">มูลค่าบริษัทโดยประมาณ <b>${baht(V)}</b> (${c.listed ? 'ราคาตลาด' : 'ประเมินจากเงินสด ทุน และกำไร ' + secPE(c) + ' เท่า'}) · หุ้นทั้งหมด ${(c.shares || 0).toLocaleString('en-US')} หุ้น · หุ้นละ ${c.par || '-'} ฿ · ผู้สอบบัญชี ${esc((AUD[c.aud] || {}).n || '-')}</p>
       <p class="dim">กรรมการ: ${esc((c.dirs || [S.name || 'คุณ']).join(', '))}</p>
       <h5>ผู้ถือหุ้น</h5><div class="grid"><div class="card"><div class="ci">🧑‍🌾</div><div class="cb"><h4>${esc(S.name || 'คุณ')} (ผู้ก่อตั้ง)</h4><p>${pct(mine(c))} · มูลค่า ${baht(Math.round(V * mine(c)))}</p></div></div>
-      ${holders(c).map(h => `<div class="card"><div class="ci">${kindIcon(h.k)}</div><div class="cb"><h4>${esc(h.n)}</h4><p>${pct(h.pct)} · มูลค่า ${baht(Math.round(V * h.pct))}${h.div ? ` · รับปันผลแล้ว ${baht(h.div)}` : ''}</p><div class="row"><button class="btn ghost" data-a="v50" data-v="buy|${h.id}">ซื้อหุ้นคืน ${baht(Math.round(V * h.pct * 1.1))}</button></div></div></div>`).join('')}</div>
-      <h5>คำเสนอซื้อหุ้น (${c.of.length})</h5>${c.of.length ? `<div class="grid">${c.of.map(o => `<div class="card"><div class="ci">${kindIcon(o.kind)}</div><div class="cb"><h4>${esc(o.who)}${o.kind === 'online' ? ' · ผู้เล่นออนไลน์' : ''}</h4><p>ขอซื้อ ${pct(o.pct)} เสนอ ${baht(o.bid)} (${o.mode === 'new' ? 'หุ้นใหม่ เงินเข้าบริษัท' : 'หุ้นของคุณ เงินเข้าบัญชีคุณ'}) · เทียบมูลค่า ${Math.round(o.bid / Math.max(1, V * o.pct) * 100)}% · หมดอายุ ${RD(o.exp)}</p><div class="row"><button class="btn" data-a="v50" data-v="ok|${o.id}">ตกลง</button><button class="btn ghost" data-a="v50" data-v="no|${o.id}">ปฏิเสธ</button></div></div></div>`).join('')}</div>` : '<p class="empty">ยังไม่มีคำเสนอ บริษัทที่มีกำไรและชื่อเสียงดีจะมีนักลงทุนสนใจเอง</p>'}
+      ${holders(c).map(h => `<div class="card"><div class="ci">${kindIcon(h.k)}</div><div class="cb"><h4>${esc(h.n)}</h4>${h.prof ? `<p class="dim">${esc(h.prof)}${h.serving ? ' · ถือหุ้นได้ แต่เป็นกรรมการไม่ได้' : ''}</p>` : ''}<p>${pct(h.pct)} · มูลค่า ${baht(Math.round(V * h.pct))}${h.div ? ` · รับปันผลแล้ว ${baht(h.div)}` : ''}</p><div class="row"><button class="btn ghost" data-a="v50" data-v="buy|${h.id}">ซื้อหุ้นคืน ${baht(Math.round(V * h.pct * 1.1))}</button></div></div></div>`).join('')}</div>
+      <h5>คำเสนอซื้อหุ้น (${c.of.length})</h5>${c.of.length ? `<div class="grid">${c.of.map(o => `<div class="card"><div class="ci">${kindIcon(o.kind)}</div><div class="cb"><h4>${esc(o.who)}${o.kind === 'online' ? ' · ผู้เล่นออนไลน์' : ''}</h4>${o.prof ? `<p class="dim">${esc(o.prof)}${o.serving ? ' · ข้าราชการประจำ ถือหุ้นได้ แต่เป็นกรรมการไม่ได้' : o.ret ? ' · เป็นกรรมการได้' : ''}</p>` : ''}<p>ขอซื้อ ${pct(o.pct)} เสนอ ${baht(o.bid)} (${o.mode === 'new' ? 'หุ้นใหม่ เงินเข้าบริษัท' : 'หุ้นของคุณ เงินเข้าบัญชีคุณ'}) · เทียบมูลค่า ${Math.round(o.bid / Math.max(1, V * o.pct) * 100)}% · หมดอายุ ${RD(o.exp)}</p><div class="row"><button class="btn" data-a="v50" data-v="ok|${o.id}">ตกลง</button><button class="btn ghost" data-a="v50" data-v="no|${o.id}">ปฏิเสธ</button></div></div></div>`).join('')}</div>` : '<p class="empty">ยังไม่มีคำเสนอ บริษัทที่มีกำไรและชื่อเสียงดีจะมีนักลงทุนสนใจเอง</p>'}
+      <h5>📣 เสนอตัวกับนักลงทุน</h5>${c.pitch ? `<p class="lead">⏳ กำลังนำเสนอ${PITCH[c.pitch.cls]} (หุ้นไม่เกิน ${pct(c.pitch.pct)}) · รู้ผลอีก ${Math.max(0, c.pitch.due - S.day)} วัน</p>` : `<p class="dim">จ้างที่ปรึกษาทำเอกสารนำเสนอและจัดงานพบนักลงทุนกลุ่มที่เลือก ค่าใช้จ่าย ${baht(PITCH_FEE)} จากเงินบริษัท รู้ผลใน 3 วัน ผลขึ้นกับชื่อเสียงและกำไรของบริษัท นำเสนอซ้ำได้ทุก 14 วัน (ถ้าได้ผลจะมีคำเสนอขึ้นด้านบน)</p><div class="row"><select id="v50PitchCls" style="font-size:16px;padding:8px;border-radius:10px;border:1px solid #ccc">${Object.entries(PITCH).map(([k, n]) => `<option value="${k}">${n}</option>`).join('')}</select><select id="v50PitchPct" style="font-size:16px;padding:8px;border-radius:10px;border:1px solid #ccc">${[5, 10, 15, 20].map(p => `<option value="${p / 100}">ไม่เกิน ${p}%</option>`).join('')}</select><button class="btn" data-a="v50" data-v="pitch" ${(c.pitchNext || 0) > S.day ? 'disabled' : ''}>📣 นำเสนอ (${baht(PITCH_FEE)})</button></div>${(c.pitchNext || 0) > S.day ? `<p class="dim">นำเสนอครั้งต่อไปได้อีก ${c.pitchNext - S.day} วัน</p>` : ''}`}
       <h5>เสนอขายหุ้นของคุณ</h5>${c.out ? `<p class="lead">⏳ กำลังเสนอขาย ${pct(c.out.pct)} ราคา ${baht(c.out.ask)} · รอผู้สนใจ <button class="btn ghost" data-a="v50" data-v="cancelout">ยกเลิก</button></p>` : `<div class="row"><select id="v50Pct" style="font-size:16px;padding:8px;border-radius:10px;border:1px solid #ccc">${[5, 10, 20, 30].map(p => `<option value="${p / 100}">${p}%</option>`).join('')}</select><input id="v50Ask" type="number" min="1000" step="1000" placeholder="ราคาที่ขอ (บาท รวม)" style="flex:1;font-size:16px;padding:8px;border-radius:10px;border:1px solid #ccc"><button class="btn" data-a="v50" data-v="sell">ประกาศขาย</button></div><p class="dim">ราคาตามมูลค่า 5% ≈ ${baht(Math.round(V * 0.05))} · ต้องเหลือหุ้นของคุณอย่างน้อย 10%</p>`}`;
   }
   UI.H.v50 = d => {
@@ -116,16 +131,25 @@ V23.add('v50_company', () => {
     else if (c && a === 'ok') { const o = (c.of || []).find(q => q.id === +x); if (o) accept(c, o); }
     else if (c && a === 'no') { c.of = (c.of || []).filter(q => q.id !== +x); toast('ปฏิเสธคำเสนอแล้ว', '🙅'); }
     else if (c && a === 'buy') { const h = holders(c).find(q => q.id === +x); if (h) buyOut(c, h); }
+    else if (c && a === 'pitch') {
+      const cls = val('v50PitchCls'), p = +val('v50PitchPct'); if (!PITCH[cls] || !(p > 0)) return;
+      if (c.st !== 'open' || c.listed) { toast('นำเสนอนักลงทุนได้เฉพาะบริษัทที่เปิดดำเนินการและยังไม่เข้าตลาดหลักทรัพย์', '📣'); return; }
+      if (c.pitch) { toast('กำลังรอผลการนำเสนออยู่', '📣'); return; } if ((c.pitchNext || 0) > S.day) { toast('นำเสนอใหม่ได้อีก ' + (c.pitchNext - S.day) + ' วัน', '📣'); return; }
+      if ((c.of || []).length >= 4) { toast('มีคำเสนอรอตอบอยู่หลายรายแล้ว ตอบรับหรือปฏิเสธก่อน', '📣'); return; }
+      if (mine(c) - p < 0.1) { toast('ต้องเหลือหุ้นของคุณอย่างน้อย 10%', '⚖️'); return; }
+      if ((c.cash || 0) < PITCH_FEE) { toast('เงินบริษัทไม่พอจ่ายค่านำเสนอ ' + baht(PITCH_FEE), '💸'); return; }
+      c.cash -= PITCH_FEE; Company.book(c, 0, PITCH_FEE); c.pitch = { cls, pct: p, due: S.day + 3 }; toast('จ้างที่ปรึกษานำเสนอ' + PITCH[cls] + 'แล้ว (' + baht(PITCH_FEE) + ') รู้ผลใน 3 วัน', '📣');
+    }
     else if (c && a === 'sell') { const p = +val('v50Pct'), ask = Math.round(+val('v50Ask') || 0); if (!(ask >= 1000)) { toast('ใส่ราคาที่ต้องการขาย', 'ℹ️'); return; } if (mine(c) - p < 0.1) { toast('ต้องเหลือหุ้นของคุณอย่างน้อย 10%', '⚖️'); return; } c.out = { pct: p, ask, start: S.day }; toast('ประกาศขายหุ้นแล้ว จะมีผู้สนใจตอบกลับภายใน 5 วัน', '📢'); }
     else if (c && a === 'cancelout') c.out = null;
     UI.renderBody();
   };
-  Company.open = function () { UI.open('บริษัทของฉัน (ระบบจดทะเบียนนิติบุคคล)', ['บริษัทของฉัน', 'จดทะเบียนบริษัทใหม่', 'ผู้ถือหุ้น & นักลงทุน'], t => (t === 2 ? tabHolders() : Company.html(t)), { wide: true }); };
+  Company.open = function () { UI.open('บริษัทของฉัน (ระบบจดทะเบียนนิติบุคคล)', ['บริษัทของฉัน', 'จองชื่อบริษัท', 'ผู้ถือหุ้น & นักลงทุน', 'ยื่นจดทะเบียน'], t => (t === 2 ? tabHolders() : Company.html(t)), { wide: true }); };
   // the register form and the company card: real-life fields
   { const _html = Company.html.bind(Company);
     Company.html = function (tab) {
       let h = _html(tab);
-      if (tab === 1) {
+      if (tab === 3) {
         h = h.replace(/<button class="btn" data-a="coreg" data-v="(\d+)">/g, (m, id) => `<select id="coPar${id}">${PAR.map(p => `<option value="${p}" ${p === 100 ? 'selected' : ''}>หุ้นละ ${p} ฿</option>`).join('')}</select><select id="coAud${id}">${Object.entries(AUD).map(([k, a]) => `<option value="${k}">ผู้สอบบัญชี: ${esc(a.n)} (${baht(a.fee)}/ปี)</option>`).join('')}</select>` + m);
         h = h.replace('ผู้ถือหุ้น 2 คนขึ้นไป ชำระค่าหุ้น 25%', inTest() ? 'ช่วงทดสอบไม่ต้องมีผู้ถือหุ้นร่วม · กำหนดมูลค่าหุ้น กรรมการ ผู้สอบบัญชี · ชำระค่าหุ้น 25%' : `ธุรกิจใหญ่ (ทุน ≥ ${baht(BIG_CAP)}) ต้องมีผู้ถือหุ้น 2 คนขึ้นไป ธุรกิจเล็กก่อตั้งคนเดียวได้ · กำหนดมูลค่าหุ้น กรรมการ ผู้สอบบัญชี · ชำระค่าหุ้น 25%`);
       } else h = h.replace('ผู้ถือหุ้น: คุณ, -', 'ผู้ถือหุ้น: คุณคนเดียว (100%)').replace('ผู้ถือหุ้น: คุณ, ', 'ผู้ถือหุ้น: คุณ, ');

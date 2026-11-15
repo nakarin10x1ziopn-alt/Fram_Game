@@ -233,7 +233,7 @@ const Emergency = {
     if (Math.random() < p) {
       const spots = [[-6, 6], [20, 8], [-30, -6], [26, -20], [-10, 30], [12, 30]], sp = U.pick(spots);
       if (wx === 'storm') { Sfx.thunder(); G.flash = 1; }
-      this.ignite(sp[0] + Math.random() * 3, sp[1] + Math.random() * 3, wx === 'storm' ? 'ฟ้าผ่าลงในไร่ เกิดไฟไหม้! รีบดับไฟหรือโทร 199' : 'อากาศร้อนจัด หญ้าแห้งติดไฟในไร่! รีบดับไฟหรือโทร 199');
+      this.ignite(sp[0] + Math.random() * 3, sp[1] + Math.random() * 3, wx === 'storm' ? 'ฟ้าผ่าลงในไร่ เกิดไฟไหม้! รีบดับไฟหรือโทร 199' : 'อากาศร้อนจัด หญ้าแห้งติดไฟนอกบ้าน! รีบดับไฟหรือโทร 199');
       S.emerg.calm = 2;
     }
     if (S.emerg.calm > 0) S.emerg.calm -= 1 / 24;
@@ -247,13 +247,13 @@ const Emergency = {
 
   // ----- thief -----
   spawnThief(ripe) {
-    if (S.st2 && S.st2.cctv && Math.random() < 0.35) { S.emerg.caught++; S.emerg.nextThief = S.day + 3; Phone.msg('กล้องวงจรปิดฟาร์ม', 'กล้องจับภาพขโมยได้ ส่งภาพให้ตำรวจแล้ว ขโมยหนีไปก่อนเข้าถึงผลผลิต ไม่มีของหาย (ตำรวจไม่มีเงินรางวัลให้ผู้เสียหาย)'); return; }
+    if (S.st2 && S.st2.cctv && Math.random() < 0.35) { S.emerg.caught++; S.emerg.nextThief = S.day + 3; Phone.msg('กล้องวงจรปิดบ้าน', 'กล้องจับภาพขโมยได้ ส่งภาพให้ตำรวจแล้ว ขโมยหนีไปก่อนเข้าถึงผลผลิต ไม่มีของหาย (ตำรวจไม่มีเงินรางวัลให้ผู้เสียหาย)'); return; }
     const obj = Models.human(Object.assign({ skin: 0xc68d63, hair: 0x1b120c }, UNIFORM.thief)); World.dyn.add(obj);
     const x = 32, z = 20; obj.position.set(x, H(x, z), z);
     this.thief = { obj, x, z, rot: 0, ripe: ripe.slice(0, 4), st: 'sneak', t: 0, stolen: {}, took: 0 };
     S.emerg.nextThief = S.day + 3;
-    UI.toast('มีเสียงแปลก ๆ ในแปลงผัก... เหมือนมีคนแอบเข้ามาขโมยผัก! โทร 191', '🕵️');
-    Phone.msg('กล้องวงจรปิดฟาร์ม', 'ตรวจพบคนแปลกหน้าเข้ามาในแปลงผักตอนกลางคืน! ไล่ออกไป หรือโทร 191 ให้ตำรวจมาจับ');
+    UI.toast('มีเสียงแปลก ๆ หน้าบ้าน... เหมือนมีคนแอบเข้ามาขโมยของ! โทร 191', '🕵️');
+    Phone.msg('กล้องวงจรปิดบ้าน', 'ตรวจพบคนแปลกหน้าเข้ามาในบริเวณบ้านตอนกลางคืน! ไล่ออกไป หรือโทร 191 ให้ตำรวจมาจับ');
   },
   updateThief(dt) {
     const th = this.thief; if (!th) return;
@@ -294,7 +294,7 @@ const Emergency = {
       for (const k in th.stolen) addItem(k, th.stolen[k]);
       S.emerg.caught++; Prog.add(20);
       Phone.msg('สถานีตำรวจภูธรสุขใจ', `จับขโมยได้แล้วครับ! คืนของให้ ${lost || '-'} (ไม่มีเงินรางวัลนำจับให้ผู้แจ้ง) ขอบคุณที่แจ้งเหตุครับ`);
-    } else if (lost) { Bank2.claim('ผลผลิตถูกขโมย', Object.keys(th.stolen).reduce((s, k) => s + CROPS[k].sell * th.stolen[k], 0)); } if (!caught && lost) S.theftDay = S.day; if (!caught && lost && typeof Sec !== 'undefined') Sec.evidence(th.stolen); if (!caught && lost) Phone.msg('กล้องวงจรปิดฟาร์ม', `ขโมยหนีไปได้ พร้อมผลผลิต ${lost} คราวหน้าลองโทร 191 เร็ว ๆ นะ`);
+    } else if (lost) { Bank2.claim('ผลผลิตถูกขโมย', Object.keys(th.stolen).reduce((s, k) => s + CROPS[k].sell * th.stolen[k], 0)); } if (!caught && lost) S.theftDay = S.day; if (!caught && lost && typeof Sec !== 'undefined') Sec.evidence(th.stolen); if (!caught && lost) Phone.msg('กล้องวงจรปิดบ้าน', `ขโมยหนีไปได้ พร้อมผลผลิต ${lost} คราวหน้าลองโทร 191 เร็ว ๆ นะ`);
   },
 
   // ----- vehicles on call -----
@@ -371,7 +371,7 @@ const Emergency = {
       ? `<p class="lead">“สวัสดีครับ ที่นี่สถานีตำรวจภูธรสุขใจ ให้บริการ 24 ชั่วโมง ถ้าเจอคนร้ายหรือขโมยในไร่โทร <b>191</b> ได้ทันที”</p>
         <div class="card"><div class="ci">👮</div><div class="cb"><h4>ผลงานความร่วมมือ</h4><p>จับขโมยด้วยกันแล้ว ${S.emerg.caught} ครั้ง · รางวัลนำจับครั้งละ ${baht(500)}</p><p class="dim">ขโมยจะมาเฉพาะกลางคืนที่มีผักสุกรอเก็บ เก็บผักให้ทันก็ช่วยได้</p></div></div>
         <div class="row"><button class="btn big" data-a="reportui">📝 แจ้งความ / ขอใช้บริการ</button><button class="btn big ghost" data-a="license">${S.license ? '🪪 มีใบขับขี่แล้ว' : '🪪 สอบใบขับขี่ (500 ฿)'}</button></div>
-        <div class="card"><div class="ci">📹</div><div class="cb"><h4>ติดกล้องวงจรปิดที่ฟาร์ม</h4><p class="dim">แจ้งเตือนเข้ามือถือทันทีเมื่อมีคนแปลกหน้า (ติดให้ฟรีแล้ว)</p></div></div>`
+        <div class="card"><div class="ci">📹</div><div class="cb"><h4>ติดกล้องวงจรปิดที่บ้าน</h4><p class="dim">แจ้งเตือนเข้ามือถือทันทีเมื่อมีคนแปลกหน้า (ติดให้ฟรีแล้ว)</p></div></div>`
       : `<p class="lead">“สวัสดีครับ สถานีดับเพลิงสุขใจพร้อมออกเหตุตลอด 24 ชั่วโมง เห็นไฟไหม้โทร <b>199</b>”</p>
         <div class="card"><div class="ci">🧯</div><div class="cb"><h4>ถังดับเพลิง <small>มี ${count('extinguisher')}</small></h4><p class="dim">ฉีดทีเดียวดับไฟรอบตัวหมด ใช้ได้ 1 ครั้ง</p><div class="row"><button class="btn" data-a="buyext" ${S.money < 600 ? 'disabled' : ''}>ซื้อ ${baht(600)}</button></div></div></div>
         <div class="card"><div class="ci">🎓</div><div class="cb"><h4>อบรมดับเพลิงเบื้องต้น</h4><p class="dim">${S.fireTrained ? 'ผ่านการอบรมแล้ว: สาดน้ำดับไฟแรงขึ้น 2 เท่า' : 'ค่าอบรม 500 ฿ ใช้เวลา 2 ชม. สาดน้ำดับไฟแรงขึ้น 2 เท่า'}</p><div class="row"><button class="btn" data-a="firetrain" ${S.fireTrained ? 'disabled' : ''}>สมัครอบรม</button></div></div></div>

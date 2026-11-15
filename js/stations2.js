@@ -31,7 +31,7 @@ const Stations2 = {
     const s = this.st();
     UI.open('อบรมกฎจราจร', null, () => `<p class="lead">แต้มใบขับขี่ของคุณ: <b>${s.points}/5</b> (ครบ 5 แต้มถูกพักใบขับขี่) · อบรม 2 ชม. ค่าอบรม 600 ฿ ล้างแต้มเป็น 0</p><div class="row"><button class="btn" data-a="trschool" ${s.points && S.money >= 600 ? '' : 'disabled'}>เข้าอบรม</button></div>`);
   },
-  cctvUI() { const s = this.st(); UI.open('กล้องวงจรปิดฟาร์ม', null, () => `<p class="lead">${s.cctv ? '✅ ติดตั้งแล้ว: ขโมยที่บุกเข้าไร่มีโอกาส 60% ถูกตำรวจจับได้ทันทีโดยไม่เสียของ' : 'ติดตั้ง 4,000 ฿ เชื่อมต่อสถานีตำรวจ ขโมยมีโอกาส 60% ถูกจับทันทีที่เข้าไร่'}</p><div class="row"><button class="btn" data-a="cctv" ${!s.cctv && S.money >= 4000 ? '' : 'disabled'}>ติดตั้ง</button></div>`); },
+  cctvUI() { const s = this.st(); UI.open('กล้องวงจรปิดบ้าน', null, () => `<p class="lead">${s.cctv ? '✅ ติดตั้งแล้ว: ขโมยที่บุกเข้าไร่มีโอกาส 60% ถูกตำรวจจับได้ทันทีโดยไม่เสียของ' : 'ติดตั้ง 4,000 ฿ เชื่อมต่อสถานีตำรวจ ขโมยมีโอกาส 60% ถูกจับทันทีที่เข้าไร่'}</p><div class="row"><button class="btn" data-a="cctv" ${!s.cctv && S.money >= 4000 ? '' : 'disabled'}>ติดตั้ง</button></div>`); },
   ticketsUI() {
     const s = this.st();
     UI.open('ประวัติใบสั่ง', null, () => `<p class="lead">อุทธรณ์ได้สัปดาห์ละครั้ง มีโอกาส 50% ได้เงินค่าปรับคืน</p>${s.tickets.length ? `<ul class="lead">${s.tickets.slice(-8).reverse().map(t => `<li>${RD(t.d)}: ${esc(t.t)} ${baht(t.a)}${t.back ? ' (คืนเงินแล้ว)' : ''}</li>`).join('')}</ul>` : '<p class="empty">ยังไม่เคยโดนใบสั่ง</p>'}<div class="row"><button class="btn" data-a="appeal" ${s.tickets.some(t => !t.back) && S.day - s.appealDay >= 7 ? '' : 'disabled'}>อุทธรณ์ใบสั่งล่าสุด</button></div>`);
@@ -46,7 +46,7 @@ const Stations2 = {
   // ----- fire -----
   fireRoom(g, pois, X, Z, W, D, box) {
     const P = (x, z, icon, label, fn) => pois.push({ kind: 'act', x: X + x, z: Z + z, r: 1.4, label, icon, act: () => ({ icon, label, fn }) });
-    P(-3.5, 2.2, '🔍', 'ขอเจ้าหน้าที่ตรวจความปลอดภัยฟาร์ม', () => this.inspect());
+    P(-3.5, 2.2, '🔍', 'ขอเจ้าหน้าที่ตรวจความปลอดภัยบ้าน', () => this.inspect());
     box(W / 2 - 1.2, 3.5, 1.6, 1, 1.2, mc(0xe53935)); P(W / 2 - 2.6, 3.5, '🚨', 'ติดสัญญาณเตือนไฟ + สปริงเกอร์ดับเพลิงในไร่', () => this.fireSystem());
     P(1, 2.6, '🧑‍🚒', 'ลงเวรอาสาดับเพลิง (วันละครั้ง)', () => this.shift());
     box(-W / 2 + 1, 3.6, 1.6, 0.8, 0.5, mc(0xffffff)); P(-W / 2 + 2.4, 3.6, '❤️‍🩹', 'อบรม CPR & ปฐมพยาบาล', () => this.cpr());
@@ -54,7 +54,7 @@ const Stations2 = {
     box(-W / 2 + 0.8, -1.5, 1.2, 1.2, 1.8, mc(0x1565c0)); P(-W / 2 + 2.2, -1.5, '💧', 'บริการรถน้ำเติมน้ำให้ไร่ (300 ฿)', () => this.tank());
   },
   inspect() { const s = this.st(); if (S.money < 800) { UI.toast('ค่าตรวจ 800 ฿', '💸'); return; } S.money -= 800; s.fireSafe = S.day + 14; UI.toast('ตรวจแล้ว! ปรับปรุงจุดเสี่ยง โอกาสไฟไหม้ในไร่ลดลง 70% เป็นเวลา 14 วัน', '🔍'); },
-  fireSystem() { const s = this.st(); if (s.fireSys) { UI.toast('ติดตั้งแล้ว ทำงานอยู่', '🚨'); return; } if (S.money < 6000) { UI.toast('ค่าติดตั้ง 6,000 ฿', '💸'); return; } S.money -= 6000; s.fireSys = 1; UI.toast('ติดตั้งระบบเตือนไฟและสปริงเกอร์แล้ว ไฟในไร่จะถูกฉีดดับอัตโนมัติ', '🚨'); Life2.note('ติดตั้งระบบดับเพลิงอัตโนมัติในไร่'); },
+  fireSystem() { const s = this.st(); if (s.fireSys) { UI.toast('ติดตั้งแล้ว ทำงานอยู่', '🚨'); return; } if (S.money < 6000) { UI.toast('ค่าติดตั้ง 6,000 ฿', '💸'); return; } S.money -= 6000; s.fireSys = 1; UI.toast('ติดตั้งระบบเตือนไฟและสปริงเกอร์แล้ว ไฟนอกบ้านจะถูกฉีดดับอัตโนมัติ', '🚨'); Life2.note('ติดตั้งระบบดับเพลิงอัตโนมัติในไร่'); },
   shift() {
     const s = this.st(); if (s.shiftDay === S.day) { UI.toast('ลงเวรไปแล้ววันนี้', '🧑‍🚒'); return; }
     s.shiftDay = S.day; UI.close();

@@ -37,7 +37,7 @@ V23.add('v71_banking', () => {
       <div class="card"><div class="ci">👛</div><div class="cb"><h4>เงินของคุณตอนนี้</h4><p class="dim">เงินสด <b>${bS(cash)}</b> · ออมทรัพย์ <b>${bS(sav)}</b>${cur ? ` · กระแสรายวัน <b>${bS(cur.bal)}</b>` : ''}</p></div></div>
       <p class="lead">เลือกวิธีอื่นแทน:</p>
       <div class="grid">
-        <div class="card"><div class="ci">🏧</div><div class="cb"><h4>ถอนเงินสดที่ตู้ ATM / เคาน์เตอร์</h4><p class="dim">${d != null ? `ตู้ ATM ใกล้สุดอยู่ห่าง ${d} ม. ` : ''}ATM ถอนได้ครั้งละไม่เกิน ${bS(ATM_TX)} · เคาน์เตอร์สาขา (จ–ศ 08:30–16:30) ถอนได้เท่าที่มีในบัญชี แล้วกลับมาจ่ายด้วยเงินสด</p></div></div>
+        <div class="card"><div class="ci">🏧</div><div class="cb"><h4>ถอนเงินสดที่ตู้ ATM / เคาน์เตอร์</h4><p class="dim">${d != null ? `ตู้ ATM ใกล้สุดอยู่ห่าง ${d} ม. ` : ''}ATM ถอนได้ครั้งละไม่เกิน ${bS(ATM_TX)} · เคาน์เตอร์สาขา (ทุกวัน 05:00–18:00) ถอนได้เท่าที่มีในบัญชี แล้วกลับมาจ่ายด้วยเงินสด</p></div></div>
         <div class="card"><div class="ci">📱</div><div class="cb"><h4>โอน / เช็ค ตอนซื้อของ</h4><p class="dim">ร้านค้าที่ชำระผ่านตะกร้าหรือปุ่มซื้อ จะถามวิธีจ่ายให้เลือก (โอนผ่านแอป พร้อมเพย์ เช็ค แคชเชียร์เช็ค)</p><div class="row"><button class="btn" data-a="v71short" data-v="app">เปิดแอปธนาคาร</button></div></div></div>
       </div><div class="row end"><button class="btn ghost" data-a="v71short" data-v="back">← กลับ</button></div>`);
     prevUI = prev;
@@ -65,12 +65,13 @@ V23.add('v71_banking', () => {
       catch (e) { if (e === SPEND) { stop = P.watchHit; form = grabForm(); return; } throw e; }
       finally {
         const hit = P.watchHit; P.watch = null; P.watchHit = 0;
+        const fm = stop ? null : grabForm();   // v210: what was typed / chosen in the form (company capital, site, par value ...) is kept while the payment window is open and put back before the click is re-run, also when the click was refused for short cash
         P.inter = false; const msg = P.refused; P.refused = null; const toasted = P.sawToast; P.sawToast = false;
         if (stop) { try { if (B.ask) B.ask({ amount: stop, label: labelOf(''), payee: payeeOf(prev), fn: () => { putForm(form || []); return h(d); } }); else S.money -= stop; } catch (e) { console.warn('v173 ask', e); } }
         else if (hit) { try { S.money -= hit; } catch (e) { } }   // the click swallowed the stop: pay as before so nothing is given for free
-        else if (msg && S._c === c0 && P.total() === t0) { try { const w = wantOf(msg); if (w >= 1 && B.ask) B.ask({ amount: w, label: labelOf(msg), payee: payeeOf(prev), fn: () => h(d) }); else showShort(msg, prev); } catch (e) { console.warn('v71 short', e); } }
+        else if (msg && S._c === c0 && P.total() === t0) { try { const w = wantOf(msg); if (w >= 1 && B.ask) B.ask({ amount: w, label: labelOf(msg), payee: payeeOf(prev), fn: () => { putForm(fm || form || []); return h(d); } }); else showShort(msg, prev); } catch (e) { console.warn('v71 short', e); } }
         // v162: some old buttons just did nothing when the cash was short (no message at all): a button that shows its own price, pressed with too little cash while the bank holds enough, offers the ways to pay as well
-        else if (!msg && !toasted && S._c === c0 && P.total() === t0 && !(UI.cur && UI.cur.title === '💳 เลือกวิธีชำระเงิน')) { try { const w = ownAmt(); if (w >= 1 && w > S._c && w <= P.total() && B.ask) { let fp1 = ''; try { fp1 = JSON.stringify(S); } catch (e) { } if (fp1 === fp0) B.ask({ amount: w, label: labelOf(''), payee: payeeOf(prev), fn: () => h(d) }); } } catch (e) { console.warn('v71 silent', e); } }
+        else if (!msg && !toasted && S._c === c0 && P.total() === t0 && !(UI.cur && UI.cur.title === '💳 เลือกวิธีชำระเงิน')) { try { const w = ownAmt(); if (w >= 1 && w > S._c && w <= P.total() && B.ask) { let fp1 = ''; try { fp1 = JSON.stringify(S); } catch (e) { } if (fp1 === fp0) B.ask({ amount: w, label: labelOf(''), payee: payeeOf(prev), fn: () => { putForm(fm || form || []); return h(d); } }); } } catch (e) { console.warn('v71 silent', e); } }
       }
     },
   };
@@ -125,7 +126,7 @@ V23.add('v71_banking', () => {
     if (locked()) { toast('บัตรถูกล็อกวันนี้ เพราะใส่รหัสผิดเกิน 3 ครั้ง ลองใหม่พรุ่งนี้ หรือติดต่อสาขา', '🔒'); return; }
     A.step = 'pin'; A.msg = ''; A.rec = null; A.acct = 'main'; UI.open('🏧 ตู้ ATM ธนาคารสุขใจ', null, () => html());
   }
-  const head = () => `<p class="dim" style="margin:0 0 6px">บัตร ATM · ${E(S.name || 'ชาวไร่')} · ${E(accts()[0].no)}</p>`;
+  const head = () => `<p class="dim" style="margin:0 0 6px">บัตร ATM · ${E(S.name || 'ผู้เล่น')} · ${E(accts()[0].no)}</p>`;
   const menuBtn = (v, ic, t) => `<button class="btn ghost" style="display:flex;flex-direction:column;align-items:center;gap:2px;padding:10px 6px" data-a="atm71" data-v="${v}"><span style="font-size:24px">${ic}</span>${t}</button>`;
   // a new card has no PIN yet: the first time you use it the machine asks you to choose one (real ATMs never print or show a PIN)
   const needSet = () => st().pin === '123456' && !st().changed;
@@ -210,7 +211,7 @@ V23.add('v71_banking', () => {
   // ======================= bank counter: cash in and out =======================
   UI.H.cnt71 = d => {
     const [a, x] = String(d.v || '').split('|'), acc = accts().find(q => q.id === val('cnt71Acct')) || accts()[0];
-    if (!B.bankOpen()) { toast('เคาน์เตอร์ปิดอยู่ เปิด จ–ศ 08:30–16:30', '🕘'); return; }
+    if (!B.bankOpen()) { toast('เคาน์เตอร์ปิดอยู่ เปิด ทุกวัน 05:00–18:00', '🕘'); return; }
     if (!B.hasId()) { toast('ทำรายการที่เคาน์เตอร์ต้องใช้บัตรประชาชน (ทำที่ศูนย์ราชการ)', '🪪'); return; }
     const n = a.endsWith('q') ? +x : Math.round(+val('cnt71Amt') || 0), kind = a.startsWith('wd') ? 'wd' : 'dp';
     if (!(n >= 1)) { toast('พิมพ์จำนวนเงิน', 'ℹ️'); return; }
@@ -231,7 +232,7 @@ V23.add('v71_banking', () => {
       c.render = t => {
         const html = r0(t); if (t !== 0) return html;
         const quick = [['wd', 1000], ['wd', 10000], ['wd', 100000], ['wd', 1000000]];
-        return `<h5>🏦 เคาน์เตอร์: ถอน / ฝากเงินสด</h5><p class="dim">${B.bankOpen() ? '🟢 เคาน์เตอร์เปิด' : '🔴 เคาน์เตอร์ปิด (จ–ศ 08:30–16:30)'} · ใช้บัตรประชาชน · ไม่จำกัดวงเงิน ไม่มีค่าธรรมเนียม · ถอนแล้วเงินเข้ากระเป๋าเงินสดทันที ${B.hasId() ? '' : '· <b class="bad">ยังไม่มีบัตรประชาชน</b>'}</p>
+        return `<h5>🏦 เคาน์เตอร์: ถอน / ฝากเงินสด</h5><p class="dim">${B.bankOpen() ? '🟢 เคาน์เตอร์เปิด' : '🔴 เคาน์เตอร์ปิด (ทุกวัน 05:00–18:00)'} · ใช้บัตรประชาชน · ไม่จำกัดวงเงิน ไม่มีค่าธรรมเนียม · ถอนแล้วเงินเข้ากระเป๋าเงินสดทันที ${B.hasId() ? '' : '· <b class="bad">ยังไม่มีบัตรประชาชน</b>'}</p>
           <p class="dim" style="margin:4px 0">เลือกบัญชีที่จะถอน / ฝากเงินสด</p><div class="row">${acctOpts('main', 'cnt71Acct')}</div><div class="row"><input id="cnt71Amt" type="number" min="1" placeholder="พิมพ์จำนวนเงิน (บาท)" style="flex:1;min-width:0;padding:8px;border-radius:10px;border:1px solid #ccc"></div>
           <div class="row"><button class="btn" data-a="cnt71" data-v="wd|">💵 ถอนเงินสด</button><button class="btn ghost" data-a="cnt71" data-v="dp|">🏦 ฝากเงินสด</button></div>
           <div class="row">${quick.map(([k, n]) => `<button class="btn ghost" data-a="cnt71" data-v="wdq|${n}">ถอน ${n.toLocaleString('en-US')}</button>`).join('')}</div><p class="dim">เงินสดในกระเป๋า ${bS(S._c)}</p>` + html;

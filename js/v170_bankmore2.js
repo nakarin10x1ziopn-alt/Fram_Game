@@ -93,7 +93,7 @@ V23.add('v170_bankmore2', () => {
   const dFee = n => Math.max(30, Math.round(n * 0.002));
   function draftNew() {
     const x = X(), n = Math.round(+val('s170dn') || 0), payee = String(val('s170dp') || '').trim().slice(0, 30) || 'ผู้ถือ';
-    if (!B.hasId()) { toast('ขอตั๋วเงินธนาคารต้องใช้บัตรประชาชน', '🪪'); return; } if (!B.bankOpen()) { toast('ขอตั๋วเงินได้เฉพาะเวลาทำการสาขา (จ–ศ 08:30–16:30)', '🕘'); return; }
+    if (!B.hasId()) { toast('ขอตั๋วเงินธนาคารต้องใช้บัตรประชาชน', '🪪'); return; } if (!B.bankOpen()) { toast('ขอตั๋วเงินได้เฉพาะเวลาทำการสาขา (ทุกวัน 05:00–18:00)', '🕘'); return; }
     if (n < 1000 || n > 5000000) { toast('ตั๋วเงินธนาคารมูลค่า 1,000 – 5,000,000 บาท', 'ℹ️'); return; } const fee = dFee(n); if (sav() < n + fee) { toast(`เงินไม่พอ (ต้องใช้ ${bS(n + fee)} รวมค่าธรรมเนียม)`, '💸'); return; }
     take(n + fee, `ซื้อแคชเชียร์ดราฟต์ จ่าย ${payee}`); const d = { id: ++x.seq, no: String(200000 + rnd(0, 799999)), amt: n, payee, day: S.day, exp: S.day + 168, st: 'valid' }; x.drafts.unshift(d); if (x.drafts.length > 12) x.drafts.length = 12;
     toast(`ออกตั๋วเงินธนาคาร ${bS(n)} จ่าย ${payee}`, '📜'); slip({ k: 'acct', amt: n, fee, payee: `ตั๋วเงินธนาคาร #${d.no} จ่าย ${payee}`, memo: `ใช้ได้ถึง ${RD(d.exp)}`, from: fromAcct() });

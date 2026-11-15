@@ -111,7 +111,7 @@ V23.add('v171_cards', () => {
   const tierOf = e => (e.type === 'credit' && e.wis ? WIS[e.wis].n : e.type === 'credit' ? TIERS[e.net][tierIdx(window.Card168.st().limit)] : e.type === 'debit' ? 'Debit' : 'ATM');
   function visual(ref) {
     const e = ent(ref); if (!e) return '';
-    const s = stOf(e), up = E((S.name || 'ชาวไร่').toUpperCase()), flip = !!X().flip[ref], hide = s === 'shipping';
+    const s = stOf(e), up = E((S.name || 'ผู้เล่น').toUpperCase()), flip = !!X().flip[ref], hide = s === 'shipping';
     const base = `border-radius:16px;max-width:380px;margin:8px auto;box-shadow:0 8px 20px rgba(0,0,0,.45);position:relative;overflow:hidden;color:#fff;min-height:210px;box-sizing:border-box`;
     const cover = s === 'active' ? '' : `<div style="position:absolute;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;font:800 18px sans-serif;letter-spacing:1px;text-align:center;padding:10px">${s === 'shipping' ? '📮 กำลังจัดส่ง<br><span style="font-size:12px;font-weight:600">ถึงประมาณ ' + E(RD(e.ready)) + '</span>' : s === 'delivered' ? '✋ ได้รับแล้ว · รอเปิดใช้งาน' : s === 'locked' ? '🔒 ล็อกชั่วคราว' : s === 'lost' ? '🛑 อายัดแล้ว' : '⌛ หมดอายุ'}</div>`;
     if (flip) return `<div style="${base};background:linear-gradient(135deg,${colorsOf(e)})"><div style="background:#111;height:38px;margin-top:18px"></div><div style="display:flex;align-items:center;gap:8px;margin:14px 16px 0"><div style="flex:1;height:30px;background:repeating-linear-gradient(45deg,#fff,#fff 4px,#e8e8e8 4px,#e8e8e8 8px)"></div><div style="background:#fff;color:#111;font:700 16px monospace;padding:5px 9px;border-radius:4px">${hide ? '•••' : e.cvv}</div></div><div style="font-size:10.5px;margin:12px 16px;opacity:.85;line-height:1.35">บัตรนี้เป็นของธนาคารสุขใจ ผู้ถือบัตรต้องลงลายมือชื่อ หากพบบัตรโปรดส่งคืนธนาคาร · โทร 1555 (ตลอด 24 ชม.) · CVV 3 หลักห้ามบอกใคร</div><div style="position:absolute;right:14px;bottom:12px">${e.net === 'ATM' ? '' : NET[e.net].logo}</div>${cover}</div>`;
@@ -199,7 +199,7 @@ V23.add('v171_cards', () => {
   // ===================== income that really arrives through the bank =====================
   // wages, dividends, rent, benefits, insurance, refunds and platform payouts are credited to the savings account (a bank transfer); street/market sales, tips and prizes stay cash
   const BANKY = /ขายอสังหา|ขายหุ้น|ให้โรงงาน|คืนค่าธรรมเนียม|ประกัน|เงินเดือน|ปันผล|ค่าเช่า|สินไหม|เยียวยา|ช่วยเหลือ|สวัสดิการ|ทุนการศึกษา|อุดหนุน|คืนภาษี|ชดเชย|ค่าตอบแทน|รายได้ร้าน|ร้านของฉัน|รายได้โฆษณา|รายได้คลิป|ไลฟ์สตรีม|ฟรีแลนซ์|เรนเดอร์|แท็กซี่|เกษตรท่องเที่ยว|โฮมสเตย์|คืนทุน|ส่งเงินให้|เงินโอนจาก|ขายไฟ|สัญญาส่ง|ค่าคอมมิชชัน|กำไรจากการขายหุ้น|โบนัสสตรีม|ค่าเวร|รับเงินขาย/;
-  const NOTBANK = /ตลาดนัด|แผงหน้าฟาร์ม|ขายผลผลิต|เปิดหมวก|รางวัล|ลอตเตอรี่|ของขวัญ|งานพิเศษ|เทิร์นอิน|อาสา|ภารกิจ|ส่งสินค้าข้ามเมือง|น้ำใจ|ดอกเบี้ย|เงินกู้/;
+  const NOTBANK = /ตลาดนัด|แผงหน้าบ้าน|ขายผลผลิต|เปิดหมวก|รางวัล|ลอตเตอรี่|ของขวัญ|งานพิเศษ|เทิร์นอิน|อาสา|ภารกิจ|ส่งสินค้าข้ามเมือง|น้ำใจ|ดอกเบี้ย|เงินกู้/;
   const inbOn = () => X().inb !== 0;
   const flowIn = (n, label) => { n = Math.round(n); if (!(n > 0) || !inbOn()) return 0; const P = window.Pay49; if (P && (P.src || P.busy)) return 0; n = Math.min(n, Math.floor(S._c)); if (n < 1) return 0; S._c -= n; Bank.st().sav += n; B.tx('รับโอนเข้าบัญชี: ' + label, n, 'main'); try { Bank2.log('รับโอนเข้าบัญชี: ' + label, n); } catch (e) { } return n; };
   window.Flow171 = { in: flowIn, isBanky: l => BANKY.test(String(l)) && !NOTBANK.test(String(l)) };

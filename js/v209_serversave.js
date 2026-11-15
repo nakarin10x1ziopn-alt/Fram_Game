@@ -20,7 +20,7 @@ V23.add('v209_serversave', () => {
   const pill = document.createElement('div');
   pill.id = 'lanPill209';
   pill.style.cssText = 'position:fixed;left:8px;bottom:calc(6px + env(safe-area-inset-bottom,0px));z-index:30;font:11px/1.2 Kanit,sans-serif;padding:3px 8px;border-radius:10px;background:rgba(0,0,0,.55);color:#cfe;display:none;cursor:pointer;user-select:none;-webkit-user-select:none';
-  pill.onclick = () => UI.H.srvsave();
+  pill.onclick = () => { try { Net.keyDeniedAt = 0; } catch (e) { } UI.H.srvsave(); };
   document.body.appendChild(pill);
   const paint = () => {
     if (!Net.on) { pill.style.display = 'none'; return; }
@@ -34,7 +34,27 @@ V23.add('v209_serversave', () => {
   // ---- the save button reports the real result ----
   { const _s = UI.H.save; if (_s) UI.H.save = function (d) {
     const r = _s.apply(this, arguments);
-    if (Net.on) Net.saveNowLan().then(res => { if (res) toast(`💻 บันทึกลงเครื่องแม่ข่ายสำเร็จ · ${res.file || 'saves'} · ${kb(res.bytes || 0)} · ${hms(Date.now())}`, '✅'); else toast('⚠️ บันทึกในเบราว์เซอร์แล้ว แต่ยังส่งลงเครื่องแม่ข่ายไม่สำเร็จ' + (Net.lan && Net.lan.err ? ` (${Net.lan.err})` : '') + ' เกมจะลองใหม่อัตโนมัติ', '⚠️'); });
+    if (Net.on) Net.saveNowLan().then(res => { try { if (UI.cur && UI.cur.title === 'ตั้งค่า') UI.renderBody(); } catch (e) { } if (res) toast(`💻 บันทึกลงเครื่องแม่ข่ายสำเร็จ · ${res.file || 'saves'} · ${kb(res.bytes || 0)} · ${hms(Date.now())}`, '✅'); else toast('⚠️ บันทึกในเบราว์เซอร์แล้ว แต่ยังส่งลงเครื่องแม่ข่ายไม่สำเร็จ' + (Net.lan && Net.lan.err ? ` (${Net.lan.err})` : '') + ' เกมจะลองใหม่อัตโนมัติ', '⚠️'); });
+    return r;
+  }; }
+
+  // ---- the settings window shows the same status under the save button, and a shortcut to the server saves ----
+  { const _m = UI.menu; if (_m) UI.menu = function () {
+    const r = _m.apply(this, arguments);
+    try {
+      const c = UI.cur, rr = c && c.render;
+      if (rr && !c.srvm209) {
+        c.srvm209 = 1;
+        c.render = function () {
+          const html = rr.apply(this, arguments), l = Net.lan || {};
+          const st = !Net.on ? '<span class="dim">ℹ️ ยังไม่ได้ต่อกับเซิร์ฟเวอร์โน้ตบุ๊ก (เซฟอยู่ในเบราว์เซอร์นี้) · เปิดเกมผ่านลิงก์ IP ของโน้ตบุ๊ก เพื่อเซฟลงไฟล์ในเครื่อง</span>'
+            : l.err ? `<span class="bad">⚠️ เซฟลงเครื่องโน้ตบุ๊กไม่สำเร็จ (${E(l.err)}) เกมจะลองใหม่เอง</span>`
+            : l.at ? `<span class="good">✅ ลงเครื่องโน้ตบุ๊กล่าสุด ${hms(l.at)} · ${E(l.file)} · ${kb(l.bytes || 0)}</span>` : '<span class="dim">💻 ต่อกับเซิร์ฟเวอร์โน้ตบุ๊กแล้ว กดบันทึกเพื่อส่งเซฟลงไฟล์</span>';
+          return html.replace('data-a="save">💾 บันทึกเกม</button>', `data-a="save">💾 บันทึกเกม (ลงเบราว์เซอร์ + ไฟล์ในเครื่องโน้ตบุ๊ก)</button><p class="dim" style="margin:2px 4px 6px">${st}</p><button class="btn ghost" data-a="srvsave">💻 เซฟในเครื่องแม่ข่าย / กู้คืน</button>`);
+        };
+        UI.renderBody();
+      }
+    } catch (e) { console.warn('v209 menu', e); }
     return r;
   }; }
 
@@ -60,7 +80,7 @@ V23.add('v209_serversave', () => {
   const curId = () => { try { return Net.id(); } catch (e) { return ''; } };
   const row = r => {
     const mine = r.id === curId();
-    const head = r.bad ? `<b class="bad">⚠️ ไฟล์เสีย (อ่านไม่ได้)</b>` : r.deleted ? `<b>🗑️ เซฟที่ถูกลบจากเกม</b>` : `<b>${E(r.name || 'ชาวไร่')}${r.farm ? ' · ' + E(r.farm) : ''}</b> · เลเวล ${r.lvl} · วันที่ ${r.day}`;
+    const head = r.bad ? `<b class="bad">⚠️ ไฟล์เสีย (อ่านไม่ได้)</b>` : r.deleted ? `<b>🗑️ เซฟที่ถูกลบจากเกม</b>` : `<b>${E(r.name || 'ผู้เล่น')}${r.farm ? ' · ' + E(r.farm) : ''}</b> · เลเวล ${r.lvl} · วันที่ ${r.day}`;
     const when = r.t ? dt(r.t * 1000) : '';
     const bks = r.backups || [], op = M.open[r.id];
     return `<div class="card" style="grid-template-columns:1fr"><div class="cb"><h4>${head}${mine ? ' <span class="good">◀ เซฟที่กำลังเล่น</span>' : ''}</h4>
@@ -74,7 +94,7 @@ V23.add('v209_serversave', () => {
     let h = `<p class="lead">เซฟของเกมทุกเครื่อง (โน้ตบุ๊ก/ไอแพด) ถูกเก็บเป็นไฟล์ในโฟลเดอร์ <b>${E(M.dir || 'saves\\')}</b> ของโน้ตบุ๊กที่เปิดเซิร์ฟเวอร์ และสำรองอัตโนมัติ (5 ชุดล่าสุด · รายวัน 14 วัน · ก่อนถูกทับ/ลบ)</p><p class="dim">${st}</p>`;
     if (M.free >= 0 && M.free < 500) h += `<p class="bad">⚠️ พื้นที่ดิสก์ของโน้ตบุ๊กเหลือน้อย (${M.free} MB) เซฟอาจเขียนไม่สำเร็จ</p>`;
     if (!M.writable) h += '<p class="bad">⚠️ เซิร์ฟเวอร์เขียนโฟลเดอร์ saves ไม่ได้! ตรวจสิทธิ์โฟลเดอร์หรือพื้นที่ดิสก์</p>';
-    h += `<div class="row"><button class="btn" data-a="srvnow" ${Net.on ? '' : 'disabled'}>💾 เซฟเกมนี้ลงเครื่องแม่ข่ายเดี๋ยวนี้</button><button class="btn ghost" data-a="srvrefresh">🔄 รีเฟรชรายการ</button></div>`;
+    h += `<div class="row">${G.started ? `<button class="btn" data-a="srvnow" ${Net.on ? '' : 'disabled'}>💾 เซฟเกมนี้ลงเครื่องแม่ข่ายเดี๋ยวนี้</button>` : ''}<button class="btn ghost" data-a="srvrefresh">🔄 รีเฟรชรายการ</button></div>`;
     if (M.loading && !M.list) return h + '<p class="empty">กำลังโหลดรายการ...</p>';
     if (M.err) return h + `<p class="bad">${E(M.err)}</p>`;
     if (!M.list || !M.list.length) return h + '<p class="empty">ยังไม่มีเซฟในเครื่องแม่ข่าย</p>';
@@ -97,7 +117,7 @@ V23.add('v209_serversave', () => {
     let s; try { s = await fetchSave(d.v, d.k); } catch (e) { s = null; }
     if (!s || typeof s !== 'object' || typeof s.day !== 'number') { toast('อ่านเซฟนี้ไม่ได้', '⚠️'); return; }
     const m = /^(.*?)(?:_s([23]))?$/.exec(d.v), pid = m[1], slot = +(m[2] || 1), same = d.v === curId();
-    const info = `${s.name || 'ชาวไร่'} · เลเวล ${s.lvl || 1} · วันที่ ${s.day}${d.k ? ' · ' + keyName(d.k) : ''}`;
+    const info = `${s.name || 'ผู้เล่น'} · เลเวล ${s.lvl || 1} · วันที่ ${s.day}${d.k ? ' · ' + keyName(d.k) : ''}`;
     UI.confirm(`โหลดเซฟนี้ลงช่อง ${slot}?`, `${info} — จะทับเซฟช่อง ${slot} ในเบราว์เซอร์นี้ ${same ? '' : '(และเครื่องนี้จะใช้ไฟล์เซฟชุดนี้ต่อ) '}เซฟเดิมถูกเก็บสำรองไว้ก่อน แล้วเกมจะโหลดใหม่`, 'โหลดเซฟ', async () => {
       Slots.deleting = slot;                                   // nothing may write the slot between now and the reload
       try {

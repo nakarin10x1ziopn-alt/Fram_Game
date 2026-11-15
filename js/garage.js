@@ -50,7 +50,7 @@ const Garage = {
     let s = 0; while (used.includes(s) && s < 3) s++;
     if (s >= 2) { UI.toast('โรงจอดเต็มแล้ว (จอดได้ 2 คัน)', '🅿️'); return; }
     const p = this.slot(s); Object.assign(o.d, { x: p.x, z: p.z, r: GARAGE.rot + Math.PI, parked: true, slot: s });
-    const n = this.rebuild(o); UI.toast(`${CARS[o.d.type].n} มาจอดที่โรงจอดในฟาร์มแล้ว`, '🅿️'); Sfx.tone(520, 0.15, 'sine', 0.05);
+    const n = this.rebuild(o); UI.toast(`${CARS[o.d.type].n} มาจอดที่โรงจอดที่บ้านแล้ว`, '🅿️'); Sfx.tone(520, 0.15, 'sine', 0.05);
     return n;
   },
   frontOf(o) {
@@ -58,6 +58,7 @@ const Garage = {
     this.rebuild(o); UI.toast('นำรถออกมาจอดหน้าโรงจอดแล้ว', '🚗');
   },
   build() {
+    if (this.buildModern) return this.buildModern();   // v233: the modern garage (garage2.js)
     const g = new THREE.Group(), G0 = GARAGE; g.position.set(G0.x, World.groundY(G0.x, G0.z), G0.z); g.rotation.y = G0.rot;
     const wall = texMat('plaster', 0xe9e2d2), roof = texMat('roof', 0x5a6470, { roughness: 0.55, metalness: 0.25 }), conc = texMat('paving', 0xbdb8ae);
     U.mk(g, U.box(G0.w, 0.12, G0.d + 2.5, 2), conc, [0, 0.06, 1]);
@@ -86,7 +87,7 @@ const Garage = {
     World.pois.push({ kind: 'act', x: door.x, z: door.z, r: 2.4, label: 'โรงจอดรถ', icon: '🅿️', map: true, act: () => ({ icon: '🅿️', label: 'จัดการรถในโรงจอด', fn: () => this.ui() }) });
   },
   ui() {
-    UI.open('โรงจอดรถในฟาร์ม', null, () => {
+    UI.open('โรงจอดรถที่บ้าน', null, () => {
       if (!G.cars.length) return '<p class="empty">ยังไม่มีรถ ซื้อได้ที่โชว์รูมในหมู่บ้านหรือริมหาด</p>';
       return `<p class="lead">จอดได้ 2 คัน · กด "เรียกกลับโรงจอด" แล้วรถจะกลับมาจอดที่นี่ทันที ไม่ว่าจะจอดทิ้งไว้ที่ไหน</p><div class="grid">${G.cars.map((o, i) => {
         const C = CARS[o.d.type], t = o.d.tune || {}, sp = this.spec(o.d);

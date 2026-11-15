@@ -120,7 +120,7 @@ V23.add('v36_people', () => {
     const status = r.partner ? `${STATUSES[r.stage] || 'มีแฟน'} กับ ${esc(r.partner)}${kids ? ` · มีลูก ${kids} คน` : ''}` : (window.Fam28 && Fam28.state && Fam28.state().mar ? 'จดทะเบียนสมรสแล้ว' : (S.v26l && S.v26l.fam && S.v26l.fam.div ? 'หย่าร้าง (โสด)' : 'โสด'));
     const where = G.away ? (G.away.n || 'เมืองไกล') : G.inside ? 'ในบ้านของคุณ' : 'หมู่บ้านสุขใจ';
     const home = d.addr ? `บ้านเลขที่ ${d.addr.no} หมู่ ${d.addr.moo} ต.${d.addr.tam} อ.สุขใจ` : 'ยังไม่ได้ทำบัตรประชาชน / ทะเบียนบ้าน';
-    return `<div class="card"><div class="ci">🪪</div><div class="cb"><h4>${esc(S.name || 'ชาวไร่')} <small>${myAge()} ปี</small></h4><p class="dim">${esc(S.farm || 'ไร่สุขใจ')} · เลเวล ${S.lvl || 1}</p></div></div>
+    return `<div class="card"><div class="ci">🪪</div><div class="cb"><h4>${esc(S.name || 'ผู้เล่น')} <small>${myAge()} ปี</small></h4><p class="dim">${esc(S.farm || 'บ้านสุขใจ')} · เลเวล ${S.lvl || 1}</p></div></div>
       <table class="prof36">${row('ชื่อในบัตร', esc(fname) || '<span class="dim">ยังไม่มีบัตรประชาชน</span>')}${row('อายุ', `${myAge()} ปี <small class="dim">(${ageText(b)})</small>`)}${row('วันเกิด', `${dobText(b)} <small class="dim">(อีก ${daysToBd(b)} วัน)</small>`)}${row('เพศ', d.sex ? (d.sex === 'หญิง' ? '♀ หญิง' : '♂ ' + esc(d.sex)) : '')}${row('สถานะ', status)}${row('อาชีพ', esc(job))}${row('การศึกษา', esc(EDN[ed] || ed))}${row('ศาสนา', esc(d.rel || ''))}${row('หมู่เลือด', esc(d.blood || ''))}${row('ที่อยู่ตามบัตร', esc(home))}${row('ตอนนี้อยู่ที่', esc(where))}${row('วันนี้', C().full() + ' · ' + C().hhmm() + ' น.')}${row('เล่นมาแล้ว', `${S.day} วัน (เริ่มเมื่อ ${C().dm(1)})`)}</table>`;
   }
   Phone.apps.me36 = meHtml;

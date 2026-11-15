@@ -63,7 +63,7 @@ V23.add('v39_estate', () => {
   const lotOf = id => { try { return HomeBuild.lot(id); } catch (e) { return null; } };
   function info(id) {
     const [kind, key] = id.split(':');
-    if (id === 'main') return { id, kind: 'main', n: 'บ้านหลักของฉัน (ไร่สุขใจ)', i: '🏠', type: 'house', city: 'village', land: 0, bld: 0 };
+    if (id === 'main') return { id, kind: 'main', n: 'บ้านหลักของฉัน (บ้านสุขใจ)', i: '🏠', type: 'house', city: 'village', land: 0, bld: 0 };
     if (kind === 'hb' || kind === 'bld') { const st = S.hb.lots[key], L = lotOf(key) || {}, Dg = (typeof HOUSE_DESIGNS !== 'undefined' && HOUSE_DESIGNS[st.design]) || { n: 'บ้าน', i: '🏠', price: 600000, o: { w: 9, d: 7 } }; const area = Math.round(Dg.o.w * Dg.o.d);
       return { id, kind, key, n: (st.name || Dg.n) + ' · ' + (L.n || key), i: Dg.i, type: area <= 45 ? 'house' : 'house', city: 'village', land: (L.price || 35000), bld: Dg.price * 0.9, area, rooms: clamp(Math.round(area / 22), 1, 5), site: 'lot' }; }
     if (kind === 'land') { const L = lotOf(key) || {}; return { id, kind, key, n: L.n || 'ที่ดินเปล่า', i: '🌳', type: 'land', city: 'village', land: (L.price || 35000), bld: 0, area: 400 }; }

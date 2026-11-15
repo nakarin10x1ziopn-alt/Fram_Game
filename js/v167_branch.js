@@ -3,7 +3,7 @@
 // New tabs in the branch window (the old two stay): 📝 open / close accounts and counter services · 📖 account statement · 💰 fixed deposits · 🔐 safe-deposit box
 //   * open a savings or current account at the counter (name it, first deposit from savings or cash, ID card + counter hours, passbook / chequebook), close extra accounts, rename them
 //   * transfer to another person or another bank at the counter (no app limit, a real fee), certificate of balance, new chequebook, PromptPay, specimen signature
-//   * fixed deposits 3 / 6 / 12 months (1 month = 7 game days) with interest paid at maturity, early withdrawal loses the interest
+//   * fixed deposits 3 / 6 / 12 months (1 month = 30 days since v237; the interest is per game year of 84 days) with interest paid at maturity, early withdrawal loses the interest
 //   * safe-deposit box rented for 28 days, cash goes in and out
 // Data: S.v49.fd [], S.v49.safe {until, cash}
 V23.add('v167_branch', () => {
@@ -17,9 +17,9 @@ V23.add('v167_branch', () => {
   const TITLE = 'ธนาคารสุขใจ สาขาหมู่บ้าน', f1 = 'font:inherit;font-size:16px;padding:8px;border-radius:10px;border:1px solid #ccc;margin:2px 0;min-width:0;flex:1';
   const BR = { stm: 'main' };
   const BANKS = ['ธนาคารสุขใจ (สาขาอื่น)', 'กสิกรไทย', 'ไทยพาณิชย์', 'กรุงเทพ', 'กรุงไทย', 'ทหารไทยธนชาต', 'กรุงศรีอยุธยา', 'ออมสิน', 'ธ.ก.ส.'];
-  const FDT = { 3: { days: 21, rate: 1.5 }, 6: { days: 42, rate: 1.9 }, 12: { days: 84, rate: 2.4 } };   // months -> game days (1 month = 7 days) and yearly rate %
-  const status = () => (B.bankOpen() ? '🟢 เคาน์เตอร์เปิด' : '🔴 เคาน์เตอร์ปิด (เปิด จ–ศ 08:30–16:30 ไม่ใช่วันหยุด)') + (B.hasId() ? ' · 🪪 มีบัตรประชาชน' : ' · ⚠️ ยังไม่มีบัตรประชาชน (ทำที่ศูนย์ราชการ ต้องใช้ทุกบริการที่เคาน์เตอร์)');
-  const gate = () => { if (!B.bankOpen()) { toast('เคาน์เตอร์ปิดอยู่ เปิด จ–ศ 08:30–16:30', '🕘'); return false; } if (!B.hasId()) { toast('ทำรายการที่เคาน์เตอร์ต้องใช้บัตรประชาชน (ทำที่ศูนย์ราชการ)', '🪪'); return false; } return true; };
+  const FDT = { 3: { days: 90, rate: 1.5 }, 6: { days: 180, rate: 1.9 }, 12: { days: 360, rate: 2.4 } };   // v237: months -> calendar days (1 month = 30 days) and the rate % per game year (84 days, the same clock as the savings account interest)
+  const status = () => (B.bankOpen() ? '🟢 เคาน์เตอร์เปิด' : '🔴 เคาน์เตอร์ปิด (เปิด ทุกวัน 05:00–18:00)') + (B.hasId() ? ' · 🪪 มีบัตรประชาชน' : ' · ⚠️ ยังไม่มีบัตรประชาชน (ทำที่ศูนย์ราชการ ต้องใช้ทุกบริการที่เคาน์เตอร์)');
+  const gate = () => { if (!B.bankOpen()) { toast('เคาน์เตอร์ปิดอยู่ เปิด ทุกวัน 05:00–18:00', '🕘'); return false; } if (!B.hasId()) { toast('ทำรายการที่เคาน์เตอร์ต้องใช้บัตรประชาชน (ทำที่ศูนย์ราชการ)', '🪪'); return false; } return true; };
   const accOpts = (id, withMain = true, sel) => `<select id="${id}" style="${f1}">${B.all().filter(a => withMain || !a.main).map(a => `<option value="${a.id}" ${a.id === sel ? 'selected' : ''}>${E(a.name)} · ${E(a.no)} · ${bS(B.balOf(a))}</option>`).join('')}</select>`;
   const slip = (o) => { try { if (window.Slip49) window.Slip49.make(o); } catch (e) { console.warn('slip', e); } };
 
@@ -28,7 +28,7 @@ V23.add('v167_branch', () => {
     const v = V(), extra = v.accts;
     return `<p class="lead">🏦 บริการที่เคาน์เตอร์สาขา</p><p class="dim">${status()}</p>
       <h5>📝 เปิดบัญชีใหม่</h5>
-      <p class="dim">กรอกคำขอเปิดบัญชี ใช้บัตรประชาชน · ออมทรัพย์ฝากขั้นต่ำ 500 ฿ (เปิดเพิ่มได้ถึง 5 บัญชี) · กระแสรายวัน ฝากขั้นต่ำ 2,000 ฿ ได้สมุดเช็ค ${20} ใบ (มีได้ 1 บัญชี) · ผู้ขอเปิด: ${E(S.name || 'ชาวไร่')}</p>
+      <p class="dim">กรอกคำขอเปิดบัญชี ใช้บัตรประชาชน · ออมทรัพย์ฝากขั้นต่ำ 500 ฿ (เปิดเพิ่มได้ถึง 5 บัญชี) · กระแสรายวัน ฝากขั้นต่ำ 2,000 ฿ ได้สมุดเช็ค ${20} ใบ (มีได้ 1 บัญชี) · ผู้ขอเปิด: ${E(S.name || 'ผู้เล่น')}</p>
       <div class="row"><select id="brType" style="${f1}"><option value="sav">💰 บัญชีออมทรัพย์ (สมุดคู่ฝาก)</option><option value="cur" ${extra.some(a => a.type === 'cur') ? 'disabled' : ''}>🧾 บัญชีกระแสรายวัน (สมุดเช็ค)</option></select></div>
       <div class="row"><input id="brName" type="text" maxlength="24" placeholder="ชื่อบัญชี (ไม่ใส่ก็ได้ เช่น ออมไว้ซื้อรถ)" style="${f1}"></div>
       <div class="row"><input id="brDep" type="number" min="1" placeholder="เงินฝากเริ่มต้น (บาท)" style="${f1}"><select id="brSrc" style="${f1}"><option value="sav">จากบัญชีออมทรัพย์หลัก (${bS(Bank.st().sav)})</option><option value="cash">จากเงินสด (${bS(S._c)})</option></select></div>
@@ -77,7 +77,7 @@ V23.add('v167_branch', () => {
     if (use === 'cash') S._c -= fee; else Bank.st().sav -= fee;
     const L = B.all(), tot = L.reduce((s, a) => s + B.balOf(a), 0) + v.fd.reduce((s, f) => s + f.amt, 0);
     B.tx('ค่าหนังสือรับรองยอดเงินฝาก', use === 'sav' ? -fee : 0, 'main'); try { if (use === 'sav') Bank2.log('ค่าหนังสือรับรองยอดเงินฝาก', -fee); } catch (e) { }
-    slip({ k: 'acct', amt: fee, payee: `หนังสือรับรองยอดเงินฝาก · ${S.name || 'ชาวไร่'}`, memo: `ยอดเงินฝากรวม ${bS(tot)} ณ ${RD(S.day)}`, from: use === 'cash' ? 'เงินสด' : 'ออมทรัพย์', items: L.map(a => ({ memo: `${a.name} ${a.no}`, amt: Math.round(B.balOf(a)) })).concat(v.fd.map(f => ({ memo: `เงินฝากประจำ ${f.term} เดือน`, amt: f.amt }))) });
+    slip({ k: 'acct', amt: fee, payee: `หนังสือรับรองยอดเงินฝาก · ${S.name || 'ผู้เล่น'}`, memo: `ยอดเงินฝากรวม ${bS(tot)} ณ ${RD(S.day)}`, from: use === 'cash' ? 'เงินสด' : 'ออมทรัพย์', items: L.map(a => ({ memo: `${a.name} ${a.no}`, amt: Math.round(B.balOf(a)) })).concat(v.fd.map(f => ({ memo: `เงินฝากประจำ ${f.term} เดือน`, amt: f.amt }))) });
   };
   UI.H.s163brbook = () => { if (!gate()) return; UI.H.b49({ v: 'book' }); };
   UI.H.s163brpp = () => { if (!gate()) return; UI.H.b49({ v: 'ppreg' }); };
@@ -98,13 +98,14 @@ V23.add('v167_branch', () => {
 
   // ---------------- tab 4: fixed deposits ----------------
   const fdRate = k => Math.max(0.3, +(FDT[k].rate + (window.Policy169 ? window.Policy169.delta() * 0.6 : 0)).toFixed(2));
-  const fdInterest = f => Math.round(f.amt * f.rate / 100 * FDT[f.term].days / 84);
+  const fdInterest = f => Math.round(f.amt * f.rate / 100 * ((f.due - f.start) || FDT[f.term].days) / 84);   // v237: from the deposit's own period (older deposits keep their 7-day months), per game year of 84 days
+  window.FD167 = { FDT, interest: fdInterest };   // for the self-tests
   function tabFixed() {
     const v = V(), tot = v.fd.reduce((s, f) => s + f.amt, 0);
     return `<p class="lead">💰 เงินฝากประจำ</p><p class="dim">${B.hasId() ? '🪪 มีบัตรประชาชน · ฝาก/ถอนได้ทุกเวลา ทั้งที่สาขา ในแอปธนาคาร' : '⚠️ ยังไม่มีบัตรประชาชน (ทำที่ศูนย์ราชการ)'}</p>
-      <p class="dim">ล็อกเงินไว้ตามกำหนดแล้วได้ดอกเบี้ยสูงกว่าออมทรัพย์ · ครบกำหนดแล้วเงินต้น+ดอกเบี้ยเข้าบัญชีออมทรัพย์หลักเอง · ถอนก่อนกำหนดไม่ได้ดอกเบี้ย และเสียค่าธรรมเนียม 0.1% (ขั้นต่ำ 20 ฿) · ฝากขั้นต่ำ 10,000 ฿ · 1 เดือนในเกม = 7 วัน</p>
+      <p class="dim">ล็อกเงินไว้ตามกำหนดแล้วได้ดอกเบี้ยสูงกว่าออมทรัพย์ · ครบกำหนดแล้วเงินต้น+ดอกเบี้ยเข้าบัญชีออมทรัพย์หลักเอง · ถอนก่อนกำหนดไม่ได้ดอกเบี้ย และเสียค่าธรรมเนียม 0.1% (ขั้นต่ำ 20 ฿) · ฝากขั้นต่ำ 10,000 ฿ · 1 เดือน = 30 วัน · ดอกเบี้ยคิดตามปีเกม (84 วัน) เหมือนบัญชีออมทรัพย์</p>
       <div class="card" style="grid-template-columns:1fr"><div class="cb"><h4>เปิดบัญชีเงินฝากประจำ</h4>
-        <div class="row">${Object.keys(FDT).map(k => `<label style="flex:1;font-size:13.5px"><input type="radio" name="brFdT" value="${k}" ${k === '6' ? 'checked' : ''}> ${k} เดือน (${FDT[k].days} วัน) · ${fdRate(k)}% ต่อปี</label>`).join('')}</div>
+        <div class="row">${Object.keys(FDT).map(k => `<label style="flex:1;font-size:13.5px"><input type="radio" name="brFdT" value="${k}" ${k === '6' ? 'checked' : ''}> ${k} เดือน (${FDT[k].days} วัน) · ${fdRate(k)}% ต่อปีเกม</label>`).join('')}</div>
         <div class="row"><input id="brFdAmt" type="number" min="10000" placeholder="จำนวนเงินฝาก (จากออมทรัพย์หลัก ${bS(Bank.st().sav)})" style="${f1}"><button class="btn" data-a="s163brfd">ฝากประจำ</button></div></div></div>
       <h5>บัญชีเงินฝากประจำของฉัน (${v.fd.length} บัญชี · รวม ${bS(tot)})</h5>
       ${v.fd.length ? v.fd.map(f => `<div class="card" style="grid-template-columns:1fr auto"><div class="cb"><h4>${bS(f.amt)} · ${f.term} เดือน · ${f.rate}%</h4><p class="dim">ฝาก ${E(RD(f.start))} · ครบ ${E(RD(f.due))} (อีก ${Math.max(0, f.due - S.day)} วัน)</p><p>ดอกเบี้ยเมื่อครบกำหนด ≈ <b class="good">${bS(fdInterest(f))}</b></p></div><button class="btn ghost" data-a="s163brfdx" data-v="${f.id}">ถอนก่อนกำหนด</button></div>`).join('') : '<p class="empty">ยังไม่มีเงินฝากประจำ</p>'}`;

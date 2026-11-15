@@ -639,7 +639,7 @@ V23.add('market24', () => {
     // ----- daily -----
     day() {
       const e = ed(), c = e.cur;
-      if (e.loan > 0 && S.day % 7 === 0 && (!c || c.status !== 'study')) { const p = Math.min(e.loan, 1500, Math.max(0, S.money)); if (p > 0) { S.money -= p; e.loan -= p; Bank2.log('ผ่อนชำระ กยศ.', -p); Phone.msg('กองทุนเงินให้กู้ยืมเพื่อการศึกษา (กยศ.)', `หักชำระเงินกู้ ${baht(p)} คงเหลือ ${baht(Math.round(e.loan))}`, true); } }
+      if (e.loan > 0 && MonthCal.isPayDay(S.day) && (!c || c.status !== 'study')) { const p = Math.min(e.loan, 1500, Math.max(0, S.money)); if (p > 0) { S.money -= p; e.loan -= p; Bank2.log('ผ่อนชำระ กยศ.', -p); Phone.msg('กองทุนเงินให้กู้ยืมเพื่อการศึกษา (กยศ.)', `หักชำระเงินกู้ ${baht(p)} คงเหลือ ${baht(Math.round(e.loan))}`, true); } }
       if (e.adm && e.adm.until < S.day) e.adm = null;
       if (!c) return;
       if (c.status === 'reg') {

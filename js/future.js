@@ -17,7 +17,7 @@ ENTRY_KINDS.fut = id => { const F = FUT[id]; return { icon: F.i, name: F.n, desc
 for (const k of ['vrset', 'smarttv']) { FURN[k] = { n: FUT[k].n, i: FUT[k].i, price: FUT[k].price }; MOVABLE.push(k); }
 // electric shuttle bus stops (farm gate, village, both towns, seaside market)
 const EBUS_STOPS = [   // every stop stands at the kerb of a road, front to the road (r), and at least ~25 m from the next stop
-  { k: 'farm', n: 'ป้ายรถบัสหน้าไร่', x: -6.6, z: -62, r: 1.571 },
+  { k: 'farm', n: 'ป้ายรถบัสหน้าบ้าน', x: -6.6, z: -62, r: 1.571 },
   { k: 'village', n: 'ป้ายรถบัสหมู่บ้านสุขใจ', x: 6.6, z: -205.5, r: -1.571 },
   { k: 'thong', n: 'ป้ายรถบัสเมืองทุ่งทอง', x: 175.2, z: -308.2, r: -1.382 },
   { k: 'phupha', n: 'ป้ายรถบัสเมืองภูผาใหม่', x: -111.6, z: -434, r: 1.566 },

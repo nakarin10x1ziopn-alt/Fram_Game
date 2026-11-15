@@ -29,12 +29,12 @@ function makeQ(lvl, touch) {
 function newState() {
   return {
     v: 1, money: 600, day: 1, time: 7 * 60, energy: 100,
-    inv: { seed_carrot: 8, seed_cabbage: 4, seed_tomato: 2, feed: 4, food_rice: 1 },
+    inv: { food_rice: 1 },
     can: { water: 15 },
     up: { house: 1, field: 1, soil: 1, barn: 1, feeder: 0, orchard: 0, can: 1, rod: 0 },
     plots: Array.from({ length: 30 }, () => ({ c: null, g: 0, w: 0, f: 0 })),
     trees: Array.from({ length: 6 }, () => ({ c: null, g: 0, w: 0, f: 0 })),
-    sprinklers: [], animals: [], trough: 0, furn: {}, decor: { wall: 0, floor: 0, hide: {}, pos: {} }, cars: [], look: null, name: '', farm: 'ไร่สุขใจ', friends: {}, orders: [], chest: {}, mail: [], daily: { talk: {}, gift: {}, shower: 0, pet: 0 }, pet: null, quest: { i: 0, st: 'avail' }, projects: {}, title: '', found: {}, bookRew: {}, mineMax: 1, machines: [],
+    sprinklers: [], animals: [], trough: 0, furn: {}, decor: { wall: 0, floor: 0, hide: {}, pos: {} }, cars: [], look: null, name: '', farm: 'บ้านสุขใจ', friends: {}, orders: [], chest: {}, mail: [], daily: { talk: {}, gift: {}, shower: 0, pet: 0 }, pet: null, quest: { i: 0, st: 'avail' }, projects: {}, title: '', found: {}, bookRew: {}, mineMax: 1, machines: [],
     p: { x: HOUSE_POS.x + 3, z: HOUSE_POS.z + 7.5, r: 2.6, inside: false },
     weather: { type: 'sunny', next: 'partly', change: -1 },
     goal: 0, stats: { planted: 0, watered: 0, harvest: 0, sold: 0, bought: 0, fed: 0, products: 0, cooked: 0, sea: 0, earned: 0, fish: 0 },
@@ -298,11 +298,7 @@ function setupEntities() {
   G.player = { obj: pm, pos: new THREE.Vector3(S.p.x, 0, S.p.z), rot: S.p.r, vel: new THREE.Vector3(), speed: 0, act: null, can };
   G.lantern = new THREE.PointLight(0xffc27a, 0, 18, 2); G.scene.add(G.lantern);
   G.headlight = new THREE.SpotLight(0xfff2d0, 0, 70, 0.55, 0.5, 1.2); G.headlight.position.set(0, 1, 2.4); G.headlight.target.position.set(0, 0, 12);
-  for (let i = 0; i < 30; i++) G.plots.push(makePlot(i));
-  for (let i = 0; i < 6; i++) G.trees.push(makeTreeSpot(i));
-  refreshField();
-  S.sprinklers.forEach(addSprinklerObj);
-  S.animals.forEach(addAnimalObj);
+  // v231: the farm is gone: no vegetable plots, orchard trees, sprinklers or farm animals are created (G.plots / G.trees / G.spr / G.animals stay empty)
   S.cars.forEach(addCarObj);
   World.buildHouse(S.up.house); World.buildInterior(S.up.house, S);
   spawnNPCs(); spawnTraffic();
@@ -573,9 +569,16 @@ function updatePlayer(dt) {
   if (mag > 0.05 && !busy) P.rot = U.angLerp(P.rot, Math.atan2(mx, mz), Math.min(1, dt * 12));
   P.pos.x += P.vel.x * dt; P.pos.z += P.vel.z * dt;
   if (G.inside) {
-    const r = World.room, c = G.inMine ? MINE0 : G.inRoom ? RM0 : IN; Col.push(P.pos, 0.32);
+    const r = World.room, c = G.inMine ? MINE0 : G.inRoom ? RM0 : IN, home = !G.inMine && !G.inRoom;
+    Col.fl = home ? (G.floor || 1) : 1; Col.push(P.pos, 0.32);
     P.pos.x = U.clamp(P.pos.x, c.x - r.w / 2 + 0.35, c.x + r.w / 2 - 0.35); P.pos.z = U.clamp(P.pos.z, c.z - r.d / 2 + 0.35, c.z + r.d / 2 - 0.35);
     P.pos.y = c.y;
+    if (home && World.stairs) {   // v232: the staircase of the house: the height follows the ramp, the floor flips at the half-way step
+      const st = World.stairs;
+      if (P.pos.x >= st.x0 && P.pos.x <= st.x1 && P.pos.z >= st.z0 && P.pos.z <= st.z1) { const y = st.Y * (st.z1 - P.pos.z) / (st.z1 - st.z0); P.pos.y = y; G.floor = y > st.Y * 0.5 ? 2 : 1; }
+      else if (G.floor === 2) P.pos.y = World.Y2 || 0;
+      if (World.upper) { const up = G.floor === 2 || P.pos.y > 0.9; if (World.upper.visible !== up) { World.upper.visible = up; if (World.inLight) World.inLight.position.y = up ? (World.Y2 || 3.4) + 2.9 : 2.9; } }
+    }
   } else {
     Col.push(P.pos, 0.34);
     for (const t of G.traffic) pushFromCar(P.pos, 0.34, t.x, t.z, t.h);
@@ -875,7 +878,7 @@ function updateCamera(dt) {
   const k = Math.min(1, dt * (G.driving ? 6 : 10));
   c.x = U.lerp(c.x, tg.x, k); c.y = U.lerp(c.y, tg.y, k); c.z = U.lerp(c.z, tg.z, k);
   if (G.driving && performance.now() - c.lastDrag > 1500 && Math.abs(G.driving.speed) > 1) c.yaw = U.angLerp(c.yaw, G.driving.d.r + (G.driving.speed < 0 ? 0 : Math.PI), Math.min(1, dt * 2.2));
-  const dist = G.lookCam ? (innerWidth <= 640 ? 4.6 : 3.4) : G.inside ? Math.min(c.dist, 8.5) : G.driving ? Math.max(c.dist, 9.5) : c.dist;
+  const dist = G.lookCam ? (innerWidth <= 640 ? 4.6 : 3.4) : G.inside ? Math.min(c.dist, 15) : G.driving ? Math.max(c.dist, 9.5) : c.dist;
   const pitch = G.lookCam ? 0.02 : G.inside ? Math.max(c.pitch, 0.62) : c.pitch;
   const cp = G.camera.position;
   cp.set(c.x + Math.sin(c.yaw) * Math.cos(pitch) * dist, c.y + Math.sin(pitch) * dist + 1.5, c.z + Math.cos(c.yaw) * Math.cos(pitch) * dist);
@@ -1096,22 +1099,13 @@ function findTarget() {
   let best = null, bd = 1e9;
   const consider = (t, d) => { if (d < bd) { bd = d; best = t; } };
   if (G.inside) {
-    for (const poi of World.inPois) { const d = Math.hypot(p.x - poi.x, p.z - poi.z); if (d < poi.r) consider({ kind: 'poi', poi }, d); }
+    for (const poi of World.inPois) { if ((poi.floor || 1) !== (G.floor || 1)) continue; const d = Math.hypot(p.x - poi.x, p.z - poi.z); if (d < poi.r) consider({ kind: 'poi', poi }, d); }
     if (Pet.obj) { const d = Math.hypot(p.x - Pet.x, p.z - Pet.z); if (d < 1.4) consider({ kind: 'pet' }, d + 0.1); }
     Social.familyTargets(consider, p);
     return best;
   }
   const fx = Math.sin(P.rot), fz = Math.cos(P.rot), px = p.x + fx * 1.0, pz = p.z + fz * 1.0;
-  if (Math.abs(p.x - 9) < 14 && Math.abs(p.z + 4) < 12) {
-    for (let i = 0; i < 30; i++) { if (!plotUnlocked(i, S.up.field)) continue; const c = plotCenter(i), d = Math.hypot(px - c.x, pz - c.z); if (d < 1.25) consider({ kind: 'plot', i }, d - 0.5); }
-    const sel = G.sel;
-    if (sel === 'sprinkler' || sel === 'sprinkler_pro') {
-      const c = nearestCorner(px, pz);
-      if (c && Math.hypot(px - c.x, pz - c.z) < 1.7) consider({ kind: 'place', c }, -1);
-    } else for (const s of G.spr) { const d = Math.hypot(px - s.d.x, pz - s.d.z); if (d < 0.75) consider({ kind: 'spr', s }, d - 0.4); }
-  }
-  if (S.up.orchard) for (let i = 0; i < 6; i++) { const c = orchardSpot(i), d = Math.hypot(px - c.x, pz - c.z); if (d < 1.9) consider({ kind: 'tree', i }, d - 0.4); }
-  for (const A of G.animals) { const d = Math.hypot(p.x - A.d.x, p.z - A.d.z); if (d < ANIMALS[A.d.type].r + 1.3) consider({ kind: 'animal', A }, d); }
+  // v231: no plots, sprinklers, orchard or animals to target
   for (const c of G.cars) { const d = Math.hypot(p.x - c.d.x, p.z - c.d.z); if (d < 3.4) consider({ kind: 'car', car: c }, d + 0.5); }
   for (const poi of World.pois) { if (poi.fest && !Fest.on) continue; const d = Math.hypot(p.x - poi.x, p.z - poi.z); if (d < poi.r) consider({ kind: 'poi', poi }, d); }
   if (Pet.obj && !G.driving) { const d = Math.hypot(p.x - Pet.x, p.z - Pet.z); if (d < 1.6) consider({ kind: 'pet' }, d + 0.2); }
@@ -1185,7 +1179,7 @@ function poiAct(poi) {
     case 'act': return poi.room ? Rooms.entrance(poi) : poi.act();
     case 'shop': if (poi.room) return Rooms.entrance(poi); return { icon: poi.icon, label: 'เข้าร้าน ' + poi.label, fn: () => UI.shop(poi.id) };
     case 'market': return { icon: '💰', label: 'ขายของที่ตลาด (+50%)', fn: () => UI.sell(1.5, 'ตลาดริมทะเล') };
-    case 'bin': return { icon: '📦', label: 'ส่งขายผลผลิต', fn: () => UI.sell(1, 'กล่องส่งขาย') };
+    case 'bin': return { icon: '📦', label: 'ส่งขายของ', fn: () => UI.sell(1, 'กล่องส่งขาย') };
     case 'machine': return Craft.describe(poi.m);
     case 'workbench': return { icon: '🔨', label: 'โต๊ะช่าง', fn: () => UI.craft() };
     case 'mine': return { icon: '⛏️', label: 'เข้าเหมือง', fn: () => UI.mine() };
@@ -1195,16 +1189,13 @@ function poiAct(poi) {
     case 'bus': return { icon: '🚌', label: 'ขึ้นรถสองแถว (20 ฿)', fn: () => UI.bus() };
     case 'vmarket': return { icon: '🧺', label: 'ขายของที่ตลาดนัดชุมชน (+20%)', fn: () => UI.sell(1.2, 'ตลาดนัดชุมชน') };
     case 'fstall': return Fest.today() ? { icon: '🎪', label: 'ซุ้มของใน' + Fest.today().n, fn: () => UI.shop(Fest.today().shop) } : null;
-    case 'contest': return { icon: '🏆', label: S.contestDay === S.day ? 'ส่งประกวดไปแล้ววันนี้' : 'ส่งผลผลิตเข้าประกวด', fn: () => UI.contest() };
+    case 'contest': return null;   // v231: the produce contest is gone with the farm
     case 'fish': if (Fest.on && season().id === 'cool' && count('krathong') && G.night > 0.4) return { icon: '🪷', label: 'ลอยกระทง', fn: () => Fest.floatMine('sea') };
-      return { icon: '🎣', label: S.up.rod ? 'ตกปลาทะเล' : 'จุดตกปลา (ต้องมีคันเบ็ด)', fn: () => Fish.start('sea') };
+      return null;   // v231: no fishing
     case 'pond': if (Fest.on && season().id === 'cool' && count('krathong') && G.night > 0.4) return { icon: '🪷', label: 'ลอยกระทง', fn: () => Fest.floatMine('fresh') };
-      if (G.sel === 'rod') return { icon: '🎣', label: 'ตกปลาน้ำจืด', fn: () => Fish.start('fresh') };
-    // falls through
-    case 'well':
-      if (S.can.water >= CAN_CAP[S.up.can - 1]) return { icon: '💧', label: 'บัวรดน้ำเต็มแล้ว', info: true };
-      return { icon: '💧', label: 'เติมน้ำใส่บัวรดน้ำ', fn: refillCan };
-    case 'trough': return { icon: '🌾', label: `เติมอาหารสัตว์ (ในราง ${S.trough})`, fn: fillTrough };
+      return null;
+    case 'well': return null;   // v231: the well is only scenery now (no watering can to refill)
+    case 'trough': return null;
     case 'door': return { icon: '🚪', label: 'เข้าบ้าน', fn: enterHouse };
     case 'exit': return { icon: '🚪', label: 'ออกจากบ้าน', fn: exitHouse };
     case 'bed': return { icon: '🛏️', label: 'นอนหลับถึงเช้า', fn: () => UI.confirm('นอนหลับถึงเช้า?', 'พลังงานจะเต็ม และเกมจะบันทึกอัตโนมัติ', 'นอนเลย', () => sleep(false)) };
@@ -1296,7 +1287,7 @@ function fillTrough() {
   const cap = BARN_CAP[S.up.barn - 1] * 6, need = Math.max(0, cap - S.trough);   // 6 bags per pen slot: a cow eats 3 bags a day
   if (!need) { UI.toast('รางอาหารเต็มแล้ว', '🌾'); return; }
   const n = Math.min(need, count('feed'));
-  if (!n) { UI.toast('ไม่มีอาหารสัตว์ ซื้อได้ที่ร้านเกษตรหรือฟาร์มปศุสัตว์', '🌾'); Sfx.error(); return; }
+  if (!n) { UI.toast('ไม่มีอาหารสัตว์ ซื้อได้ที่ร้านเกษตรหรือร้านสัตว์เลี้ยง', '🌾'); Sfx.error(); return; }
   takeItem('feed', n); S.trough += n; S.stats.fed++; playAct('fill', 0.8); Sfx.plant();
   UI.toast(`เติมอาหาร ${n} ถุง (ในราง ${S.trough})`, '🌾');
 }
@@ -1377,12 +1368,12 @@ function fade(fn) {
 function setInside(v, instant) {
   if (Fish.st) Fish.end();
   if (Move.k && !v) Move.cancel();
-  G.inside = v;
+  G.inside = v; G.floor = 1; Col.fl = 1; if (World.upper) World.upper.visible = false; if (World.inLight) World.inLight.position.y = 2.9;
   World.outdoor.visible = !v; World.interior.visible = v; World.sky.visible = !v; World.stars.visible = !v;
   G.scene.background = v ? new THREE.Color(0x2a2420) : null;
   if (v) {
     const r = World.room; G.player.pos.set(IN.x, IN.y, IN.z + r.d / 2 - 1.3); G.player.rot = Math.PI;
-    G.cam.yaw = 0; G.cam.pitch = 0.8; G.cam.dist = Math.min(G.cam.dist, 8);
+    G.cam.yaw = 0; G.cam.pitch = 0.8; G.cam.dist = Math.max(10, Math.min(G.cam.dist, 13));
   }
   snapCam();
   UI.buttons();
@@ -1587,7 +1578,7 @@ async function boot() {
   FX.init(G.scene); initRain(G.Q.rain); Env.init(r); initLamps();
   Prog.init(); if (!S.daily || !S.daily.talk) resetDaily();
   setupEntities(); Fish.init(G.scene); Life.init(G.scene); Pet.spawn(); Fest.init(G.scene); Dev.applyAll(); Mine.init(G.scene); Mine.attachPick(); Craft.init();
-  Emergency.init(G.scene); Social.spawn(); Social.buildStand(); Phone.badge();
+  Emergency.init(G.scene); Social.spawn(); /* v242: farm stand removed */ Phone.badge();
   Garage.build(); Garage.buildShop(); Contests.init(G.scene); People.staff(); Mall.build(); Bank2.build(); Farm2.init(G.scene); Life2.init(); Social2.init(); Town2.init(); Events.init(); Towns4.init(); Town3.init(); Collide.run(); Pets2.list(); Pets2.init(); Smart.initOutdoor(); Stations2.init(); Rooms.init(); HiTech.init(); PC.init(); Fut.init(); Plan.init(); GridOffice.init(); ISP.init(); Career.init(); Plan10.init(); Sec.init(); Company.init(); SIMs.sync(); CoMap.drawAll(); CCTV.init(); Life3.init(); Fest2.init(); RL.init(); Life5.init(); Perf4.init(); Fun.init(); Life6.init(); Life7.init(); Life8.init(); Civic.init(); Gfx.init(); Stable.init(); Life9.init(); IOSFix.init(); ItemPick.init(); Perf5.init(); V23.init(); Wear.apply(G.player.obj);
   for (const id in S.inv) if (S.inv[id] > 0) { const it = ITEMS[id]; if (it) S.found[it.base || id] = 1; }
   World.setFarmName(S.farm); if (!S.orders.length) Orders.daily();

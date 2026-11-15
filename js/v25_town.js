@@ -301,7 +301,7 @@ const V25 = window.V25 = {
     { const _t = Town2.taxiHTML.bind(Town2); Town2.taxiHTML = () => _t() + `<div class="row"><button class="btn ghost" data-a="v25cities">🌆 ดูเมืองต่างๆ ทั้งหมด (${kit.TOWNS.length + 4} เมือง)</button></div>`; }
     // first-visit hint: how to reach the far cities (once per save, old saves included)
     const st = S.v25 = S.v25 || {};
-    if (!st.hint) { st.hint = 1; setTimeout(() => { Phone.msg('ข่าวหมู่บ้าน', `เปิดเมืองไกลแล้ว ${kit.TOWNS.length} เมือง (ใหญ่ 4 · กลาง 3 · เล็ก 2) ดูตำแหน่งได้ที่แผนที่ (กด M) หรือแอป 🌆 เมืองต่างๆ ไปได้ด้วยแท็กซี่ หรือขับรถไปด่านทางหลวง 🛣️ ทางใต้ของภูผาใหม่`); UI.toast('มีเมืองใหม่ให้ไปเที่ยว! ดูที่แอป 🌆 เมืองต่างๆ หรือแผนที่ (M)', '🌆'); }, 6000); }
+    if (!st.hint) { st.hint = 1; setTimeout(() => { Phone.msg('ระบบเกม', `เปิดเมืองไกลแล้ว ${kit.TOWNS.length} เมือง (ใหญ่ ${kit.TOWNS.filter(t => t.size === 'large').length} · กลาง ${kit.TOWNS.filter(t => t.size === 'medium').length} · เล็ก ${kit.TOWNS.filter(t => t.size === 'small').length}) ดูตำแหน่งได้ที่แผนที่ (กด M) หรือแอป 🌆 เมืองต่างๆ ไปได้ด้วยแท็กซี่ หรือขับรถไปด่านทางหลวง 🛣️ ทางใต้ของภูผาใหม่`); UI.toast('มีเมืองใหม่ให้ไปเที่ยว! ดูที่แอป 🌆 เมืองต่างๆ หรือแผนที่ (M)', '🌆'); }, 6000); }
     // audit result for the console: V25.auditAll() -> overlaps per city
     V25.auditAll = () => { const out = {}; for (const T of kit.TOWNS) out[T.key] = T._plan && T.built ? V25.audit(T.key) : 'not built'; out.main = V25.auditMain(); return out; };
   });

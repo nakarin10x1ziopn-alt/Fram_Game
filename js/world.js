@@ -2,7 +2,7 @@
 // ---------- World layout ----------
 const WORLD = { minX: -260, maxX: 560, minZ: -560, maxZ: 180 };
 const ZONES = [
-  { id: 'farm', n: 'ฟาร์มของคุณ', x: 0, z: 2, hw: 80, hd: 68 },
+  { id: 'farm', n: 'บ้านของคุณ', x: 0, z: 2, hw: 80, hd: 68 },
   { id: 'village', n: 'หมู่บ้านสุขใจ', x: 0, z: -245, hw: 70, hd: 90 },
   { id: 'seaside', n: 'เมืองริมทะเล', x: 355, z: -385, hw: 72, hd: 60 },
 ];
@@ -15,26 +15,22 @@ const ROADS = [
 const PATHS = [
   { pts: [[0, -57], [0.5, -49], [-2, -42], [-8, -35], [-15, -28.8], [-18.6, -26.2], [-19.6, -25.2]], w: 3.2 },                                            // gate -> house door
   { pts: [[-8, -35], [-10.2, -37.4], [-12.6, -38.7]], w: 2.2 },                                                                               // -> workshop
-  { pts: [[-2, -42], [-3, -34], [-3.5, -26], [-4, -19], [-1, -12], [0.5, -4], [1, 4], [-5, 13], [-11.5, 22.5], [-14.8, 27.8], [-17.8, 29.4]], w: 2.8 },          // spine: gate -> bin -> field -> pen gate
+  { pts: [[-2, -42], [-3, -34], [-3.5, -26]], w: 2.8 },                                                                                      // spine: gate -> shipping bin
   { pts: [[-3.5, -24], [-6, -21.6], [-8.5, -21.8]], w: 2.0 },                                                                                 // -> shipping corner
-  { pts: [[-2, -42], [6, -38], [14, -33], [21, -30], [27.5, -30]], w: 2.6 },                                                                  // east to the orchard
+  { pts: [[-2, -42], [6, -38], [10, -34.5]], w: 2.2 },                                                                                        // east to the well
   { pts: [[13, -34], [9.5, -29.5], [8, -27.2]], w: 2.0 },                                                                                     // -> well
-  { pts: [[21, -30], [23, -24], [24, -16], [24.4, -8], [24, 2], [23.4, 10], [21.8, 15], [21.2, 19], [22.6, 20.2]], w: 2.6 },                                          // east side: compost, field edge, pond walkway
-  { pts: [[24, -16], [21.8, -15.6], [19.9, -15.3]], w: 1.8 },                                                                                 // -> compost
-  { pts: [[24.4, -8], [34, -8.5], [44, -10], [50, -10.6]], w: 2.4 },                                                                          // -> rice paddy
-  { pts: [[23.5, 9.5], [30, 6.8], [38, 6.2], [46, 9], [50, 13.4], [52, 16]], w: 2.4 },                                                              // -> greenhouse
-  { pts: [[-5, 13], [-12, 12.9], [-20, 12.9], [-24, 12.8], [-31, 12.9], [-38, 12.6]], w: 1.8 },                                            // barn and coop fronts
 ];
 const FIELD = { x0: 2, z0: -10, step: 2.4, size: 1.8, cols: 6, rows: 5 };
 const PEN = { x0: -52, x1: -18, z0: 14, z1: 44 };
 const HOUSE_POS = { x: -20, z: -32 };
 const IN = new THREE.Vector3(2000, 0, 2000);
+// v232: the main house is a two-storey concrete house (about 3x the old floor area). w x d is the footprint; the interior has two walkable floors (see buildInterior)
 const HOUSE_DEF = [
-  { w: 8, d: 6.5, h: 3.0, roofH: 2.2, wallTex: 'wood', wall: 0xe9d6b0, roof: 0xb23a2a, winF: [-2.5, 2.5], winS: [0], porch: 3.6, flowers: true, shutter: 0x3d6b4f, pots: true },
-  { w: 11, d: 8, h: 3.3, roofH: 2.8, wallTex: 'plaster', wall: 0xf6ecd6, roof: 0x8c3b2a, winF: [-3.6, 3.6], winS: [-1.8, 1.8], winB: [-3, 0, 3], porch: 4.4, chimney: true, flowers: true, shutter: 0x2f5d8a, pots: true, wains: 'stone' },
-  { w: 12.5, d: 9, h: 6.0, roofH: 3.2, rows: 2, wallTex: 'plaster', wall: 0xfaf4e8, roof: 0x3b556f, winF: [-4.2, -2.1, 2.1, 4.2], winS: [-2.2, 2.2], winB: [-3.5, 0, 3.5], porch: 5, chimney: true, flowers: true, shutter: 0x6b3f2a, balcony: true, pots: true, wains: 'stone', trimCol: 0x5a3a24 },
+  { w: 20, d: 13, h: 6.8, roofH: 3.4, rows: 2, modern: 1, wallTex: 'plaster', wall: 0xf1f0ec, roof: 0x3a3f46, porch: 0 },
+  { w: 23, d: 15, h: 6.8, roofH: 3.8, rows: 2, modern: 1, wallTex: 'plaster', wall: 0xf1f0ec, roof: 0x3a3f46, porch: 0 },
+  { w: 26, d: 17, h: 6.8, roofH: 4.2, rows: 2, modern: 1, wallTex: 'plaster', wall: 0xf1f0ec, roof: 0x3a3f46, porch: 0 },
 ];
-const ROOM = [[14, 12], [17, 13.5], [20, 15]];   // interior floor sizes (w x d metres): roomy enough to give every fixture its own standing spot
+const ROOM = [[20, 13], [23, 15], [26, 17]];   // interior floor sizes (w x d metres): roomy enough to give every fixture its own standing spot
 function plotCenter(i) { const c = i % 6, r = (i / 6) | 0; return { x: FIELD.x0 + c * FIELD.step + FIELD.size / 2, z: FIELD.z0 + r * FIELD.step + FIELD.size / 2 }; }
 function plotUnlocked(i, lvl) { const c = i % 6, r = (i / 6) | 0; return lvl >= 4 ? true : lvl === 3 ? r < 3 : lvl === 2 ? r < 2 : (r < 2 && c < 3); }
 function orchardSpot(i) { return { x: 31 + (i % 3) * 7, z: -36 + ((i / 3) | 0) * 8 }; }
@@ -62,7 +58,7 @@ function addSway(mat, base, amp) {
 
 // ---------- Collision (spatial hash of circles and rotated boxes) ----------
 const Col = {
-  cs: 8, map: new Map(),
+  cs: 8, map: new Map(), fl: 1,   // v232: fl = the floor the player is on; a solid with s.fl set only blocks that floor
   key(ix, iz) { return ix * 100003 + iz; },
   add(s) {
     s.br = s.type === 'c' ? s.r : Math.hypot(s.hw, s.hd);
@@ -93,6 +89,7 @@ const Col = {
       const a = this.map.get(this.key(ix + dx, iz + dz)); if (!a) continue;
       for (const s of a) {
         if (seen.has(s)) continue; seen.add(s);
+        if (s.fl !== undefined && s.fl !== this.fl) continue;
         const ddx = p.x - s.x, ddz = p.z - s.z;
         if (s.type === 'c') {
           const d = Math.hypot(ddx, ddz), m = r + s.r;
@@ -259,7 +256,7 @@ World.buildRoads = function () {
   this.roadCurves.forEach((rc, i) => this.outdoor.add(this.ribbon(rc.c, rc.r.w, this.roadMat, 0.05 + i * 0.01, 8)));
   const dm = new THREE.MeshStandardMaterial({ map: T.dirt, normalMap: T.dirt_n || null, roughness: 1, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -1 });
   dm.map = T.dirt;
-  for (const p of PATHS) this.outdoor.add(this.ribbon(p.pts, p.w, dm, 0.035, 3));
+  // v234: the dirt footpaths are gone (the whole yard is paved)
 };
 
 // Rain puddles: irregular reflective blobs on roads and farm paths, faded in by wetness
@@ -293,7 +290,7 @@ World.buildPuddles = function () {
     const a = rc.sp[i], b = rc.sp[Math.min(rc.sp.length - 1, i + 1)], tx = b.x - a.x, tz = b.z - a.z, l = Math.hypot(tx, tz) || 1, off = (R() - 0.5) * 5.5;
     spots.push([a.x + tz / l * off, a.z - tx / l * off, 0.5 + R() * 1.1, 0.075]);
   }
-  for (const p of PATHS) for (const q of p.pts) if (R() < 0.8) spots.push([q[0] + (R() - 0.5) * 1.5, q[1] + (R() - 0.5) * 1.5, 0.4 + R() * 0.6, 0.06]);
+  for (const p of []) for (const q of p.pts) if (R() < 0.8) spots.push([q[0] + (R() - 0.5) * 1.5, q[1] + (R() - 0.5) * 1.5, 0.4 + R() * 0.6, 0.06]);
   for (let i = 0; i < 14; i++) spots.push([-2 + R() * 22, -14 + R() * 18, 0.35 + R() * 0.5, 0.03]);
   const geos = [], m = new THREE.Matrix4();
   for (const [x, z, r, y] of spots) {
@@ -582,32 +579,11 @@ World.buildFarm = function () {
   fence(-72, -58, -5, -58); fence(5, -58, 72, -58); fence(72, -58, 72, 62); fence(72, 62, -72, 62); fence(-72, 62, -72, -58);
   for (const s of [-1, 1]) { U.mk(g, GEO.cyl, M.darkwood, [s * 5, 2.3, -58], [0.22, 4.6, 0.22]); Col.circle(s * 5, -58, 0.35); }
   U.mk(g, GEO.box, M.darkwood, [0, 4.4, -58], [10.6, 0.3, 0.3]);
-  const sTex = U.signTex('ไร่สุขใจ', { w: 512, h: 160, bg: '#7a4a24', fg: '#fff1c9' });
+  const sTex = U.signTex('บ้านสุขใจ', { w: 512, h: 160, bg: '#7a4a24', fg: '#fff1c9' });
   this.gateMat = new THREE.MeshStandardMaterial({ map: sTex, roughness: 0.7 });
   for (const s of [1, -1]) { const p = U.mk(g, new THREE.PlaneGeometry(4.2, 1.3), this.gateMat, [0, 3.55, -58 + s * -0.08]); p.rotation.y = s > 0 ? Math.PI : 0; }
-  // animal pen
-  fence(PEN.x0, PEN.z0, PEN.x1, PEN.z0); fence(PEN.x1, PEN.z0, PEN.x1, 27); fence(PEN.x1, 31, PEN.x1, PEN.z1);
-  fence(PEN.x1, PEN.z1, PEN.x0, PEN.z1); fence(PEN.x0, PEN.z1, PEN.x0, PEN.z0);
-  // barn
-  this.buildBarn(g, -38, 5);
-  // silo
-  U.mk(g, GEO.cyl, texMat('metal', 0xc7cdd2, { roughness: 0.45, metalness: 0.3 }), [-50, 4.6, 3], [2.2, 9.2, 2.2]);
-  U.mk(g, GEO.sph, mc(0xa9b2b8, { roughness: 0.35, metalness: 0.4 }), [-50, 9.2, 3], [2.25, 1.4, 2.25]);
-  Col.circle(-50, 3, 2.4);
-  // coop
-  const coop = this.building({ w: 5, d: 4, h: 2.2, roofH: 1.3, wallTex: 'woodV', wall: 0xe4c48c, roof: 0x7b4a2e, door: 0x8a5a32, winS: [0] });
-  coop.position.set(-24, 0, 8); g.add(coop); Col.box(-24, 8, 2.7, 2.2);
-  // trough
-  U.mk(g, U.box(3.2, 0.5, 0.9, 1.5), M.darkwood, [-34, 0.35, 15.2]);
-  for (const s of [-1, 1]) U.mk(g, GEO.box, M.darkwood, [-34 + s * 1.4, 0.15, 15.2], [0.15, 0.3, 1.0]);
-  Col.box(-34, 15.2, 1.6, 0.45);
-  this.troughFeed = U.mk(null, GEO.box, texMat('straw', 0xffffff), [-34, 0.58, 15.2], [3.0, 0.08, 0.7]); out.add(this.troughFeed);
-  this.pois.push({ kind: 'trough', x: -34, z: 16.8, r: 2.4, label: 'รางอาหารสัตว์', icon: '🌾' });
-  // hay bales
-  const hayM = texMat('straw', 0xffffff, { roughness: 1 });
-  // hay stack at the left corner of the barn front: two bales on the ground, one on top, all solid
-  for (const [x, y, z] of [[-42.3, 0.55, 10.85], [-42.3, 0.55, 11.95], [-42.3, 1.5, 11.4]]) U.mk(g, GEO.cyl, hayM, [x, y, z], [0.55, 1.2, 0.55], [0, 0, Math.PI / 2]);
-  Col.box(-42.3, 11.4, 0.75, 1.25);
+  // v231: the animal pen, barn, silo, coop, trough and hay are gone
+  this.troughFeed = { visible: false, scale: { set() { }, x: 0, y: 0, z: 0 }, position: { y: 0 } };
   // shipping bin
   // shipping corner: a paved pad with the bin in the middle, sacks piled to its right; everything solid, the pad is entered from the south
   {
@@ -622,70 +598,15 @@ World.buildFarm = function () {
     Col.box(-6.4, -24.85, 0.65, 0.75);
     this.pois.push({ kind: 'bin', x: BX, z: -23.2, r: 2.0, label: 'กล่องส่งขาย', icon: '📦', map: true });
   }
-  // well
-  U.mk(g, lathe('well', [[0.62, 0], [0.95, 0], [0.95, 0.85], [0.8, 0.9], [0.62, 0.85]], 22), M.stone, [8, 0, -25]);
-  U.mk(g, new THREE.CircleGeometry(0.64, 20), World.pondMat, [8, 0.5, -25], 1, [-Math.PI / 2, 0, 0]);
-  for (const s of [-1, 1]) U.mk(g, GEO.cylLo, M.darkwood, [8 + s * 0.85, 1.35, -25], [0.07, 2.0, 0.07]);
-  for (const s of [1, -1]) { const r = U.mk(g, U.box(2.2, 0.08, 0.9, 2.5), texMat('roof', 0x8c3b2a), [8, 2.45, -25 + s * 0.38]); r.rotation.x = s * 0.55; }
-  U.mk(g, GEO.cyl, M.darkwood, [8, 1.75, -25], [0.08, 1.7, 0.08], [0, 0, Math.PI / 2]);
-  U.mk(g, GEO.cyl, mc(0x8a8f94, { metalness: 0.4, roughness: 0.4 }), [8, 1.25, -25], [0.16, 0.3, 0.16]);
-  Col.circle(8, -25, 1.0);
-  this.pois.push({ kind: 'well', x: 8, z: -25, r: 2.4, label: 'บ่อน้ำ', icon: '💧' });
-  // pond
-  {
-    const sh = new THREE.Shape(), R = U.rng(5);
-    for (let i = 0; i <= 40; i++) { const a = i / 40 * TAU, r = 6 + Math.sin(a * 3) * 0.6 + Math.cos(a * 5) * 0.4; if (i === 0) sh.moveTo(Math.cos(a) * r, Math.sin(a) * r); else sh.lineTo(Math.cos(a) * r, Math.sin(a) * r); }
-    this.fpMat = World.pondMat.clone(); this.fpMat.color = U.col(0x2f7f90); this.fpMat.opacity = 0.74;   // the fish pond is a little clearer and deeper-coloured so the fish show through
-    const pw = new THREE.Mesh(new THREE.ShapeGeometry(sh), this.fpMat); pw.rotation.x = -Math.PI / 2; pw.position.set(30, 0.05, 20); pw.receiveShadow = true; out.add(pw);
-    const ring = new THREE.Mesh(new THREE.RingGeometry(5.6, 7.4, 48), U.mat(0xb8a27a, { map: T.dirt, roughness: 1 })); ring.rotation.x = -Math.PI / 2; ring.position.set(30, 0.03, 20); ring.receiveShadow = true; out.add(ring);
-    const rockM = mc(0x9a948a, { roughness: 0.9 });
-    for (let i = 0; i < 26; i++) { const a = R() * TAU, r = 6.6 + R() * 0.8, sx = 0.3 + R() * 0.4, sy = 0.2 + R() * 0.25, sz = 0.3 + R() * 0.4, rx = 30 + Math.cos(a) * r, rz = 20 + Math.sin(a) * r; U.mk(g, GEO.sphLo, rockM, [rx, 0.1, rz], [sx, sy, sz]); if (!(rx < 29.9 && Math.abs(rz - 20) < 1.5)) Col.circle(rx, rz, Math.max(0.3, (sx + sz) / 2 * 0.95)); }   // every rock is solid
-    const reed = mc(0x5d7f34, { roughness: 0.8 });
-    for (let i = 0; i < 40; i++) { const a = 3.6 + R() * 1.6, r = 5.6 + R() * 0.8; U.mk(g, GEO.cylLo, reed, [30 + Math.cos(a) * r, 0.6, 20 + Math.sin(a) * r], [0.025, 1.2 + R() * 0.5, 0.025], [(R() - 0.5) * 0.3, 0, (R() - 0.5) * 0.3]); }
-    const lily = mc(0x4f8f3a, { roughness: 0.6 });
-    for (let i = 0; i < 9; i++) { const a = R() * TAU, r = R() * 4.5; U.mk(g, GEO.cyl, lily, [30 + Math.cos(a) * r, 0.08, 20 + Math.sin(a) * r], [0.35, 0.02, 0.35]); if (i % 3 === 0) U.mk(g, GEO.sphLo, mc(0xf5a6c8), [30 + Math.cos(a) * r, 0.16, 20 + Math.sin(a) * r], 0.1); }
-    // ---- a wooden walkway from the shore out over the water (23.2 -> 29.2 along z = 20); fish are stocked and fed from its far end only ----
-    {
-      const pad = mc(0x8a5f3a, { roughness: 0.85 }), pad2 = mc(0x9a6f46, { roughness: 0.85 }), post = M.darkwood;
-      for (let k = 0; k < 11; k++) U.mk(g, GEO.box, k % 2 ? pad : pad2, [23.5 + k * 0.56, 0.1, 20], [0.5, 0.1, 2.0]);
-      for (let k = 0; k <= 5; k++) for (const sz of [-1, 1]) { const x = 23.7 + k * 1.1; U.mk(g, GEO.cylLo, post, [x, 0.5, 20 + sz * 1.0], [0.07, 1.0, 0.07]); U.mk(g, GEO.cylLo, post, [x, -0.1, 20 + sz * 0.8], [0.09, 0.5, 0.09]); }
-      for (const sz of [-1, 1]) { U.mk(g, GEO.box, post, [26.45, 0.92, 20 + sz * 1.0], [5.6, 0.07, 0.07]); U.mk(g, GEO.box, post, [26.45, 0.55, 20 + sz * 1.0], [5.6, 0.05, 0.05]); }
-      U.mk(g, GEO.box, post, [29.0, 0.92, 20], [0.07, 0.07, 2.0]); U.mk(g, GEO.box, post, [29.0, 0.55, 20], [0.05, 0.05, 2.0]); U.mk(g, GEO.cylLo, post, [29.0, 0.5, 19.0], [0.07, 1.0, 0.07]); U.mk(g, GEO.cylLo, post, [29.0, 0.5, 21.0], [0.07, 1.0, 0.07]);
-      // the sign at the entrance faces the shore
-      const fsm = new THREE.MeshStandardMaterial({ map: U.signTex('บ่อเลี้ยงปลา', { w: 512, h: 160, bg: '#2f6f86', fg: '#fff1c9' }), roughness: 0.8, side: THREE.DoubleSide });
-      U.mk(g, GEO.cylLo, post, [23.35, 1.0, 18.85], [0.07, 2.0, 0.07]); U.mk(g, GEO.cylLo, post, [23.35, 1.0, 21.15], [0.07, 2.0, 0.07]); U.mk(g, GEO.box, post, [23.35, 2.0, 20], [0.08, 0.08, 2.4]);
-      const sg = U.mk(g, new THREE.PlaneGeometry(2.0, 0.62), fsm, [23.33, 1.62, 20]); sg.rotation.y = -Math.PI / 2;
-      // solid rails and the end of the walkway, so you can only leave it by the shore
-      Col.box(26.45, 19.0, 2.85, 0.07); Col.box(26.45, 21.0, 2.85, 0.07); Col.box(29.05, 20, 0.07, 1.0);
-      // a crate of fish feed at the shore beside the walkway
-      U.mk(g, U.box(0.9, 0.6, 0.7, 1.2), M.wood, [22.3, 0.3, 18.2]); U.mk(g, GEO.sph, mc(0xd8c49a, { roughness: 1 }), [22.1, 0.72, 18.2], [0.32, 0.22, 0.28]); U.mk(g, GEO.sph, mc(0xd8c49a, { roughness: 1 }), [22.6, 0.68, 18.3], [0.28, 0.2, 0.25]); Col.box(22.3, 18.2, 0.5, 0.4);
-      // the water and its shore are solid except along the walkway
-      for (let gx = 22.5; gx <= 37.5; gx += 1.0) for (let gz = 12.5; gz <= 27.5; gz += 1.0) {
-        const dx = gx - 30, dz = gz - 20, an = Math.atan2(dz, dx), rr = 6 + Math.sin(an * 3) * 0.6 + Math.cos(an * 5) * 0.4;
-        if (Math.hypot(dx, dz) > rr + 0.45 || (gx < 29.9 && Math.abs(gz - 20) < 1.25)) continue;
-        Col.circle(gx, gz, 0.75);
-      }
-    }
-    this.pois.push({ kind: 'pond', x: 24.2, z: 20, r: 2.2, label: 'บ่อน้ำ', icon: '🎣', map: true });
-  }
-  // scarecrow
-  {
-    const sc = Models.human({ shirt: 0xb84a3a, pants: 0x5a6b8a, skin: 0xe9d39b, hair: 0xd9b45a, hat: 'straw', longSleeve: true });
-    sc.userData.pose = 'scare'; Models.animHuman(sc, 1, 0, null); sc.position.set(19.8, 0.5, -4); sc.rotation.y = -Math.PI / 2;
-    sc.updateMatrixWorld(true); g.add(sc);
-    U.mk(g, GEO.cyl, M.darkwood, [19.8, 0.8, -4], [0.06, 1.6, 0.06]);
-    Col.circle(19.8, -4, 0.35);
-  }
+  // v242: the old well is removed
+  // v231: the fish pond, its walkway and the scarecrow are gone
+  this.fpMat = World.pondMat.clone();
   // mailbox + lamps
   U.mk(g, GEO.cylLo, M.darkwood, [7, 0.6, -55], [0.06, 1.2, 0.06]);
   U.mk(g, capsule(0.18, 0.4), mc(0x2f6db5, { roughness: 0.5 }), [7, 1.3, -55], 1, [Math.PI / 2, 0, 0]);
   for (const [x, z] of [[-7, -56], [7, -60], [-13, -21]]) this.lamp(g, x, z);
-  // orchard mounds
-  this.orchardGroup = new THREE.Group(); out.add(this.orchardGroup);
-  for (let i = 0; i < 6; i++) { const p = orchardSpot(i); U.mk(this.orchardGroup, GEO.sphLo, U.mat(0xffffff, { map: T.soil, roughness: 1 }), [p.x, 0, p.z], [1.1, 0.12, 1.1]); }
-  const os = new THREE.MeshStandardMaterial({ map: U.signTex('สวนผลไม้', { bg: '#3f6b2f' }), roughness: 0.8 });
-  U.mk(this.orchardGroup, GEO.cylLo, M.darkwood, [28, 0.7, -39], [0.06, 1.4, 0.06]);
-  U.mk(this.orchardGroup, new THREE.PlaneGeometry(1.6, 0.4), os, [28, 1.35, -38.95]);
+  // v231: no orchard (an empty group stays so old code that toggles it does not fail)
+  this.orchardGroup = new THREE.Group(); out.add(this.orchardGroup); this.orchardGroup.visible = false;
   // decorative trees around the farm
   for (const [x, z] of [[-62, -48], [-66, -20], [-64, 8], [-62, 52], [-40, 55], [-8, 56], [22, 56], [50, 54], [66, 32], [66, 4], [64, -30], [52, -50], [40, -12], [-46, -46], [-34, -18], [-56, 26]]) this.extraTrees.push({ x, z, s: 1.1 + Math.random() * 0.4, type: 'oak' });
   // farmhouse slot
@@ -693,98 +614,7 @@ World.buildFarm = function () {
   // parking hint
   // ---- farm props ----
   const metalM = mc(0x9aa3a8, { roughness: 0.35, metalness: 0.45 }), redM = mc(0xb23a2a, { roughness: 0.6 });
-  // wheelbarrow by the field
-  {
-    const wb = new THREE.Group(); wb.position.set(19.5, 0, -11.5); wb.rotation.y = 0.6; g.add(wb);
-    U.mk(wb, lathe('wbTray', [[0, 0], [0.32, 0], [0.5, 0.32], [0.46, 0.34], [0.3, 0.05], [0, 0.05]], 4), redM, [0, 0.42, 0], [1.2, 1, 1.6], [0, Math.PI / 4, 0]);
-    U.mk(wb, gcache('wbWheel', () => new THREE.TorusGeometry(0.2, 0.06, 8, 16)), mc(0x222222), [0, 0.24, 0.75], 1, [0, Math.PI / 2, 0]);
-    for (const s of [-1, 1]) { U.mk(wb, GEO.cylLo, M.darkwood, [s * 0.28, 0.45, -0.3], [0.03, 1.4, 0.03], [Math.PI / 2 - 0.25, 0, 0]); U.mk(wb, GEO.cylLo, metalM, [s * 0.25, 0.2, -0.35], [0.025, 0.4, 0.025]); }
-    U.mk(wb, GEO.sph, texMat('soil', 0xffffff), [0, 0.68, 0], [0.42, 0.12, 0.55]);
-  }
-  // milk cans and a wall lantern at the barn
-  // three milk cans on a low stand to the right of the barn door
-  U.mk(g, U.box(1.9, 0.14, 1.3, 1.2), M.wood, [-33.2, 0.07, 11]);
-  for (const [x, z] of [[-33.8, 10.7], [-33.1, 10.7], [-33.45, 11.35]]) {
-    U.mk(g, lathe('milk', [[0, 0], [0.2, 0], [0.2, 0.55], [0.12, 0.68], [0.12, 0.8], [0.15, 0.82], [0, 0.84]], 16), metalM, [x, 0.14, z]);
-  }
-  Col.box(-33.2, 11, 0.95, 0.65);
-  for (const sx of [-1, 1]) {
-    U.mk(g, GEO.box, M.metal, [-38 + sx * 2.6, 3.1, 9.65], [0.08, 0.08, 0.3]);
-    U.mk(g, GEO.sph, M.bulb, [-38 + sx * 2.6, 2.95, 9.85], [0.12, 0.16, 0.12]);
-    this.winPos.push(-38 + sx * 2.6, 2.95, 9.95);
-  }
-  // ---- animal pen: worn dirt floor, mud wallow, shade shelter, stone water trough, scattered straw ----
-  {
-    const sh = new THREE.Shape(), R = U.rng(17), x0 = PEN.x0 + 1.2, x1 = PEN.x1 - 1.2, z0 = PEN.z0 + 1.2, z1 = PEN.z1 - 1.2, pts = [];
-    const n = 48;
-    for (let i = 0; i < n; i++) {
-      const t = i / n * 4, side = Math.floor(t), f = t - side, j = (R() - 0.5) * 1.6;
-      if (side === 0) pts.push([U.lerp(x0, x1, f), z0 + j]); else if (side === 1) pts.push([x1 + j, U.lerp(z0, z1, f)]);
-      else if (side === 2) pts.push([U.lerp(x1, x0, f), z1 + j]); else pts.push([x0 + j, U.lerp(z1, z0, f)]);
-    }
-    pts.forEach((p, i) => i ? sh.lineTo(p[0], -p[1]) : sh.moveTo(p[0], -p[1]));
-    const dt = T.dirt.clone(); dt.needsUpdate = true; dt.repeat.set(0.3, 0.3);
-    const floor = new THREE.Mesh(new THREE.ShapeGeometry(sh), new THREE.MeshStandardMaterial({ map: dt, color: U.col(0xc9b48c), roughness: 1, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -1 }));
-    floor.rotation.x = -Math.PI / 2; floor.position.y = 0.02; floor.receiveShadow = true; out.add(floor);
-    const mud = new THREE.Mesh(new THREE.CircleGeometry(2.6, 28), new THREE.MeshStandardMaterial({ color: U.col(0x4a3524), roughness: 0.25, metalness: 0.1, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 }));
-    mud.rotation.x = -Math.PI / 2; mud.scale.set(1.4, 1, 1); mud.position.set(-27, 0.03, 34); mud.receiveShadow = true; out.add(mud);
-    const strawM = mc(0xe2c46a, { roughness: 1 });
-    for (let i = 0; i < 70; i++) U.mk(g, GEO.sphLo, strawM, [U.lerp(x0 + 1, x1 - 1, R()), 0.02, U.lerp(z0 + 1, z1 - 1, R())], [0.25 + R() * 0.35, 0.02, 0.12 + R() * 0.2], [0, R() * TAU, 0]);
-    // shade shelter
-    const sx = -45, sz = 37;
-    for (const a of [-1, 1]) for (const b of [-1, 1]) U.mk(g, GEO.cylLo, M.darkwood, [sx + a * 2.4, 1.25, sz + b * 1.8], [0.1, 2.5, 0.1]);
-    const sr = U.mk(g, U.box(5.6, 0.12, 4.4, 2.5), texMat('roof', 0x7a4a2e), [sx, 2.6, sz]); sr.rotation.x = 0.12;
-    U.mk(g, U.box(4.2, 0.5, 3, 1.2), texMat('straw', 0xffffff, { roughness: 1 }), [sx, 0.12, sz], [1, 0.3, 1]);
-    Col.circle(sx - 2.4, sz - 1.8, 0.2); Col.circle(sx + 2.4, sz - 1.8, 0.2); Col.circle(sx - 2.4, sz + 1.8, 0.2); Col.circle(sx + 2.4, sz + 1.8, 0.2);
-    // stone water trough
-    U.mk(g, U.box(2.4, 0.6, 0.9, 1.5), M.stone, [-22, 0.3, 40.5]);
-    U.mk(g, new THREE.PlaneGeometry(2.1, 0.62), World.pondMat, [-22, 0.56, 40.5], 1, [-Math.PI / 2, 0, 0]);
-    Col.box(-22, 40.5, 1.2, 0.45);
-    // nesting boxes on the coop
-    // (on the east wall, clear of the door and the path to it)
-    for (let i = 0; i < 3; i++) { U.mk(g, U.box(0.6, 0.55, 0.7, 1.2), M.wood, [-21.15, 0.3, 6.9 + i * 0.85]); U.mk(g, GEO.sph, strawM, [-21.15, 0.6, 6.9 + i * 0.85], [0.22, 0.08, 0.28]); }
-    Col.box(-21.15, 7.75, 0.35, 1.3);
-  }
-  // ---- windmill (water pump) by the pond: lattice tower, spinning rotor, tail vane ----
-  {
-    const wx = 37.5, wz = 11, H = 8.2, legM = mc(0x8a9097, { roughness: 0.4, metalness: 0.5 });
-    for (const [a, b] of [[-1, -1], [1, -1], [1, 1], [-1, 1]]) {
-      const bx = a * 1.3, bz = b * 1.3, tx = a * 0.3, tz = b * 0.3, len = Math.hypot(bx - tx, H, bz - tz);
-      const leg = U.mk(g, GEO.cylLo, legM, [wx + (bx + tx) / 2, H / 2, wz + (bz + tz) / 2], [0.06, len, 0.06]);
-      leg.lookAt(wx + tx, H, wz + tz); leg.rotateX(Math.PI / 2);
-    }
-    for (let k = 1; k <= 3; k++) {
-      const y = k * H / 4, r = U.lerp(1.3, 0.3, y / H);
-      for (const [a, b, rot] of [[0, -1, 0], [0, 1, 0], [-1, 0, Math.PI / 2], [1, 0, Math.PI / 2]]) U.mk(g, GEO.box, legM, [wx + a * r, y, wz + b * r], [2 * r, 0.05, 0.05], [0, rot, 0]);
-    }
-    U.mk(g, GEO.box, M.wood, [wx, H, wz], [1.0, 0.1, 1.0]);
-    Col.circle(wx, wz, 1.5);
-    const head = new THREE.Group(); head.position.set(wx, H + 0.35, wz); out.add(head);
-    U.mk(head, GEO.box, legM, [0, 0, -0.3], [0.25, 0.25, 0.9]);
-    U.mk(head, GEO.box, redM, [0, 0.1, -1.7], [0.05, 0.9, 1.4]);
-    U.mk(head, GEO.cylLo, legM, [0, 0, -1.0], [0.04, 1.4, 0.04], [Math.PI / 2, 0, 0]);
-    const rotor = new THREE.Group(); rotor.position.z = 0.25; head.add(rotor);
-    U.mk(rotor, GEO.cyl, legM, [0, 0, 0], [0.18, 0.25, 0.18], [Math.PI / 2, 0, 0]);
-    const bladeM = mc(0xe8e4dc, { roughness: 0.5, metalness: 0.2 });
-    for (let i = 0; i < 16; i++) { const a = i / 16 * TAU, bl = new THREE.Group(); bl.rotation.z = a; rotor.add(bl); U.mk(bl, GEO.box, bladeM, [0, 0.95, 0], [0.24, 1.4, 0.02], [0.35, 0, 0]); }
-    U.mk(rotor, gcache('windRing', () => new THREE.TorusGeometry(1.1, 0.025, 6, 32)), legM);
-    this.windmill = { head, rotor };
-  }
-  // ---- weather vane on the barn ridge ----
-  {
-    const v = new THREE.Group(); v.position.set(-38, 9.0, 5); out.add(v);
-    U.mk(v, GEO.cylLo, M.metal, [0, 0.5, 0], [0.03, 1.0, 0.03]);
-    for (const r of [0, Math.PI / 2]) U.mk(v, GEO.box, M.metal, [0, 0.55, 0], [0.7, 0.03, 0.03], [0, r, 0]);
-    const arrow = new THREE.Group(); arrow.position.y = 1.0; v.add(arrow);
-    const blk = mc(0x1e1e1e, { roughness: 0.4, metalness: 0.4 });
-    U.mk(arrow, GEO.box, blk, [0, 0, 0], [0.04, 0.04, 1.2]);
-    U.mk(arrow, GEO.cone, blk, [0, 0, 0.66], [0.08, 0.18, 0.03], [Math.PI / 2, 0, 0]);
-    U.mk(arrow, GEO.box, blk, [0, 0.08, -0.5], [0.02, 0.28, 0.32]);
-    U.mk(arrow, GEO.sph, blk, [0, 0.25, 0.05], [0.07, 0.17, 0.2]);
-    U.mk(arrow, GEO.sph, blk, [0, 0.42, 0.17], [0.05, 0.06, 0.06]);
-    U.mk(arrow, GEO.cone, mc(0xc0392b), [0, 0.48, 0.15], [0.03, 0.06, 0.03]);
-    this.vane = arrow;
-  }
+  // v231: wheelbarrow, milk cans, the pen floor, the windmill and the barn weather vane are gone
   out.add(U.mergeByMaterial(g)); this.harvestWindows(this.winPos);
 };
 // Remove scattered trees/rocks/bushes (instances + their trunk colliders) around a point, e.g. to open a path
@@ -801,7 +631,7 @@ World.clearNear = function (x, z, r, grass) {
     for (const s of (Col.map.get(Col.key(ix, iz)) || []).slice()) if (!seen.has(s) && s.type === 'c' && !s.tag && s.r < 1.2 && Math.hypot(s.x - x, s.z - z) < r) { seen.add(s); Col.remove(s); }
   }
 };
-World.setFarmName = function (name) { this.gateMat.map = U.signTex(name || 'ไร่สุขใจ', { w: 512, h: 160, bg: '#7a4a24', fg: '#fff1c9' }); this.gateMat.needsUpdate = true; };
+World.setFarmName = function (name) { this.gateMat.map = U.signTex(name || 'บ้านสุขใจ', { w: 512, h: 160, bg: '#7a4a24', fg: '#fff1c9' }); this.gateMat.needsUpdate = true; };
 World.lamp = function (g, x, z) {
   (this.lampSpots || (this.lampSpots = [])).push({ x, z });
   U.mk(g, GEO.cylLo, mc(0x2f3b33, { roughness: 0.5, metalness: 0.3 }), [x, 2.2, z], [0.07, 4.4, 0.07]);
@@ -833,6 +663,7 @@ World.buildBarn = function (g, x, z) {
 };
 
 World.buildHouse = function (lvl) {
+  if (this.buildHouseModern) return this.buildHouseModern(lvl);   // v232: the two-storey concrete house (v232_house2.js)
   const hg = this.houseGroup; while (hg.children.length) hg.remove(hg.children[0]);
   (this.houseFenceCols || []).forEach(c => Col.remove(c)); this.houseFenceCols = [];
   const o = HOUSE_DEF[lvl - 1];
@@ -918,8 +749,8 @@ World.buildVillage = function () {
     return door;
   };
   const L = Math.PI / 2, Rr = -Math.PI / 2;
-  B({ w: 12, d: 9, h: 4.2, roofH: 2.6, wall: 0xf3e2c0, roof: 0x2f6b3f, sign: 'ร้านเกษตรรุ่งเรือง', signStyle: { bg: '#2f6b3f' }, awning: 0x4caf50, crates: true, wains: 'wood', winF: [-3.6, 3.6], ww: 2, wh: 1.5, winS: [-2, 2] }, -19, -185, L, 'farmshop', '🌱');
-  B({ w: 12, d: 9, h: 4.2, roofH: 2.6, wallTex: 'wood', wall: 0xdab688, roof: 0x7a3b22, sign: 'ฟาร์มปศุสัตว์ลุงมี', awning: 0xd8892a, winF: [-3.6, 3.6], ww: 2, wh: 1.5, winS: [0] }, 19, -185, Rr, 'ranch', '🐄');
+  B({ w: 12, d: 9, h: 4.2, roofH: 2.6, wall: 0xf3e2c0, roof: 0x2f6b3f, sign: 'ร้านวัสดุรุ่งเรือง', signStyle: { bg: '#2f6b3f' }, awning: 0x4caf50, crates: true, wains: 'wood', winF: [-3.6, 3.6], ww: 2, wh: 1.5, winS: [-2, 2] }, -19, -185, L, 'farmshop', '🌱');
+  B({ w: 12, d: 9, h: 4.2, roofH: 2.6, wallTex: 'wood', wall: 0xdab688, roof: 0x7a3b22, sign: 'ร้านสัตว์เลี้ยงลุงมี', awning: 0xd8892a, winF: [-3.6, 3.6], ww: 2, wh: 1.5, winS: [0] }, 19, -185, Rr, 'ranch', '🐄');
   B({ w: 12, d: 9, h: 4.2, roofH: 2.6, wallTex: 'wood', wall: 0xc7a27a, roof: 0x5a4636, sign: 'ช่างไม้ & เฟอร์นิเจอร์', signStyle: { bg: '#5a3a22' }, awning: 0x8d6e63, winF: [-3.6, 3.6], ww: 2, wh: 1.5, winS: [-2, 2] }, -19, -215, L, 'carpenter', '🔨');
   B({ w: 15, d: 11, h: 4.6, flat: true, wall: 0xf5f5f2, roof: 0xd8d8d8, sign: 'โชว์รูมรถยนต์สุขใจ', signStyle: { bg: '#1f4e8c' }, glassFront: true, doorX: 5.5, winS: [-2.5, 2.5] }, 22, -218, Rr, 'dealer', '🚗');
   B({ w: 11, d: 8, h: 4.0, roofH: 2.4, wall: 0xf6d9b8, roof: 0xb03a2e, sign: 'ร้านอาหารป้าแดง', signStyle: { bg: '#a3302a' }, awning: 0xe53935, pots: true, winF: [-3.2, 3.2], ww: 1.8, wh: 1.4, winS: [0] }, 19, -252, Rr, 'restaurant', '🍜');
@@ -944,6 +775,9 @@ World.buildVillage = function () {
   U.mk(g, lathe('bowl', [[0, 0], [0.9, 0.25], [1.0, 0.35], [0.9, 0.38], [0, 0.2]], 24), M.stone, [-28, 2.1, -265]);
   Col.circle(-28, -265, 3.3);
   this.fountain = { x: -28, z: -265 };
+  // v236: the 9 round shrubs from the front of the house now ring the plaza fountain (evenly spaced, 8.5 m out)
+  { const shrub = mc(0x3f7f2c, { roughness: 0.9 });
+    for (let i = 0; i < 9; i++) { const a = i / 9 * Math.PI * 2; U.mk(g, GEO.sph, shrub, [-28 + Math.cos(a) * 8.5, 0.4, -265 + Math.sin(a) * 8.5], [0.9, 0.7, 0.8]); } }
   // sala (Thai pavilion)
   {
     const sx = -30, sz = -241;
@@ -1021,7 +855,7 @@ World.buildSeaside = function () {
   };
   const N = 0, S = Math.PI;
   B({ w: 14, d: 9, h: 4.2, roofH: 2.6, wall: 0xa8d8e8, roof: 0xe07a3a, sign: 'ตลาดริมทะเล รับซื้อ +50%', signStyle: { bg: '#1f6f8b' }, awning: 0x29b6f6, crates: true, winF: [-4.2, 4.2], ww: 2.2, wh: 1.5, winS: [0] }, 305, -397, N, 'market', '💰');
-  B({ w: 11, d: 8, h: 4.0, roofH: 2.4, wall: 0xd6eccf, roof: 0x4f7f3a, sign: 'ร้านพันธุ์ไม้หายาก', signStyle: { bg: '#3f6b2f' }, awning: 0x66bb6a, winF: [-3.2, 3.2], ww: 1.8, wh: 1.4 }, 326, -397, N, 'rare', '🌴');
+  B({ w: 11, d: 8, h: 4.0, roofH: 2.4, wall: 0xd6eccf, roof: 0x4f7f3a, sign: 'ร้านต้นไม้ประดับ', signStyle: { bg: '#3f6b2f' }, awning: 0x66bb6a, winF: [-3.2, 3.2], ww: 1.8, wh: 1.4 }, 326, -397, N, 'rare', '🌴');
   B({ w: 12, d: 8, h: 4.2, flat: true, wall: 0xf7e1e6, roof: 0xf0f0f0, sign: 'บ้านสวยเฟอร์นิเจอร์', signStyle: { bg: '#8e4a6b' }, awning: 0xec407a, winF: [-3.6, 3.6], ww: 2, wh: 1.6 }, 347, -397, N, 'lux', '🛋️');
   B({ w: 15, d: 10, h: 4.6, flat: true, wall: 0xfafafa, roof: 0xdedede, sign: 'ซุปเปอร์คาร์ริมหาด', signStyle: { bg: '#222', fg: '#f2c12e' }, glassFront: true, doorX: 5.5 }, 305, -363, S, 'supercar', '🏎️');
   B({ w: 12, d: 8, h: 4.0, roofH: 2.4, wall: 0xfff1d6, roof: 0x1f6f8b, sign: 'ร้านซีฟู้ดริมหาด', signStyle: { bg: '#1f6f8b' }, awning: 0x29b6f6, winF: [-3.6, 3.6], ww: 1.8, wh: 1.4 }, 327, -363, S, 'seafood', '🦐');
@@ -1323,57 +1157,60 @@ World.buildInterior = function (lvl, S, moving) {
   const wt = T.wallpaper.clone(); wt.needsUpdate = true; wt.repeat.set(3, 1);
   const wm = U.mat(wall.c, { map: wt, roughness: 0.9 });
   const bm = mc(0x6b4a30, { roughness: 0.7 });
-  const H3 = 3.2;
+  const H3 = 3.4, Y2 = 3.4, g2 = new THREE.Group(); g2.position.y = Y2; g2.visible = false; g.add(g2); this.upper = g2; this.Y2 = Y2;   // g2 = the upper floor
   // ONE place decides where every fixture stands (x, z, rotation): each interactive spot gets its own standing area (>= 1.4 m apart) so pressing E always
   // reaches the thing in front of you. Other modules read this.lay too (home.js, smarthome.js, v25_home.js).
   const hw = w / 2, hd = d / 2;
   this.lay = {
-    bed: [-hw + 1.25, -hd + 1.35, 0], chest: [-hw + 1.25, -hd + 4.8, 0], wardrobe: [-hw + 0.35, hd - 1.75, Math.PI / 2],
-    kitchen: [hw - 1.75, -hd + 0.38, 0], fridge: [hw - 4.0, -hd + 0.45, 0], smartfridge: [hw - 5.5, -hd + 0.45, 0], cooler: [hw - 0.45, -hd + 3.0, -Math.PI / 2], desk: [hw - 0.45, -hd + 5.0, -Math.PI / 2],
-    aircon: [0.2, -hd + 0.12, 0], hub: [-1.2, -hd + 0.05, 0], fan: [-hw + 3.7, -hd + 0.5, 0], airpurifier: [-hw + 4.4, -hd + 0.4, 0], trophy: [-hw + 5.2, -hd + 0.35, 0], trophy2: [-hw + 5.9, -hd + 0.35, 0],
-    table: [hw - 3.6, -hd + 3.9, 0], vase: [hw - 3.6, -hd + 3.9, 0], plant: [hw - 0.5, -hd + 1.6, 0], lanternL: [-2.2, 0.8, 0],
-    sofa: [-hw + 2.6, hd - 0.55, Math.PI], tv: [-hw + 2.6, hd - 3.2, 0], console: [-hw + 4.7, hd - 3.2, 0], rug: [-hw + 2.6, hd - 1.9, 0], lamp: [-hw + 0.45, hd - 0.45, 0], elephant: [-3.0, hd - 1.3, Math.PI],
-    aquarium: [-hw + 0.35, 0.9, Math.PI / 2], printer3d: [-hw + 0.4, 2.2, Math.PI / 2], bookshelf: [hw - 1.6, hd - 0.25, Math.PI], painting: [hw - 1.6, hd - 0.02, Math.PI], piano: [3.2, hd - 0.6, Math.PI],
-    radio: [hw - 0.35, 1.0, -Math.PI / 2], washer: [hw - 0.45, hd - 3.5, -Math.PI / 2], bike: [-1.2, 1.0, 0], massagechair: [-1.5, -1.2, 0], calendar: [-2.4, hd, Math.PI],
+    bed: [0.5, -hd + 1.6, 0], chest: [-hw + 1.4, -hd + 1.0, 0], wardrobe: [hw - 0.35, -hd + 3.4, -Math.PI / 2],
+    kitchen: [hw - 2.6, -hd + 0.38, 0], fridge: [hw - 5.2, -hd + 0.45, 0], smartfridge: [hw - 6.7, -hd + 0.45, 0], cooler: [hw - 0.45, -hd + 3.0, -Math.PI / 2], desk: [hw - 0.45, -hd + 5.2, -Math.PI / 2],
+    aircon: [0.2, -hd + 0.12, 0], hub: [hw - 0.4, -hd + 6.7, -Math.PI / 2], fan: [-hw + 5.2, -hd + 0.5, 0], airpurifier: [-hw + 6.0, -hd + 0.4, 0], trophy: [-hw + 7.0, -hd + 0.35, 0], trophy2: [-hw + 7.8, -hd + 0.35, 0],
+    table: [hw - 5.0, -hd + 4.2, 0], vase: [hw - 5.0, -hd + 4.2, 0], plant: [hw - 0.5, -hd + 1.4, 0], lanternL: [-2.2, 0.8, 0],
+    sofa: [-4.2, hd - 0.55, Math.PI], tv: [-4.2, hd - 3.4, 0], console: [-1.9, hd - 3.4, 0], rug: [-4.2, hd - 2.0, 0], lamp: [-6.4, hd - 0.45, 0], elephant: [-3.0, hd - 1.3, Math.PI],
+    aquarium: [-hw + 0.35, -3.3, Math.PI / 2], printer3d: [-hw + 0.4, -4.6, Math.PI / 2], bookshelf: [-1.0, hd - 0.25, Math.PI], painting: [-1.0, hd - 0.02, Math.PI], piano: [3.2, hd - 0.6, Math.PI],
+    radio: [2.0, -hd + 0.35, 0], washer: [hw - 3.4, hd - 0.5, Math.PI], bike: [-1.2, 1.0, 0], massagechair: [-1.5, -1.2, 0], calendar: [-2.4, hd, Math.PI],
   };
   const L = this.lay;
   const walls = [[0, -d / 2, 0, w], [0, d / 2, Math.PI, w], [-w / 2, 0, Math.PI / 2, d], [w / 2, 0, -Math.PI / 2, d]];
+  const shell = G_ => {
   for (const [x, z, r, len] of walls) {
-    U.mk(g, new THREE.PlaneGeometry(len, H3), wm, [x, H3 / 2, z], 1, [0, r, 0]);
+    U.mk(G_, new THREE.PlaneGeometry(len, H3), wm, [x, H3 / 2, z], 1, [0, r, 0]);
     const off = 0.01, nx = Math.sin(r) * off, nz = Math.cos(r) * off;
-    U.mk(g, new THREE.PlaneGeometry(len, 0.14), bm, [x + nx, 0.07, z + nz], 1, [0, r, 0]);
+    U.mk(G_, new THREE.PlaneGeometry(len, 0.14), bm, [x + nx, 0.07, z + nz], 1, [0, r, 0]);
   }
   this.inWinMat = new THREE.MeshBasicMaterial({ color: 0xbfe0f5 });
   const frame = mc(0xffffff, { roughness: 0.5 });
   const curtainGeo = gcache('curtain', () => { const cg = new THREE.PlaneGeometry(0.6, 1.85, 10, 1), p = cg.attributes.position; for (let i = 0; i < p.count; i++) p.setZ(i, Math.sin(p.getX(i) * 26) * 0.035); cg.computeVertexNormals(); return cg; });
   const curtainM = gcache('curtainM' + S.decor.wall, () => { const m = U.mat([0xc0504d, 0x2f5d8a, 0x6b8e4e, 0x9a4a7a, 0xd9a02a, 0x5a6470][S.decor.wall] ?? 0xc0504d, { roughness: 0.95 }); return m; });
   // crown molding along the top of each wall
-  for (const [x, z, r, len] of walls) U.mk(g, new THREE.PlaneGeometry(len, 0.12), mc(0xffffff, { roughness: 0.6 }), [x + Math.sin(r) * 0.01, 3.14, z + Math.cos(r) * 0.01], 1, [0, r, 0]);
+  for (const [x, z, r, len] of walls) U.mk(G_, new THREE.PlaneGeometry(len, 0.12), mc(0xffffff, { roughness: 0.6 }), [x + Math.sin(r) * 0.01, 3.14, z + Math.cos(r) * 0.01], 1, [0, r, 0]);
   const winAt = (x, z, r) => {
     const nx = Math.sin(r) * 0.015, nz = Math.cos(r) * 0.015;
-    U.mk(g, new THREE.PlaneGeometry(1.5, 1.35), frame, [x + nx, 1.75, z + nz], 1, [0, r, 0]);
-    U.mk(g, new THREE.PlaneGeometry(1.3, 1.15), this.inWinMat, [x + nx * 2, 1.75, z + nz * 2], 1, [0, r, 0]);
-    U.mk(g, new THREE.PlaneGeometry(0.05, 1.15), frame, [x + nx * 3, 1.75, z + nz * 3], 1, [0, r, 0]);
+    U.mk(G_, new THREE.PlaneGeometry(1.5, 1.35), frame, [x + nx, 1.75, z + nz], 1, [0, r, 0]);
+    U.mk(G_, new THREE.PlaneGeometry(1.3, 1.15), this.inWinMat, [x + nx * 2, 1.75, z + nz * 2], 1, [0, r, 0]);
+    U.mk(G_, new THREE.PlaneGeometry(0.05, 1.15), frame, [x + nx * 3, 1.75, z + nz * 3], 1, [0, r, 0]);
     const tx = Math.cos(r), tz = -Math.sin(r);
-    for (const sd of [-1, 1]) U.mk(g, curtainGeo, curtainM, [x + tx * sd * 0.92 + nx * 5, 1.72, z + tz * sd * 0.92 + nz * 5], 1, [0, r, 0]);
+    for (const sd of [-1, 1]) U.mk(G_, curtainGeo, curtainM, [x + tx * sd * 0.92 + nx * 5, 1.72, z + tz * sd * 0.92 + nz * 5], 1, [0, r, 0]);
     // the rod is solid, so skip it on the front wall the camera looks through
-    if (Math.abs(r - Math.PI) > 0.01) U.mk(g, GEO.cyl, M.darkwood, [x + nx * 7, 2.62, z + nz * 7], [0.025, 2.4, 0.025], [0, r, Math.PI / 2]);
+    if (Math.abs(r - Math.PI) > 0.01) U.mk(G_, GEO.cyl, M.darkwood, [x + nx * 7, 2.62, z + nz * 7], [0.025, 2.4, 0.025], [0, r, Math.PI / 2]);
   };
   winAt(-w / 2, -hd * 0.2, Math.PI / 2); winAt(w / 2, hd * 0.35, -Math.PI / 2); winAt(-hw + 4.6, -d / 2, 0);
   winAt(-w / 4 - 0.6, d / 2, Math.PI); winAt(w / 4 + 0.6, d / 2, Math.PI);
+  };
+  shell(g); shell(g2);
   // exit door
   U.mk(g, new THREE.PlaneGeometry(1.2, 2.3), texMat('woodV', 0x7a3f22), [0, 1.15, d / 2 - 0.012], 1, [0, Math.PI, 0]);
   U.mk(g, GEO.sphLo, mc(0xd8b04a, { metalness: 0.6, roughness: 0.3 }), [-0.42, 1.05, d / 2 - 0.05], 0.05);
   const doormat = mc(0x8a5a3a, { roughness: 1 });
   U.mk(g, GEO.box, doormat, [0, 0.01, d / 2 - 0.6], [1.2, 0.02, 0.7]);
   this.inPois.push({ kind: 'exit', x: IN.x, z: IN.z + d / 2 - 0.5, r: 1.4, label: 'ออกจากบ้าน', icon: '🚪' });
-  const place = (obj, x, z, rot, cw, cd, poi, key) => {
+  const place = (obj, x, z, rot, cw, cd, poi, key, up) => {
     if (key) { const sp = S.decor.pos && S.decor.pos[key]; if (sp) { x = sp.x; z = sp.z; rot = sp.r; } this.furnObjs[key] = { obj }; if (key === moving) { cw = 0; poi = null; } }
-    obj.position.set(x, 0, z); obj.rotation.y = rot; g.add(obj);
-    if (cw) this.inCols.push(Col.box(IN.x + x, IN.z + z, cw, cd, rot));
-    if (poi) { const p = l2w(IN.x + x, IN.z + z, rot, 0, cd + 0.7); this.inPois.push(Object.assign({ x: p.x, z: p.z, r: 1.5 }, poi)); }
+    obj.position.set(x, 0, z); obj.rotation.y = rot; (up ? g2 : g).add(obj);
+    if (cw) { const c1 = Col.box(IN.x + x, IN.z + z, cw, cd, rot); c1.fl = up ? 2 : 1; this.inCols.push(c1); }
+    if (poi) { const p = l2w(IN.x + x, IN.z + z, rot, 0, cd + 0.7); this.inPois.push(Object.assign({ x: p.x, z: p.z, r: 1.5, floor: up ? 2 : 1 }, poi)); }
   };
-  place(this.furn.bed(lvl), L.bed[0], L.bed[1], 0, 1.0, 1.25, { kind: 'bed', label: 'นอนหลับ', icon: '🛏️' }, 'bed');
+  place(this.furn.bed(lvl), L.bed[0], L.bed[1], 0, 1.0, 1.25, { kind: 'bed', label: 'นอนหลับ', icon: '🛏️' }, 'bed', true);
   place(this.furn.kitchen(), L.kitchen[0], L.kitchen[1], 0, 1.6, 0.38, { kind: 'kitchen', label: 'ครัว (ทำอาหาร)', icon: '🍳' }, 'kitchen');
   place(this.furn.fridge(), L.fridge[0], L.fridge[1], 0, 0.45, 0.4, { kind: 'fridge', label: 'ตู้เย็น (ของกิน)', icon: '🧊' }, 'fridge');
   const has = k => S.furn[k] && !S.decor.hide[k];
@@ -1396,7 +1233,7 @@ World.buildInterior = function (lvl, S, moving) {
   if (has('aquarium')) PK('aquarium', this.furn.aquarium(), 0.7, 0.3);
   if (typeof Home !== 'undefined') Home.place(this, has, placeK, w, d);
   // everyday fixtures: wardrobe, storage chest, shower, computer desk, calendar, pet bed
-  place(this.furn.wardrobe(), L.wardrobe[0], L.wardrobe[1], L.wardrobe[2], 0.6, 0.3, { kind: 'wardrobe', label: 'ตู้เสื้อผ้า (แต่งตัว/ตั้งชื่อ)', icon: '👕' }, 'wardrobe');
+  place(this.furn.wardrobe(), L.wardrobe[0], L.wardrobe[1], L.wardrobe[2], 0.6, 0.3, { kind: 'wardrobe', label: 'ตู้เสื้อผ้า (แต่งตัว/ตั้งชื่อ)', icon: '👕' }, 'wardrobe', true);
   place(this.furn.chest(), L.chest[0], L.chest[1], 0, 0.5, 0.28, { kind: 'chest', label: 'หีบเก็บของ', icon: '🧰' }, 'chest');
   place(this.furn.shower(), w / 2 - 0.75, d / 2 - 0.75, Math.PI, 0, 0);
   this.inPois.push({ kind: 'shower', x: IN.x + w / 2 - 0.75, z: IN.z + d / 2 - 0.75, r: 1.2, label: 'อาบน้ำ', icon: '🚿' });
@@ -1408,6 +1245,44 @@ World.buildInterior = function (lvl, S, moving) {
   { const cg = new THREE.Group(); U.mk(cg, GEO.box, mc(0xeceff1, { roughness: 0.4 }), [0, 0.45, 0], [0.36, 0.9, 0.34]); U.mk(cg, GEO.cyl, mc(0x4fc3f7, { roughness: 0.15, transparent: true, opacity: 0.8 }), [0, 1.12, 0], [0.26, 0.42, 0.26]); U.mk(cg, GEO.box, mc(0x1565c0), [0, 0.72, 0.18], [0.1, 0.05, 0.03]);
     place(cg, L.cooler[0], L.cooler[1], L.cooler[2], 0.2, 0.2, { kind: 'act', icon: '🚰', label: 'ดื่มน้ำ (ตู้น้ำดื่ม)', act: () => ({ icon: '🚰', label: 'ดื่มน้ำจากตู้น้ำดื่ม', fn: () => Life2.drink() }) }, 'cooler'); }
   if (S.pet) place(this.furn.petbed(), -hw + 6.4, hd - 0.6, 0);
+  // ===== v232: staircase, upper-floor slab, network rack, backup power cabinet =====
+  {
+    const sw = 1.7, sx0 = -hw + 0.4, sx1 = sx0 + sw, zb = hd - 1.4, zt = zb - 6.6, N = 19, rise = Y2 / N, run = (zb - zt) / N;
+    this.stairs = { x0: IN.x + sx0, x1: IN.x + sx1, z0: IN.z + zt, z1: IN.z + zb, Y: Y2 };
+    const wood = texMat('wood', 0xa07040, { roughness: 0.55 }), conc = texMat('plaster', 0xb9b6ae, { roughness: 0.85 }), blk = mc(0x1d1f22, { roughness: 0.45, metalness: 0.4 });
+    for (let i = 0; i < N; i++) {
+      const top = (i + 1) * rise, zc = zb - (i + 0.5) * run;
+      U.mk(g, U.box(sw, 0.12, run + 0.02, 1), wood, [(sx0 + sx1) / 2, top - 0.06, zc]);
+      U.mk(g, GEO.box, conc, [(sx0 + sx1) / 2, top / 2 - 0.06, zc], [sw, top - 0.12, run + 0.02]);
+    }
+    // handrail on the open side (blocks both floors) and posts
+    for (let i = 0; i <= 6; i++) { const t = i / 6, z = zb - t * (zb - zt), y = t * Y2; U.mk(g, GEO.cylLo, blk, [sx1 + 0.04, y + 0.5, z], [0.03, 1.0, 0.03]); }
+    { const len = Math.hypot(zb - zt, Y2); const rail = U.mk(g, GEO.box, blk, [sx1 + 0.04, Y2 / 2 + 1.0, (zb + zt) / 2], [0.05, 0.05, len]); rail.rotation.x = Math.atan2(Y2, zb - zt); }
+    const rc = (x, z, hw2, hd2, fl) => { const c = Col.box(IN.x + x, IN.z + z, hw2, hd2); if (fl) c.fl = fl; this.inCols.push(c); };
+    rc(sx1 + 0.05, (zb + zt) / 2, 0.06, (zb - zt) / 2);            // open side rail (both floors)
+    rc(sx0 - 0.02, (zb + zt) / 2, 0.04, (zb - zt) / 2, 2);          // outer edge of the stairwell for the upper floor
+    rc((sx0 + sx1) / 2, zt - 0.1, sw / 2 + 0.05, 0.1, 1);           // the top of the stairs is closed from the lower floor
+    rc((sx0 + sx1) / 2, zb + 0.1, sw / 2 + 0.05, 0.1, 2);           // the bottom of the stairs is closed from the upper floor
+    // the upper slab: a floor with a hole for the stairs
+    const fl2 = FLOORS[S.decor.floor] || FLOORS[0], slab = (xa, xb, za, zc) => { if (xb - xa < 0.01 || zc - za < 0.01) return; U.mk(g2, U.box(xb - xa, 0.3, zc - za, 1), texMat(fl2.t === 'wood' ? 'wood' : 'paving', fl2.c, { roughness: 0.5 }), [(xa + xb) / 2, -0.15, (za + zc) / 2]); };
+    slab(-hw, sx0, -hd, hd); slab(sx1, hw, -hd, hd); slab(sx0, sx1, -hd, zt); slab(sx0, sx1, zb, hd);
+    // upper floor: a rug under the bed
+    U.mk(g2, GEO.box, mc(0x8a8f96, { roughness: 1 }), [L.bed[0], 0.012, L.bed[1] + 0.4], [4.4, 0.02, 3.8]);
+    // ----- floor 1: network room corner (rack + switch + patch panel + camera wall monitor) beside the computer desk -----
+    const rk = new THREE.Group(), rkx = hw - 0.55, rkz = -hd + 8.8;
+    U.mk(rk, GEO.box, blk, [0, 1.0, 0], [0.62, 2.0, 0.75]);
+    for (let i = 0; i < 7; i++) { U.mk(rk, GEO.box, mc(i % 3 === 0 ? 0x2c3a47 : 0x3b4650, { roughness: 0.4 }), [0.0, 0.28 + i * 0.25, 0.38], [0.52, 0.18, 0.02]); for (let j = 0; j < 6; j++) U.mk(rk, GEO.box, mc(j % 2 ? 0x39ff6a : 0xffb300, { emissive: 0x112211 }), [-0.2 + j * 0.08, 0.28 + i * 0.25, 0.395], [0.025, 0.025, 0.01]); }
+    rk.position.set(rkx, 0, rkz); rk.rotation.y = -Math.PI / 2; g.add(rk); rc(rkx, rkz, 0.4, 0.34, 1);
+    this.inPois.push({ kind: 'act', x: IN.x + rkx - 1.1, z: IN.z + rkz, r: 1.5, floor: 1, label: 'ห้องระบบ: แรค สวิตช์ กล้องวงจรปิด', icon: '🖧', act: () => ({ icon: '🖧', label: 'จัดการเครือข่าย กล้อง และอุปกรณ์ (แรค · สวิตช์ · NVR)', fn: () => { try { Sec.ui('home'); } catch (e) { UI.toast('เปิดแอปเครือข่ายในมือถือแทนได้', '🖧'); } } }) });
+    const mon = new THREE.Group(); U.mk(mon, GEO.box, blk, [0, 0, 0], [1.7, 0.95, 0.06]);
+    const msc = U.mat(0x0b1320, { emissive: 0x2a6ab0, roughness: 0.2 }); msc.emissiveIntensity = 0.7; U.mk(mon, GEO.box, msc, [0, 0, 0.035], [1.62, 0.87, 0.01]);
+    for (let i = 0; i < 4; i++) U.mk(mon, GEO.box, mc([0x33475a, 0x3a5a46, 0x4a4a62, 0x5a4a3a][i], { emissive: 0x112233 }), [-0.4 + (i % 2) * 0.8, 0.22 - ((i / 2) | 0) * 0.43, 0.042], [0.76, 0.38, 0.005]);
+    mon.position.set(hw - 0.05, 1.7, rkz - 1.3); mon.rotation.y = -Math.PI / 2; g.add(mon);
+    // ----- floor 1: built-in backup power cabinet (hybrid inverter + battery), always part of the house -----
+    const bp = new THREE.Group(); U.mk(bp, GEO.box, mc(0xeceff1, { roughness: 0.35 }), [0, 0.8, 0], [0.9, 1.6, 0.32]); U.mk(bp, GEO.box, mc(0x1565c0, { emissive: 0x0b2a60 }), [0, 1.25, 0.17], [0.5, 0.18, 0.01]); U.mk(bp, GEO.box, mc(0x39ff6a, { emissive: 0x1a7a30 }), [0.3, 1.25, 0.17], [0.05, 0.05, 0.01]);
+    const bpx = hw - 0.3, bpz = -hd + 10.4; bp.position.set(bpx, 0, bpz); bp.rotation.y = -Math.PI / 2; g.add(bp); rc(bpx, bpz, 0.2, 0.45, 1);
+    this.inPois.push({ kind: 'act', x: IN.x + bpx - 1.0, z: IN.z + bpz, r: 1.4, floor: 1, label: 'ตู้ไฟสำรองในตัว (แบตเตอรี่ + อินเวอร์เตอร์)', icon: '🔋', act: () => ({ icon: '🔋', label: 'ดูไฟสำรองและโซลาร์', fn: () => { try { Phone.open('grid'); } catch (e) { UI.toast('ไฟสำรองในตัว: แบตเตอรี่ 10 kWh', '🔋'); } } }) });
+  }
   this.inLight = new THREE.PointLight(0xffe6c0, 1.1, 30, 1.6); this.inLight.position.set(0, 2.9, 0); g.add(this.inLight);
   // wall clock
   { const cx = -w / 2 + 2.6, cz = -d / 2 + 0.03;
@@ -1417,22 +1292,24 @@ World.buildInterior = function (lvl, S, moving) {
     this.clockH.geometry = gcache('handGeo', () => new THREE.BoxGeometry(1, 1, 1).translate(0, 0.5, 0)); this.clockM.geometry = this.clockH.geometry; }
   // tiled backsplash behind the kitchen counter
   { const tt = T.tile.clone(); tt.needsUpdate = true; tt.repeat.set(6, 2);
-    U.mk(g, new THREE.PlaneGeometry(3.2, 0.85), U.mat(0xcfe3ee, { map: tt, roughness: 0.25 }), [w / 2 - 1.75, 1.38, -d / 2 + 0.012]); }
+    U.mk(g, new THREE.PlaneGeometry(3.2, 0.85), U.mat(0xcfe3ee, { map: tt, roughness: 0.25 }), [L.kitchen[0], 1.38, -d / 2 + 0.012]); }
   // nightstand with a glowing table lamp
-  { const nx = -w / 2 + 2.55, nz = -d / 2 + 0.4;
-    U.mk(g, U.box(0.6, 0.6, 0.5, 1), texMat('wood', 0x8a5a3a, { roughness: 0.6 }), [nx, 0.3, nz]);
-    U.mk(g, lathe('tlamp', [[0, 0], [0.1, 0], [0.06, 0.05], [0.04, 0.3], [0, 0.3]], 14), mc(0xc9a050, { metalness: 0.4, roughness: 0.4 }), [nx, 0.6, nz]);
-    U.mk(g, gcache('tshade', () => new THREE.CylinderGeometry(0.1, 0.18, 0.22, 16, 1, true)), M.bulb, [nx, 1.0, nz]);
-    this.inLamp = new THREE.PointLight(0xffc27a, 0, 7, 2); this.inLamp.position.set(nx, 1.05, nz + 0.2); g.add(this.inLamp);
+  { const nx = L.bed[0] + 1.3, nz = L.bed[1] - 0.95;
+    U.mk(g2, U.box(0.6, 0.6, 0.5, 1), texMat('wood', 0x8a5a3a, { roughness: 0.6 }), [nx, 0.3, nz]);
+    U.mk(g2, lathe('tlamp', [[0, 0], [0.1, 0], [0.06, 0.05], [0.04, 0.3], [0, 0.3]], 14), mc(0xc9a050, { metalness: 0.4, roughness: 0.4 }), [nx, 0.6, nz]);
+    U.mk(g2, gcache('tshade', () => new THREE.CylinderGeometry(0.1, 0.18, 0.22, 16, 1, true)), M.bulb, [nx, 1.0, nz]);
+    this.inLamp = new THREE.PointLight(0xffc27a, 0, 7, 2); this.inLamp.position.set(nx, 1.05, nz + 0.2); g2.add(this.inLamp);
     this.inGlow = new THREE.Sprite(new THREE.SpriteMaterial({ map: T.glow, color: 0xffd08a, transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending }));
-    this.inGlow.position.set(nx, 1.0, nz); this.inGlow.scale.setScalar(1.6); g.add(this.inGlow);
-    this.inCols.push(Col.box(IN.x + nx, IN.z + nz, 0.3, 0.25)); }
+    this.inGlow.position.set(nx, 1.0, nz); this.inGlow.scale.setScalar(1.6); g2.add(this.inGlow);
+    { const c2 = Col.box(IN.x + nx, IN.z + nz, 0.3, 0.25); c2.fl = 2; this.inCols.push(c2); } }
   // potted plant beside the door
   { const px = -1.15, pz = d / 2 - 0.45;
     U.mk(g, lathe('pot2', [[0, 0], [0.18, 0], [0.24, 0.42], [0.2, 0.42]], 16), mc(0xc0663a, { roughness: 0.8 }), [px, 0, pz]);
     const lm = mc(0x3f8a3a, { roughness: 0.7 }), pg = new THREE.Group(); pg.position.set(px, 0, pz); g.add(pg);
     for (let i = 0; i < 9; i++) leafAt(pg, lm, i * 0.7, 0.6 + (i % 3) * 0.25, 0.7, 0.13, 0.4);
     this.inCols.push(Col.circle(IN.x + px, IN.z + pz, 0.25)); }
+  for (const c of this.inCols) if (c && c.fl === undefined) c.fl = 1;
+  for (const p of this.inPois) if (p.floor === undefined) p.floor = 1;
   this.interior = g; g.visible = false; this.scene.add(g);
 };
 // Wall calendar: season, day grid, today's weather and open orders
@@ -1679,7 +1556,7 @@ World.buildMapImage = function () {
     g.lineCap = 'round'; g.lineJoin = 'round';
     for (const rc of this.roadCurves) { g.strokeStyle = '#5b5b5b'; g.lineWidth = 5; g.beginPath(); rc.sp.forEach((p, i) => i ? g.lineTo(tx(p.x), tz(p.z)) : g.moveTo(tx(p.x), tz(p.z))); g.stroke(); g.strokeStyle = '#d9d3c4'; g.lineWidth = 1; g.stroke(); }
     g.strokeStyle = '#8a6a3f'; g.lineWidth = 3; g.strokeRect(tx(-72), tz(-58), 144 / 2, 120 / 2);
-    g.fillStyle = '#7a5434'; for (let i = 0; i < 30; i++) { const p = plotCenter(i); g.fillRect(tx(p.x) - 0.6, tz(p.z) - 0.6, 1.2, 1.2); }
+    // v231: no plots on the map
     g.fillStyle = '#4a9ab8'; g.beginPath(); g.arc(tx(30), tz(20), 3, 0, TAU); g.fill();
     g.fillStyle = '#a5523d';
     for (const k of Col.map.values()) for (const s of k) if (s.tag === 'bld' && !s._drawn) {

@@ -454,7 +454,7 @@ V23.add('v37_move', () => {
     const s = st();
     if (t === 6) return `<p class="lead">งานช่างที่ค้างอยู่ ${s.pend.length} งาน</p>${s.pend.length ? `<div class="grid">${s.pend.map(p => { const r = recOf(p.key); return `<div class="card"><div class="ci">👷</div><div class="cb"><h4>${esc(r ? r.n : p.key)}</h4><p class="dim">ไป ${esc(labelOf(p.to))} · เสร็จ${RD(p.done)} (อีก ${Math.max(0, p.done - S.day)} วัน) · จ่ายแล้ว ${baht(p.cost)}</p></div></div>`; }).join('')}</div>` : '<p class="empty">ไม่มีงานย้ายค้าง</p>'}<h5>ประวัติการย้าย</h5>${s.log.length ? `<ul class="lead">${s.log.map(l => `<li>${RD(l.d)} · ${esc(l.t)}</li>`).join('')}</ul>` : '<p class="dim">ยังไม่เคยย้าย</p>'}`;
     const L = list().filter(r => filt(r, t));
-    return `<p class="lead">เลือกอุปกรณ์ → "ย้าย" แล้วเดินไปยังจุดที่ต้องการ (วางกลางแจ้งได้ทุกจุดในฟาร์ม หรือในบ้านทุกชั้น) · สายที่ไม่ถึงจ้างช่างเดินเพิ่มได้ · สายสต็อก LAN ${S.sec.cable} จุด / อนาล็อก ${S.sec.coax} จุด</p>${L.length ? `<div class="grid">${L.map(cardHtml).join('')}</div>` : '<p class="empty">ไม่มีอุปกรณ์ในหมวดนี้</p>'}`;
+    return `<p class="lead">เลือกอุปกรณ์ → "ย้าย" แล้วเดินไปยังจุดที่ต้องการ (วางกลางแจ้งได้ทุกจุดรอบบ้าน หรือในบ้านทุกชั้น) · สายที่ไม่ถึงจ้างช่างเดินเพิ่มได้ · สายสต็อก LAN ${S.sec.cable} จุด / อนาล็อก ${S.sec.coax} จุด</p>${L.length ? `<div class="grid">${L.map(cardHtml).join('')}</div>` : '<p class="empty">ไม่มีอุปกรณ์ในหมวดนี้</p>'}`;
   }
   function openApp(tab, filter) { const s = st(); s.ui.tab = tab || 0; UI.open('📍 ย้ายอุปกรณ์ไอที & กล้อง', TABS, t => render(t), { wide: true, tab: tab || 0 }); }
   Object.assign(UI.H, {

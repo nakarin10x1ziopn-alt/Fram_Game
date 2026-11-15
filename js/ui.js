@@ -126,11 +126,11 @@ const UI = {
       : `<button data-a="lk" data-f="${f}" data-v="${i}" class="txt ${S.look[f] === i ? 'on' : ''}">${v[1]}</button>`).join('')}</div>`;
     this.open(first ? 'สร้างตัวละครของคุณ' : 'แต่งตัวละคร', null, () => `
       <label class="field">ชื่อของคุณ<input id="nmName" maxlength="16" placeholder="เช่น สมใจ" value="${esc(S.name || '')}"></label>
-      <label class="field">ชื่อฟาร์ม (แสดงที่ป้ายหน้าฟาร์ม)<input id="nmFarm" maxlength="18" value="${esc(S.farm || 'ไร่สุขใจ')}"></label>
-      <h5>ตัวละคร</h5><div class="sw small">${[['', 'ชาวไร่ (แต่งเอง)']].concat(Object.keys(TOONS).filter(k => !(window.CHAR_PICS || []).includes(k)).map(k => ['toon:' + k, '✨ ' + TOONS[k].n])).concat(AV_NAMES.includes(S.look.avatar) ? [[S.look.avatar, AV_LABEL[S.look.avatar] || S.look.avatar]] : []).map(([v, t]) => `<button data-a="lkav" data-v="${v}" class="txt ${(S.look.avatar || '') === v ? 'on' : ''}">${t}</button>`).join('')}</div>${window.CHAR_PICS ? `<div class="charcards">${window.CHAR_PICS.map(k => window.charCardHtml('toon:' + k, TOONS[k].n, S.look.avatar === 'toon:' + k)).join('')}</div>` : ''}
+      <label class="field">ชื่อบ้าน (แสดงที่ป้ายหน้าบ้าน)<input id="nmFarm" maxlength="18" value="${esc(S.farm || 'บ้านสุขใจ')}"></label>
+      <h5>ตัวละคร</h5><div class="sw small">${[['', 'ตัวละครแต่งเอง']].concat(Object.keys(TOONS).filter(k => !(window.CHAR_PICS || []).includes(k)).map(k => ['toon:' + k, '✨ ' + TOONS[k].n])).concat(AV_NAMES.includes(S.look.avatar) ? [[S.look.avatar, AV_LABEL[S.look.avatar] || S.look.avatar]] : []).map(([v, t]) => `<button data-a="lkav" data-v="${v}" class="txt ${(S.look.avatar || '') === v ? 'on' : ''}">${t}</button>`).join('')}</div>${window.CHAR_PICS ? `<div class="charcards">${window.CHAR_PICS.map(k => window.charCardHtml('toon:' + k, TOONS[k].n, S.look.avatar === 'toon:' + k)).join('')}</div>` : ''}
       ${S.look.avatar ? '<p class="lead">ตัวละครสำเร็จรูปเปลี่ยนสีเสื้อผ้าไม่ได้ เลือก "ชาวไร่ (แต่งเอง)" ถ้าอยากแต่งเอง</p>' : `<h5>สีผิว</h5>${sw('skin', LOOK.skin)}`}${S.look.avatar ? '' : `<h5>สีผม</h5>${sw('hair', LOOK.hair)}<h5>ทรงผม</h5>${sw('style', LOOK.style)}`}
       ${S.look.avatar ? '' : `<h5>เสื้อ</h5>${sw('shirt', LOOK.shirt)}<h5>กางเกง</h5>${sw('pants', LOOK.pants)}<h5>ชุด</h5>${sw('ov', LOOK.ov)}<h5>หมวก</h5>${sw('hat', LOOK.hat)}`}
-      <div class="row end"><button class="btn big" data-a="lookdone">${first ? 'เริ่มทำฟาร์ม!' : 'เสร็จแล้ว'}</button></div>`);
+      <div class="row end"><button class="btn big" data-a="lookdone">${first ? 'เริ่มเล่น!' : 'เสร็จแล้ว'}</button></div>`);
     $('modal').classList.add('side');
     this.cur.onClose = () => { G.lookCam = false; saveGame(true); if (first && !S.tips.welcome) { S.tips.welcome = 1; setTimeout(() => UI.help(), 300); } };
   },
@@ -264,11 +264,7 @@ const UI = {
   },
   hotbar() {
     if (!S) return;
-    const sl = [{ id: 'hand', i: '✋', n: 'มือเปล่า' }, { id: 'can', i: '🚿', n: 'บัวรดน้ำ', c: S.can.water }];
-    if (S.up.rod) sl.push({ id: 'rod', i: '🎣', n: 'คันเบ็ด' });
-    const seeds = Object.keys(S.inv).filter(k => k.startsWith('seed_') && S.inv[k] > 0).sort((a, b) => CROPS[a.slice(5)].seed - CROPS[b.slice(5)].seed);
-    for (const id of seeds) sl.push({ id, i: ITEMS[id].i, n: ITEMS[id].n, c: S.inv[id], seed: true });
-    for (const id of ['fert', 'compost', 'sprinkler', 'sprinkler_pro']) if (S.inv[id]) sl.push({ id, i: ITEMS[id].i, n: ITEMS[id].n, c: S.inv[id] });
+    const sl = [{ id: 'hand', i: '✋', n: 'มือเปล่า' }];   // v231: no watering can, rod, seeds, fertiliser or sprinklers any more
     if (!sl.some(s => s.id === G.sel)) G.sel = 'hand';
     this.slots = sl;
     $('hotbar').innerHTML = sl.map((s, k) => `<button class="slot ${s.id === G.sel ? 'on' : ''} ${s.seed ? 'seed' : ''}" data-k="${k}" title="${esc(s.n)}"><span class="si">${s.i}</span>${s.c != null ? `<b>${s.c}</b>` : ''}${k < 9 ? `<i>${k + 1}</i>` : ''}</button>`).join('');
@@ -295,7 +291,7 @@ const UI = {
   },
   bigMap() {
     this.open('แผนที่', null, () => `<div class="mapwrap"><canvas id="bigmap"></canvas></div>
-      <div class="legend"><span>🏡 บ้าน</span><span>📦 กล่องส่งขาย</span><span>🌱 ร้านเกษตร</span><span>🐄 ปศุสัตว์</span><span>🔨 ช่างไม้</span><span>🚗 โชว์รูม</span><span>💰 ตลาดรับซื้อ +50%</span><span>🌴 พันธุ์ไม้หายาก</span></div>`, { wide: true });
+      <div class="legend"><span>🏡 บ้าน</span><span>📦 กล่องส่งขาย</span><span>🔧 ร้านวัสดุ</span><span>🐾 ร้านสัตว์เลี้ยง</span><span>🔨 ช่างไม้</span><span>🚗 โชว์รูม</span><span>💰 ตลาดรับซื้อ +50%</span><span>🪴 ต้นไม้ประดับ</span></div>`, { wide: true });
     this.cur.after = () => {
       const cv = $('bigmap'), img = World.mapImg; const w = cv.parentElement.clientWidth, h = Math.round(w * img.height / img.width);
       cv.width = w * 2; cv.height = h * 2; cv.style.height = h + 'px';
@@ -412,7 +408,7 @@ const UI = {
     look() { UI.look(false); },
     lkav(d) { S.look = S.look || Object.assign({}, DEFAULT_LOOK); S.look.avatar = d.v || null; rebuildPlayer(); Sfx.click(); },
     lk(d) { S.look = S.look || Object.assign({}, DEFAULT_LOOK); S.look[d.f] = +d.v; rebuildPlayer(); Sfx.click(); },
-    lookdone() { S.name = S.name.trim().slice(0, 16); S.farm = (S.farm || '').trim().slice(0, 18) || 'ไร่สุขใจ'; World.setFarmName(S.farm); UI.close(); },
+    lookdone() { S.name = S.name.trim().slice(0, 16); S.farm = (S.farm || '').trim().slice(0, 18) || 'บ้านสุขใจ'; World.setFarmName(S.farm); UI.close(); },
     auto() { Perf.auto = !Perf.auto; safeSet(Q_KEY + '_auto', Perf.auto ? '1' : '0'); },
     reload() { saveGame(true); Net.flush(() => location.reload()); },
     help() { UI.help(); },
@@ -423,7 +419,7 @@ const UI = {
     this.sellMult = mult;
     this.open(title, null, () => {
       const ids = this.sellables();
-      if (!ids.length) return `<p class="empty">ยังไม่มีของให้ขาย ลองเก็บเกี่ยวผัก เก็บไข่ หรือทำอาหารก่อนนะ</p>`;
+      if (!ids.length) return `<p class="empty">ยังไม่มีของให้ขาย ลองทำอาหารหรือซื้อของมาก่อนนะ</p>`;
       const tot = ids.reduce((s, id) => s + priceOf(id, mult) * count(id), 0);
       const hot = hotCrops().map(k => `${CROPS[k].i} ${CROPS[k].n} ${priceOf(k, mult)}฿`).join(' · ');
       return `${mult > 1 ? '<p class="lead good">ตลาดนี้รับซื้อแพงกว่าปกติ 50%</p>' : ''}<p class="lead">📈 ราคาดีวันนี้: ${hot} · ราคาเปลี่ยนทุกวัน ผักนอกฤดูขายได้แพงกว่า</p>
@@ -487,22 +483,19 @@ const UI = {
       <button class="btn ghost" data-a="bloom">${safeGet('raisukjai3d_bloom') === '0' ? '⬜' : '✅'} เอฟเฟกต์แสงฟุ้งและลบรอยหยัก (กราฟิกสูง/อัลตร้า)</button>
       <button class="btn ghost" data-a="auto">${Perf.auto ? '✅' : '⬜'} ปรับกราฟิกอัตโนมัติเมื่อเครื่องเริ่มกระตุก</button>
       <p class="lead">ความลื่นตอนนี้ ${G.fps ? Math.round(G.fps) + ' FPS' : 'กำลังวัด...'} · ความคมชัด ${Math.round(G.pr * 100)}% · เงา ${G.shadow ? 'เปิด' : 'ปิด'} · ระยะมอง ${Math.round(G.view * 100)}%</p>
-      <h5>สถิติฟาร์ม</h5><p class="lead">เก็บเกี่ยว ${U.fmt(S.stats.harvest)} ชิ้น · ขายแล้ว ${U.fmt(S.stats.sold)} ชิ้น · รายได้รวม ${baht(S.stats.earned)} · สัตว์ ${S.animals.length} ตัว · รถ ${S.cars.length} คัน</p>
+      <h5>สถิติ</h5><p class="lead">ขายแล้ว ${U.fmt(S.stats.sold)} ชิ้น · ทำอาหาร ${U.fmt(S.stats.cooked || 0)} มื้อ</p>
       <button class="btn danger" data-a="newgame">เริ่มเกมใหม่</button></div>`);
   },
   help() {
     const t = G.Q.touch;
-    this.open('วิธีเล่นไร่สุขใจ', null, () => `<div class="help">
+    this.open('วิธีเล่นสุขใจ ไลฟ์', null, () => `<div class="help">
       <div class="hc"><h5>${t ? '📱 ควบคุมบนมือถือ/แท็บเล็ต' : '⌨️ ควบคุมบนคอม'}</h5><ul>${t ? `
         <li>แตะค้างด้านซ้ายของจอแล้วลาก = จอยเดิน (ดันสุด = วิ่ง)</li><li>ลากนิ้วด้านขวา = หมุนกล้อง · ถ่างสองนิ้ว = ซูม</li><li>ปุ่มกลมใหญ่ขวาล่าง = ทำสิ่งที่แสดง (ปลูก รดน้ำ เก็บ ฯลฯ)</li>` : `
         <li><kbd>W A S D</kbd> เดิน · <kbd>Shift</kbd> วิ่ง</li><li>ลากเมาส์ = หมุนกล้อง · ล้อเมาส์ = ซูม</li><li><kbd>E</kbd> หรือ <kbd>Space</kbd> = ทำสิ่งที่แสดง · <kbd>F</kbd> ขึ้น/ลงรถ</li><li><kbd>1-9</kbd> เลือกของ · <kbd>I</kbd> กระเป๋า · <kbd>M</kbd> แผนที่</li>`}</ul></div>
-      <div class="hc"><h5>🌱 ปลูกผัก</h5><ul><li>เดินไปที่แปลงดิน เกมจะเลือกให้เองว่าจะปลูก รดน้ำ หรือเก็บเกี่ยว</li><li>ผักโตเฉพาะตอนดินชื้น (สีเข้ม) ไอคอน 💧 = ต้องรดน้ำ</li><li>บัวรดน้ำหมด เติมได้ที่บ่อน้ำ · ฝนตกช่วยรดให้ฟรี</li><li>ซื้อสปริงเกอร์ วางระหว่างแปลง รดน้ำเองทุกเช้าและบ่าย</li></ul></div>
-      <div class="hc"><h5>🐔 เลี้ยงสัตว์</h5><ul><li>ซื้อสัตว์ที่ฟาร์มปศุสัตว์ในหมู่บ้าน</li><li>เติมอาหารในรางทุกวัน สัตว์จะให้ไข่ นม ขนแกะทุกเช้า</li><li>ลูบหัวทุกวัน ถ้าความสุขถึง 80% ได้ผลผลิต 2 เท่า</li></ul></div>
-      <div class="hc"><h5>⭐ ระดับและคุณภาพ</h5><ul><li>ทำงานในฟาร์มได้ค่าประสบการณ์ ระดับสูงขึ้นได้พลังงานเพิ่มและปลดล็อกเมล็ดพันธุ์ใหม่</li><li>ผักที่รดน้ำสม่ำเสมอ ใส่ปุ๋ย และดินดี มีโอกาสได้คุณภาพ ★ (+25%) หรือ ★★ (+50%)</li></ul></div>
+      <div class="hc"><h5>⭐ ระดับ</h5><ul><li>ทำงาน ทำภารกิจ และทำอาหารได้ค่าประสบการณ์ ระดับสูงขึ้นปลดล็อกร้านและบริการใหม่</li><li>ดูเป้าหมายต่อไปที่มุมซ้ายบน แตะเพื่อดูรางวัล</li></ul></div>
       <div class="hc"><h5>📋 ออเดอร์และเพื่อนบ้าน</h5><ul><li>กระดานที่ลานน้ำพุมีออเดอร์ใหม่ทุกเช้า ส่งครบได้เงินและความสนิท</li><li>คุยกับชาวบ้านทุกวันและให้ของขวัญ ครบ 3/6/10 หัวใจจะได้ของตอบแทน</li><li>สนิทกับคนขายของ 5 หัวใจได้ส่วนลด 10%</li></ul></div>
-      <div class="hc"><h5>🏠 ในบ้าน</h5><ul><li>ตู้เสื้อผ้า: แต่งตัวและตั้งชื่อ · หีบ: เก็บของ · ฝักบัว: +30 พลังงานวันละครั้ง</li><li>คอมพิวเตอร์: ช้อปออนไลน์ ของมาส่งพรุ่งนี้เช้า · ปฏิทิน: ดูฤดูและพยากรณ์</li><li>รับสุนัขหรือแมวได้ที่ฟาร์มปศุสัตว์ มันจะเดินตามคุณ</li></ul></div>
-      <div class="hc"><h5>🎣 ตกปลา</h5><ul><li>ซื้อคันเบ็ดที่ร้านเกษตร แล้วไปที่บ่อในฟาร์ม (ถือคันเบ็ด) หรือท่าเรือริมทะเล</li><li>เมื่อทุ่นจมและมี ❗ ให้แตะทันที</li><li>กดค้างให้แถบสีเขียวเลื่อนขวา ปล่อยให้เลื่อนซ้าย คุมให้ปลาอยู่ในแถบจนหลอดเต็ม</li><li>กลางคืนมีโอกาสเจอปลาหายาก</li></ul></div>
-      <div class="hc"><h5>💰 ขาย กิน และแต่งบ้าน</h5><ul><li>ส่งขายที่กล่องหน้าบ้าน หรือขับรถไปตลาดริมทะเล ได้ราคา +50%</li><li>กินของในกระเป๋าเพื่อเพิ่มพลังงาน ทำอาหารที่ครัวในบ้าน</li><li>นอนบนเตียงเพื่อข้ามไปเช้าวันใหม่ ถ้าไม่นอนจนตี 2 จะเผลอหลับ</li><li>ร้านช่างไม้: อัปเกรดบ้าน แปลงผัก ดิน คอกสัตว์ และซื้อเฟอร์นิเจอร์</li></ul></div>
-      </div><div class="row end"><button class="btn big" data-a="close">เข้าใจแล้ว ไปทำฟาร์มกัน!</button></div>`, { wide: true });
+      <div class="hc"><h5>🏠 ในบ้าน</h5><ul><li>ตู้เสื้อผ้า: แต่งตัวและตั้งชื่อ · หีบ: เก็บของ · ฝักบัว: +30 พลังงานวันละครั้ง</li><li>คอมพิวเตอร์: ช้อปออนไลน์ ของมาส่งพรุ่งนี้เช้า · ปฏิทิน: ดูฤดูและพยากรณ์</li><li>รับสุนัขหรือแมวได้ที่ร้านสัตว์เลี้ยง มันจะเดินตามคุณ</li></ul></div>
+      <div class="hc"><h5>💰 ขาย กิน และแต่งบ้าน</h5><ul><li>ส่งขายที่กล่องหน้าบ้านได้</li><li>กินของในกระเป๋าเพื่อเพิ่มพลังงาน ทำอาหารที่ครัวในบ้าน</li><li>นอนบนเตียงเพื่อข้ามไปเช้าวันใหม่ ถ้าไม่นอนจนตี 2 จะเผลอหลับ</li><li>ร้านช่างไม้: อัปเกรดบ้าน แปลงผัก ดิน คอกสัตว์ และซื้อเฟอร์นิเจอร์</li></ul></div>
+      </div><div class="row end"><button class="btn big" data-a="close">เข้าใจแล้ว ไปเล่นกัน!</button></div>`, { wide: true });
   },
 };

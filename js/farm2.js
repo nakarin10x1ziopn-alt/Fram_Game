@@ -37,45 +37,12 @@ const Farm2 = {
     return f;
   },
   init(scene) {
+    // v231: the farm is gone: no rice paddy, greenhouses, flower beds, compost bin, fish-farm sign, processing factory or market stall are built
     this.scene = scene; this.st();
-    { const f = this.st(); if (f.ghx.some(h => h.un)) { for (const h of f.ghx) if (h.un) { if (window.Refund181) Refund181.give(h.paid || 0, 'คืนเงินเรือนกระจกที่ยังไม่ได้วาง'); else S.money += h.paid || 0; } f.ghx = f.ghx.filter(h => !h.un); } }   // a greenhouse that was bought but never placed (page closed) is refunded
     const g = new THREE.Group(); World.outdoor.add(g); this.g = g;
-    const mud = mc(0x5d4632, { roughness: 1 }), dike = texMat('dirt', 0x9c7b56), water = new THREE.MeshStandardMaterial({ color: 0x3f5f4a, roughness: 0.12, metalness: 0.2, transparent: true, opacity: 0.6 });
-    // rice paddy: four flooded cells with earthen dikes
-    this.paddyObj = [0, 1, 2, 3].map(i => {
-      const x = PADDY.x - 3.6 + (i % 2) * 7.2, z = PADDY.z - 3.6 + ((i / 2) | 0) * 7.2, c = new THREE.Group(); c.position.set(x, 0, z); g.add(c);
-      U.mk(c, GEO.box, mud, [0, 0.02, 0], [6.4, 0.04, 6.4]);
-      for (const [a, b, w, d] of [[0, -3.4, 7.2, 0.6], [0, 3.4, 7.2, 0.6], [-3.4, 0, 0.6, 7.2], [3.4, 0, 0.6, 7.2]]) U.mk(c, U.box(w, 0.3, d, 2), dike, [a, 0.15, b]);
-      const wt = U.mk(c, GEO.box, water, [0, 0.07, 0], [6.3, 0.02, 6.3]);
-      const blades = new THREE.Group(); blades.userData.noCol = true; c.add(blades);
-      const bm = mc(0x7cb342, { roughness: 0.9 });
-      for (let k = 0; k < 36; k++) U.mk(blades, GEO.cone, bm, [-2.6 + (k % 6) * 1.04, 0.3, -2.6 + ((k / 6) | 0) * 1.04], [0.07, 0.6, 0.07]);
-      World.pois.push({ kind: 'act', x, z, r: 3.3, label: 'แปลงนา ' + (i + 1), icon: '🌾', act: () => this.paddyAct(i) });
-      return { c, wt, blades, bm };
-    });
-    World.clearNear(PADDY.x, PADDY.z, 9, true);
-    // greenhouses: the first is here from the start, up to 5 more can be bought, and every one can be moved (see v67_nursery.js)
-    this.ghObjs = []; for (let i = 0; i < this.ghHouses().length; i++) this.buildGH(i);
-    // flower garden beside the greenhouse
-    this.flPlants = [];
-    for (let i = 0; i < 6; i++) { const x = FLOWER.x - 2 + (i % 3) * 2, z = FLOWER.z - 1 + ((i / 3) | 0) * 2.2; U.mk(g, U.box(1.6, 0.25, 1.6, 2), texMat('soil', 0x5d4037), [x, 0.12, z]); const p = new THREE.Group(); p.position.set(x, 0.25, z); g.add(p); this.flPlants.push(p);
-      World.pois.push({ kind: 'act', x, z: z + 1.0, r: 1.1, label: 'สวนดอกไม้', icon: '🌹', act: () => this.slotAct('fl', i) }); }
-    // compost bin, fish farm sign, factory, market stall
-    { const b = new THREE.Group(); b.position.set(COMPOST.x, 0, COMPOST.z); g.add(b); for (let i = 0; i < 4; i++) { const a = i / 4 * TAU; U.mk(b, U.box(1.4, 0.9, 0.08, 1.2), M.wood, [Math.cos(a) * 0.7, 0.45, Math.sin(a) * 0.7], 1, [0, a + Math.PI / 2, 0]); } U.mk(b, GEO.box, mc(0x4e342e, { roughness: 1 }), [0, 0.6, 0], [1.3, 0.2, 1.3]); Col.circle(COMPOST.x, COMPOST.z, 0.9);
-      World.pois.push({ kind: 'act', x: COMPOST.x - 1.6, z: COMPOST.z, r: 1.6, label: 'ถังปุ๋ยหมัก', icon: '🟫', act: () => ({ icon: '🟫', label: 'ถังปุ๋ยหมัก', fn: () => this.compostUI() }) }); }
-    World.pois.push({ kind: 'act', x: 8, z: -22.8, r: 1.2, label: 'ดื่มน้ำบ่อ', icon: '🚰', act: () => ({ icon: '🚰', label: 'ดื่มน้ำจากบ่อ', fn: () => Life2.drink() }) });
-    World.pois.push({ kind: 'act', x: POND_POI.x, z: POND_POI.z, r: 1.15, label: 'บ่อเลี้ยงปลา', icon: '🐟', act: () => ({ icon: '🐟', label: 'บ่อเลี้ยงปลา', fn: () => this.pondUI() }) });
-    { const o = { w: 12, d: 8, h: 4.6, flat: true, wall: 0xe0e0e0, roof: 0x90a4ae, sign: 'โรงงานแปรรูปไร่สุขใจ', signStyle: { bg: '#455a64' }, winF: [-3.5, 3.5], winS: [0], ww: 1.6, wh: 1.2, doorX: 0 };
-      const b = World.building(o); b.position.set(FACT.x, 0, FACT.z); b.rotation.y = -Math.PI / 2; g.add(b); Col.box(FACT.x, FACT.z, o.w / 2 + 0.3, o.d / 2 + 0.3, -Math.PI / 2, 'bld'); World.clearNear(FACT.x, FACT.z, 9, true);
-      U.mk(g, GEO.cyl, M.metal, [FACT.x + 2, 5.8, FACT.z - 4], [0.35, 3, 0.35]);
-      const door = l2w(FACT.x, FACT.z, -Math.PI / 2, 0, o.d / 2 + 1.6);
-      World.pois.push({ kind: 'act', x: door.x, z: door.z, r: 2.4, label: 'โรงงานแปรรูป', icon: '🏭', map: true, act: () => ({ icon: '🏭', label: 'สั่งผลิตสินค้าแปรรูป', fn: () => this.factoryUI() }) }); }
-    { const s = new THREE.Group(); s.position.set(MARKET.x, 0, MARKET.z); s.rotation.y = Math.PI / 2; g.add(s); U.mk(s, U.box(2.6, 0.9, 1.2, 1.2), M.wood, [0, 0.45, 0]); for (const a of [-1, 1]) for (const b of [-1, 1]) U.mk(s, GEO.cylLo, M.darkwood, [a * 1.2, 1.2, b * 0.55], [0.05, 2.4, 0.05]);
-      const can = U.mk(s, GEO.box, U.mat(0xffb300, { map: T.stripes, roughness: 0.9 }), [0, 2.45, 0], [2.9, 0.08, 1.6]); can.rotation.x = 0.15; Col.box(MARKET.x, MARKET.z, 0.7, 1.3);
-      World.pois.push({ kind: 'act', x: MARKET.x + 1.6, z: MARKET.z, r: 2.2, label: 'แผงตลาดนัดของคุณ', icon: '🛒', map: true, act: () => ({ icon: '🛒', label: 'แผงตลาดนัดเสาร์-อาทิตย์', fn: () => this.marketUI() }) }); }
-    this.bugMat = new THREE.SpriteMaterial({ map: U.emojiTex('🐛'), transparent: true, depthWrite: false }); this.bugs = {};
-    this.refresh();
-    G.targetHooks.push((consider, p) => { for (const [k, v] of Object.entries(this.st().pests)) if (v) { const c = plotCenter(+k); const d = Math.hypot(p.x - c.x, p.z - c.z); if (d < 1.6) consider({ kind: 'ext', act: () => this.pestAct(+k) }, d - 0.8); } });
+    this.paddyObj = []; this.ghObjs = []; this.flPlants = []; this.bugs = {};
+    this.bugMat = new THREE.SpriteMaterial({ map: U.emojiTex('🐛'), transparent: true, depthWrite: false });
+    try { this.refresh(); } catch (e) { }
   },
   weekend() { const d = (S.day - 1) % 7; return d === 5 || d === 6; },
   // ----- rice -----
@@ -147,7 +114,7 @@ const Farm2 = {
   },
   // ----- factory -----
   factoryUI() {
-    UI.open('โรงงานแปรรูปไร่สุขใจ', null, () => { const f = this.st().fac;
+    UI.open('โรงงานแปรรูปบ้านสุขใจ', null, () => { const f = this.st().fac;
       const mill = `<div class="card"><div class="ci">⚙️</div><div class="cb"><h4>เครื่องสีข้าว</h4><p class="dim">ข้าวเปลือก 3 → ข้าวสาร 2 ทันที</p><div class="row"><button class="btn" data-a="f2mill" ${count('paddy') >= 3 ? '' : 'disabled'}>สีข้าว (มี ${count('paddy')})</button></div></div></div>`;
       return `<p class="lead">สั่งผลิตได้พร้อมกัน 3 ล็อต ล็อตละ 3 ชิ้น ได้มากกว่าเครื่องจักรในไร่</p>${mill}<div class="grid">${FACTORY.map(r => { const ok = Object.keys(r.need).every(k => countBase(k) >= r.need[k]); return `<div class="card"><div class="ci">${ITEMS[r.id].i}</div><div class="cb"><h4>${ITEMS[r.id].n} ×3</h4><p class="need">${Object.keys(r.need).map(k => `<span class="${countBase(k) >= r.need[k] ? 'have' : 'miss'}">${ITEMS[k].i}${r.need[k]}</span>`).join(' ')} · ${r.h} ชม. · ขายชิ้นละ ${baht(ITEMS[r.id].sell)}</p><div class="row"><button class="btn" data-a="f2make" data-id="${r.id}" ${ok && f.length < 3 ? '' : 'disabled'}>สั่งผลิต</button></div></div></div>`; }).join('')}</div>
         ${f.length ? `<h5>กำลังผลิต</h5><ul class="lead">${f.map(j => `<li>${ITEMS[j.id].i} ${ITEMS[j.id].n} ${j.left <= 0 ? '✅ เสร็จแล้ว (จะเข้ากระเป๋าอัตโนมัติ)' : `เหลือ ${Math.ceil(j.left)} ชม.`}</li>`).join('')}</ul>` : ''}`; });

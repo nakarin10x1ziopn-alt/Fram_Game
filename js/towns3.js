@@ -30,7 +30,7 @@ const Town3 = {
     if (set === 'a') {
       const wood = { wallTex: 'wood', roofH: 2.8, h: 3.6, winF: [-2.5, 2.5], winS: [0], flowers: true, pots: true };
       B(Object.assign({ w: 10, d: 8, wall: 0xb08968, roof: 0x4e342e, sign: 'ข้าวซอยเชียงสุข', signStyle: { bg: '#6d4c41' }, awning: 0xd84315 }, wood), cx - 11, cz - 40, L, 'restaurant', '🍜');
-      B(Object.assign({ w: 10, d: 8, wall: 0xc8a27c, roof: 0x5d4037, sign: 'ร้านเกษตรเชียงสุข', awning: 0x558b2f, crates: true }, wood), cx - 11, cz - 20, L, 'farmshop', '🌱');
+      B(Object.assign({ w: 10, d: 8, wall: 0xc8a27c, roof: 0x5d4037, sign: 'ร้านวัสดุเชียงสุข', awning: 0x558b2f, crates: true }, wood), cx - 11, cz - 20, L, 'farmshop', '🌱');
       B(Object.assign({ w: 10, d: 8, wall: 0xa1887f, roof: 0x3e2723, sign: 'เฟอร์นิเจอร์ไม้สัก' }, wood), cx - 11, cz, L, 'carpenter', '🔨');
       B(Object.assign({ w: 10, d: 8, wall: 0xd7ccc8, roof: 0x4e342e, sign: 'ร้านดอกไม้ล้านนา', awning: 0xec407a }, wood), cx - 11, cz + 20, L, 'florist', '💐');
       B(Object.assign({ w: 10, d: 8, wall: 0xf5f5f5, roof: 0x795548, sign: 'สุขใจมาร์ท สาขาเชียงสุข', awning: 0xff7043 }, wood), cx + 11, cz - 40, Rr, 'mart', '🏪');

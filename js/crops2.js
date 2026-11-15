@@ -4,7 +4,7 @@
 //  • 25 fruit plants: melons, grapes, berries, dragon fruit, bananas, papaya, pineapples (field beds)
 //  • 28 fruit, nut and bean trees                   (planted in the orchard pits, give several fruit again and again)
 // All of them are real entries of CROPS: they grow, are harvested, sold (with star quality), cooked and processed like the old ones, have a 3D model for every
-// growth stage, and are on sale in the seed shops (ร้านเกษตรรุ่งเรือง, the online shop, the rare plants shop and the phone shop).
+// growth stage, and are on sale in the seed shops (ร้านวัสดุรุ่งเรือง, the online shop, the rare plants shop and the phone shop).
 // loaded right after models.js: the plant models of the new crops are built here and plugged into Models.cropOne / Models.fruitTree.
 (function () {
   const NEW = [];

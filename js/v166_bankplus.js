@@ -95,7 +95,7 @@ V23.add('v166_bankplus', () => {
   }
 
   // ===================== cheques you receive =====================
-  const DRAWERS = ['คุณสมศักดิ์ (ลูกค้าประจำ)', 'ร้านอาหารป้าแดง', 'โรงงานแปรรูปสุขใจ', 'สหกรณ์การเกษตรสุขใจ', 'คุณวิภา (ลูกค้าตลาดนัด)', 'ห้างสุขใจพลาซ่า (ฝ่ายจัดซื้อ)'];
+  const DRAWERS = ['คุณสมศักดิ์ (ลูกค้าประจำ)', 'ร้านอาหารป้าแดง', 'โรงงานแปรรูปสุขใจ', 'สหกรณ์ออมทรัพย์สุขใจ', 'คุณวิภา (ลูกค้าตลาดนัด)', 'ห้างสุขใจพลาซ่า (ฝ่ายจัดซื้อ)'];
   const EXPIRE = 180, APP_DEP_MAX = 50000;
   const rcvOf = id => V().rcv.find(r => String(r.id) === String(id));
   function rcvStatus(id) {
@@ -137,7 +137,7 @@ V23.add('v166_bankplus', () => {
     if (S.day < r.date) { toast(`เช็คลงวันที่ล่วงหน้า ฝากได้ตั้งแต่ ${RD(r.date)}`, '📅'); return; }
     const acct = to === 'cur' ? B.curAcct() : null; if (to === 'cur' && !acct) { toast('ยังไม่มีบัญชีกระแสรายวัน', 'ℹ️'); return; }
     const app = r.amt <= APP_DEP_MAX;
-    if (!app && !B.bankOpen()) { toast('เช็คเกิน 50,000 ต้องนำฝากที่สาขา (จ–ศ 08:30–16:30)', '🕘'); return; }
+    if (!app && !B.bankOpen()) { toast('เช็คเกิน 50,000 ต้องนำฝากที่สาขา (ทุกวัน 05:00–18:00)', '🕘'); return; }
     r.status = 'clearing'; r.into = acct ? 'cur' : 'sav'; r.clearAt = app ? B.nextBiz(B.nextBiz(S.day)) : B.nextBiz(S.day);
     B.tx(`นำฝากเช็ค ${r.drawer} #${r.no}`, 0, acct ? acct.id : 'main');
     toast(`นำฝากเช็ค ${money(r.amt)} แล้ว เคลียร์ ${RD(r.clearAt)}`, '📥');
@@ -146,7 +146,7 @@ V23.add('v166_bankplus', () => {
   function rcvHtml() {
     const L = V().rcv, act = L.filter(r => r.status === 'held' || r.status === 'clearing'), old = L.filter(r => r.status !== 'held' && r.status !== 'clearing').slice(0, 4), cur = B.curAcct();
     if (!L.length) return `<h5>📥 เช็คที่ได้รับ</h5><p class="dim">เมื่อลูกค้าจ่ายค่าผลผลิตด้วยเช็ค เช็คจะมาอยู่ที่นี่ ต้องนำฝากก่อนหมดอายุ ${EXPIRE} วัน (ฝากผ่านแอปได้ไม่เกิน ${money(APP_DEP_MAX)} ยอดมากกว่านั้นฝากที่สาขา)</p>`;
-    const card = r => `<div style="background:linear-gradient(135deg,#fdf6d8,#f1e2a6);color:#3a2f10;border:2px solid #b9a77a;border-radius:12px;padding:8px 12px;margin:6px 0"><div style="display:flex;justify-content:space-between;gap:8px;font-size:12.5px;font-weight:700"><span>เช็คเลขที่ ${E(r.no)}</span><span>${E(RD(r.date))}</span></div><div style="font-size:14px;margin-top:3px">สั่งจ่ายให้ ${E(S.name || 'ชาวไร่')} · จาก <b>${E(r.drawer)}</b></div><div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:3px"><b style="font-size:19px">${money(r.amt)}</b><span style="font-size:12.5px">${rcvStatus(r.id)}</span></div><div style="font-size:11.5px;margin-top:2px">หมดอายุ ${E(RD(r.exp))}${S.day < r.date && r.status === 'held' ? ' · ฝากได้ตั้งแต่วันที่ลงในเช็ค' : ''}</div>${r.status === 'held' ? `<div class="row" style="margin:6px 0 0"><button class="btn" data-a="s163rdep" data-v="${r.id}|sav">📥 ฝากเข้าออมทรัพย์</button>${cur ? `<button class="btn ghost" data-a="s163rdep" data-v="${r.id}|cur">ฝากเข้ากระแสรายวัน</button>` : ''}</div>` : ''}</div>`;
+    const card = r => `<div style="background:linear-gradient(135deg,#fdf6d8,#f1e2a6);color:#3a2f10;border:2px solid #b9a77a;border-radius:12px;padding:8px 12px;margin:6px 0"><div style="display:flex;justify-content:space-between;gap:8px;font-size:12.5px;font-weight:700"><span>เช็คเลขที่ ${E(r.no)}</span><span>${E(RD(r.date))}</span></div><div style="font-size:14px;margin-top:3px">สั่งจ่ายให้ ${E(S.name || 'ผู้เล่น')} · จาก <b>${E(r.drawer)}</b></div><div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:3px"><b style="font-size:19px">${money(r.amt)}</b><span style="font-size:12.5px">${rcvStatus(r.id)}</span></div><div style="font-size:11.5px;margin-top:2px">หมดอายุ ${E(RD(r.exp))}${S.day < r.date && r.status === 'held' ? ' · ฝากได้ตั้งแต่วันที่ลงในเช็ค' : ''}</div>${r.status === 'held' ? `<div class="row" style="margin:6px 0 0"><button class="btn" data-a="s163rdep" data-v="${r.id}|sav">📥 ฝากเข้าออมทรัพย์</button>${cur ? `<button class="btn ghost" data-a="s163rdep" data-v="${r.id}|cur">ฝากเข้ากระแสรายวัน</button>` : ''}</div>` : ''}</div>`;
     return `<h5>📥 เช็คที่ได้รับ (${act.length} ใบรอดำเนินการ)</h5><p class="dim">ฝากผ่านแอปได้ไม่เกิน ${money(APP_DEP_MAX)} (เคลียร์ 2 วันทำการ) · เกินนั้นฝากที่สาขาในเวลาทำการ (เคลียร์วันทำการถัดไป) · เช็คลงวันที่ล่วงหน้าฝากได้เมื่อถึงวันที่ · เช็คอาจถูกคืนได้</p>${act.map(card).join('')}${old.length ? `<p class="dim">ประวัติล่าสุด</p>${old.map(card).join('')}` : ''}`;
   }
 

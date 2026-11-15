@@ -224,7 +224,7 @@ V23.add('v31_diary', () => {
     return `<p class="lead">📊 สถิติชีวิต · เล่นมาแล้ว ${S.day - 1} วัน (${Math.floor((S.day - 1) / YD)} ปี ${Math.floor(((S.day - 1) % YD) / 7)} สัปดาห์) · ทรัพย์สินสุทธิประมาณ ${fmt(netWorth())} ฿</p>
       <div class="grid">
         <div class="card"><div class="ci">🚶</div><div class="cb"><h4>เดินมาแล้ว ${fmt(steps)} ก้าว</h4><p class="dim">ราว ${(totWalk / 1000).toFixed(2)} กม. · ขับรถ ${(x.drive / 1000).toFixed(1)} กม.</p></div></div>
-        <div class="card"><div class="ci">🌾</div><div class="cb"><h4>เก็บเกี่ยว ${fmt(st.harvest || 0)} · ปลูก ${fmt(st.planted || 0)}</h4><p class="dim">ขายของ ${fmt(st.sold || 0)} ครั้ง · ปลา ${fmt(st.fish || 0)} ตัว · ทำอาหาร ${fmt(st.cooked || 0)} จาน</p></div></div>
+        <div class="card"><div class="ci">📈</div><div class="cb"><h4>สถิติของคุณ</h4><p class="dim">ขายของ ${fmt(st.sold || 0)} ครั้ง · ปลา ${fmt(st.fish || 0)} ตัว · ทำอาหาร ${fmt(st.cooked || 0)} จาน</p></div></div>
         <div class="card"><div class="ci">💵</div><div class="cb"><h4>รายได้สะสม ${fmt(st.earned || 0)} ฿</h4><p class="dim">เฉพาะรายได้ที่เข้าผ่านระบบรับเงินของเกม</p></div></div>
       </div>
       <h5>รายปี (ปีละ 12 สัปดาห์ · รายรับ/รายจ่ายนับเฉพาะรายการที่ผ่านระบบธนาคารและการรับเงิน)</h5>
@@ -261,13 +261,13 @@ V23.add('v31_diary', () => {
   };
   const base = () => `raisukjai-${String(S.name || 'player').replace(/[^\wก-๙-]+/g, '_').slice(0, 20)}-day${S.day}`;
   const summary = () => ({
-    game: 'ไร่สุขใจ 3D', exported: new Date().toISOString(), player: S.name || '', farm: S.farm || '', day: S.day, date: dateTxt(S.day), level: S.lvl || 1,
+    game: 'บ้านสุขใจ 3D', exported: new Date().toISOString(), player: S.name || '', farm: S.farm || '', day: S.day, date: dateTxt(S.day), level: S.lvl || 1,
     money: Math.round(S.money || 0), netWorth: netWorth(), steps: Math.round(D().walk / 0.72), walkKm: +(D().walk / 1000).toFixed(2), driveKm: +(D().drive / 1000).toFixed(2),
     stats: S.stats || {}, years: statRows().map(z => ({ year: z.y + 1, income: Math.round(z.r.inc), expense: Math.round(z.r.exp), netWorth: z.nw, level: z.lvl, km: +((z.r.walk + z.r.drive) / 1000).toFixed(1) })),
   });
   A_.json = () => { run(); const x = D(); if (save(base() + '.json', new Blob([JSON.stringify({ summary: summary(), events: x.ev.map(e => ({ day: e.d, date: dateTxt(e.d), category: CATS[e.c][1], title: e.h, detail: e.x })) }, null, 2)], { type: 'application/json' }))) UI.toast('ดาวน์โหลดไฟล์ JSON แล้ว', '💾'); };
   A_.txt = () => {
-    run(); const x = D(), s = summary(), L = [`ไดอารี่ชีวิต — ${s.player || 'ผู้เล่น'} (${s.farm || 'ไร่สุขใจ'})`, `${s.date} · ${RD(s.day)} · Lv.${s.level} · ทรัพย์สินสุทธิ ${fmt(s.netWorth)} บาท`, `เดินมาแล้ว ${fmt(s.steps)} ก้าว`, ''];
+    run(); const x = D(), s = summary(), L = [`ไดอารี่ชีวิต — ${s.player || 'ผู้เล่น'} (${s.farm || 'บ้านสุขใจ'})`, `${s.date} · ${RD(s.day)} · Lv.${s.level} · ทรัพย์สินสุทธิ ${fmt(s.netWorth)} บาท`, `เดินมาแล้ว ${fmt(s.steps)} ก้าว`, ''];
     const ys = [...new Set(x.ev.map(e => yearOf(e.d)))].sort((a, b) => a - b);
     for (const y of ys) { L.push(`== ปีที่ ${y + 1} (พ.ศ. ${2569 + y}) ==`); for (const e of x.ev.filter(e => yearOf(e.d) === y).sort((a, b) => (a.d - b.d) || (a.n - b.n))) L.push(`${dateTxt(e.d)}  ${e.i} ${e.h}${e.x ? ' — ' + e.x : ''}`); L.push(''); }
     if (save(base() + '.txt', new Blob(['﻿' + L.join('\r\n')], { type: 'text/plain;charset=utf-8' }))) UI.toast('ดาวน์โหลดไฟล์ข้อความแล้ว', '📄');
@@ -276,7 +276,7 @@ V23.add('v31_diary', () => {
     run(); const x = D(), s = summary(), W = 1080, evs = x.ev.slice().sort((a, b) => (b.d - a.d) || (b.n - a.n)).slice(0, 20), H = 420 + evs.length * 64 + 70;
     const cv = document.createElement('canvas'); cv.width = W; cv.height = H; const g = cv.getContext('2d'); if (!g) { UI.toast('สร้างรูปไม่ได้บนอุปกรณ์นี้', '⚠️'); return; }
     const gr = g.createLinearGradient(0, 0, 0, H); gr.addColorStop(0, '#1c3a24'); gr.addColorStop(1, '#0d1a12'); g.fillStyle = gr; g.fillRect(0, 0, W, H);
-    g.fillStyle = '#ffd86b'; g.font = 'bold 56px sans-serif'; g.fillText('🌾 ไร่สุขใจ · ไทม์ไลน์ชีวิต', 50, 90);
+    g.fillStyle = '#ffd86b'; g.font = 'bold 56px sans-serif'; g.fillText('🌾 บ้านสุขใจ · ไทม์ไลน์ชีวิต', 50, 90);
     g.fillStyle = '#ffffff'; g.font = '34px sans-serif'; g.fillText(`${s.player || 'ผู้เล่น'} · ${s.farm || 'ฟาร์มของฉัน'}`, 50, 145);
     g.fillStyle = '#cfe6cf'; g.font = '28px sans-serif';
     g.fillText(`${s.date} · ${RD(s.day)} · Lv.${s.level}`, 50, 195);
@@ -285,7 +285,7 @@ V23.add('v31_diary', () => {
     g.fillStyle = '#ffd86b'; g.font = 'bold 32px sans-serif'; g.fillText('เหตุการณ์ล่าสุด', 50, 350);
     g.font = '30px sans-serif'; let yy = 410;
     for (const e of evs) { g.fillStyle = '#9ec99e'; g.font = '22px sans-serif'; g.fillText(dateTxt(e.d), 50, yy - 4); g.fillStyle = '#ffffff'; g.font = '30px sans-serif'; g.fillText(`${e.i} ${e.h}`.slice(0, 48), 50, yy + 28); yy += 64; }
-    g.fillStyle = '#6f9a6f'; g.font = '22px sans-serif'; g.fillText('สร้างจากเกม ไร่สุขใจ 3D', 50, H - 28);
+    g.fillStyle = '#6f9a6f'; g.font = '22px sans-serif'; g.fillText('สร้างจากเกม บ้านสุขใจ 3D', 50, H - 28);
     cv.toBlob(b => { if (b && save(base() + '.png', b)) UI.toast('ดาวน์โหลดรูปไทม์ไลน์แล้ว', '🖼️'); }, 'image/png');
   };
 

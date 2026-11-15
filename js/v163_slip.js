@@ -97,7 +97,7 @@ V23.add('v163_slip', () => {
     const d = sg.s.map(st => { let p = 'M' + st[0] + ' ' + st[1]; if (st.length <= 2) return p + 'l.1 .1'; for (let i = 2; i < st.length - 2; i += 2) p += 'Q' + st[i] + ' ' + st[i + 1] + ' ' + ((st[i] + st[i + 2]) / 2).toFixed(1) + ' ' + ((st[i + 1] + st[i + 3]) / 2).toFixed(1); p += 'L' + st[st.length - 2] + ' ' + st[st.length - 1]; return p; }).join(''), gid = 'sgg' + (sigSvg.n = (sigSvg.n || 0) + 1);
     return `<svg viewBox="${-6} ${-6} ${sg.w + 12} ${sg.h + 12}" style="width:${w || 170}px;max-width:100%;height:auto;display:block"><defs><linearGradient id="${gid}" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#0b2a9e"/><stop offset="1" stop-color="#2a52d8"/></linearGradient></defs><path d="${d}" fill="none" stroke="url(#${gid})" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
   };
-  const owner = () => E(S.name || 'ชาวไร่');
+  const owner = () => E(S.name || 'ผู้เล่น');
   function chequePaper(c, s) {
     const cash = (c.kind === 'cashier'), st = statusOf({ k: cash ? 'cashier' : 'cheque', ch: c.no }), amt = c.amt;
     const stamp = c.status === 'bounced' ? '#b3261e' : c.status === 'stopped' ? '#8a5a00' : '#0b5a2a';

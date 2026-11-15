@@ -342,12 +342,12 @@ V23.add('v26_agency', () => {
   const status = id => { const d = G24.rec(id); if (!d) return ''; return d.exp && S.day > d.exp ? `⛔ ${dn(id)} หมดอายุ (${d.exp})` : `✅ ${dn(id)} ใช้ได้${d.exp ? `ถึง${RD(d.exp)}` : ''}`; };
 
   // ================= 7. กรมทรัพย์สินทางปัญญา =================
-  const EXISTING = ['ไร่สุขใจ', 'สุขใจฟู้ด', 'ทุ่งทอง', 'นกยูงทอง', 'ฟ้าใส', 'ภูผา', 'ดอกบัว', 'เกษตรทอง', 'ตราไก่', 'ปลาทอง'];
+  const EXISTING = ['บ้านสุขใจ', 'สุขใจฟู้ด', 'ทุ่งทอง', 'นกยูงทอง', 'ฟ้าใส', 'ภูผา', 'ดอกบัว', 'เกษตรทอง', 'ตราไก่', 'ปลาทอง'];
   const markTaken = n => { const q = n.toLowerCase().replace(/\s+/g, ''); return EXISTING.some(e => e.replace(/\s+/g, '').toLowerCase() === q) ? 'มีผู้อื่นจดทะเบียนชื่อนี้แล้ว' : st().ip.marks.some(m => m.name.replace(/\s+/g, '').toLowerCase() === q) ? 'คุณจดชื่อนี้ไว้แล้ว' : ''; };
   const hobbyLvl = () => (S.hob ? (S.hob.paint || 0) + (S.hob.music || 0) : 0);
   agency('dip', 'กรมทรัพย์สินทางปัญญา (DIP) — กระทรวงพาณิชย์', 'ทรัพย์สินทางปัญญา', '™️', 'ค้นหา จดเครื่องหมายการค้า และแจ้งลิขสิทธิ์ผลงาน แล้วรับค่าสิทธิ์ (royalty) ทุก 28 วันเมื่อแบรนด์/ผลงานเป็นที่รู้จัก',
     { wd: [8.5, 16.5] }, [
-    sv('search', 'ค้นหาชื่อ/เครื่องหมายซ้ำก่อนยื่นจด', '🔍', 'ฟรี ตรวจว่าชื่อแบรนด์ซ้ำกับผู้ที่จดไว้แล้วหรือไม่', { run: a => { UI.open('ค้นหาเครื่องหมายการค้า', null, () => `<p class="lead">พิมพ์ชื่อแบรนด์ที่ต้องการ</p><div class="row"><input id="v26q" maxlength="30" placeholder="เช่น ไร่สุขใจ ออร์แกนิก" style="flex:1"><button class="btn" data-a="v26a" data-v="ipsearch">ค้นหา</button></div><div id="v26res"></div><div class="row"><button class="btn ghost" data-a="v26a" data-v="ag|dip">‹ กลับ</button></div>`); return true; } }),
+    sv('search', 'ค้นหาชื่อ/เครื่องหมายซ้ำก่อนยื่นจด', '🔍', 'ฟรี ตรวจว่าชื่อแบรนด์ซ้ำกับผู้ที่จดไว้แล้วหรือไม่', { run: a => { UI.open('ค้นหาเครื่องหมายการค้า', null, () => `<p class="lead">พิมพ์ชื่อแบรนด์ที่ต้องการ</p><div class="row"><input id="v26q" maxlength="30" placeholder="เช่น บ้านสุขใจ ออร์แกนิก" style="flex:1"><button class="btn" data-a="v26a" data-v="ipsearch">ค้นหา</button></div><div id="v26res"></div><div class="row"><button class="btn ghost" data-a="v26a" data-v="ag|dip">‹ กลับ</button></div>`); return true; } }),
     sv('tm', 'ยื่นจดทะเบียนเครื่องหมายการค้า (แบรนด์ธุรกิจ)', '™️', 'ต้องมีหนังสือรับรองนิติบุคคล (DBD) ค่าธรรมเนียม 1,000 ฿ ใช้เวลา 4 วัน อายุ 10 ปี (840 วัน) ได้ค่าสิทธิ์ 150 ฿ ต่อแบรนด์ ทุก 28 วัน', {
       req: ['idcard', 'bizcert'], st: () => `แบรนด์ที่จดแล้ว ${st().ip.marks.length} · ${status('tmark')}`,
       run: a => { UI.open('ยื่นจดเครื่องหมายการค้า', null, () => `<p class="lead">ชื่อแบรนด์ (ไทยหรืออังกฤษ 3-30 ตัวอักษร) ค่าธรรมเนียม 1,000 ฿</p><div class="row"><input id="v26b" maxlength="30" placeholder="ชื่อแบรนด์" style="flex:1"><button class="btn" data-a="v26a" data-v="tmsub">ยื่นคำขอ</button></div><div class="row"><button class="btn ghost" data-a="v26a" data-v="ag|dip">‹ กลับ</button></div>`); return true; },

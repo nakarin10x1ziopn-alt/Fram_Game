@@ -44,7 +44,7 @@ V23.add('civic25', () => {
     tick(45); S.fit = Math.min(30, (S.fit || 0) + 1); S.mood = Math.min(100, (S.mood || 50) + 4);
     UI.toast('วิ่งรอบลู่ 45 นาที ร่างกายแข็งแรงขึ้น (แมตช์แข่งจัดวันเสาร์-อาทิตย์ 14:00–20:00)', '🏃');
   };
-  const SEM = [['เกษตรอัจฉริยะและการจัดการน้ำ', 'ใช้ระบบน้ำและสมาร์ตฟาร์มให้คุ้มค่า'], ['ความปลอดภัยไซเบอร์สำหรับธุรกิจ', 'อัปเดตเฟิร์มแวร์ รหัสผ่านและสำรองข้อมูล'], ['บัญชีและภาษีสำหรับผู้ประกอบการ', 'ยื่นภาษีตรงเวลา เก็บใบเสร็จ แยกบัญชีส่วนตัวกับธุรกิจ']];
+  const SEM = [['การจัดการน้ำและพลังงานในองค์กร', 'ใช้น้ำและไฟให้คุ้มค่า ลดต้นทุนประจำเดือน'], ['ความปลอดภัยไซเบอร์สำหรับธุรกิจ', 'อัปเดตเฟิร์มแวร์ รหัสผ่านและสำรองข้อมูล'], ['บัญชีและภาษีสำหรับผู้ประกอบการ', 'ยื่นภาษีตรงเวลา เก็บใบเสร็จ แยกบัญชีส่วนตัวกับธุรกิจ']];
   const seminar = () => {
     const d = (S.day - 1) % 7; if (d > 4) { UI.toast('ศูนย์ประชุมจัดสัมมนาวันจันทร์–ศุกร์ 09:00–16:00', '🎤'); return; }
     if (S.time < 9 * 60 || S.time >= 16 * 60) { UI.toast('สัมมนาเปิดรอบ 09:00–16:00', '🕒'); return; }
@@ -81,8 +81,7 @@ V23.add('civic25', () => {
   const govCounters = ids => (GOV() ? GOV().offices : []).filter(o => ids.includes(o.id)).map(o => ({ label: o.s, icon: o.i, fn: () => GOV().office(o.id) }));
   const safety = [
     { label: 'บริการตำรวจ', icon: '🚓', fn: () => Emergency.stationUI('police') },
-    { label: 'บริการดับเพลิง', icon: '🚒', fn: () => Emergency.stationUI('fire') },
-    { label: 'คลินิกกลาง', icon: '🏥', fn: () => Life2.clinicUI() },
+    { label: 'บริการดับเพลิง', icon: '🚒', fn: () => Emergency.stationUI('fire') },
   ];
   const E = {
     museum: [{ label: 'ซื้อตั๋วชมนิทรรศการ', icon: '🏛️', fn: museum }, { label: 'ห้องสมุดประชาชน', icon: '📚', fn: library }],
@@ -100,8 +99,8 @@ V23.add('civic25', () => {
       { k: 'land', n: 'สำนักงานที่ดินและเทศบาล', ic: '🗺️', wall: 0xf1ebdc, roof: 0x33691e, bg: '#33691e', off: ['land', 'municipal', 'tambon', 'pwa', 'pea'] },
       { k: 'dlt', n: 'ขนส่งจังหวัดและศาล', ic: '🚗', wall: 0xeceff1, roof: 0xb71c1c, bg: '#b71c1c', off: ['dlt', 'court'] },
       { k: 'tax', n: 'สรรพากร พัฒนาธุรกิจ ประกันสังคม', ic: '🧾', wall: 0xe3f2fd, roof: 0x0d47a1, bg: '#0d47a1', off: ['revenue', 'dbd', 'sso'] },
-      { k: 'safe', n: 'ศูนย์ความปลอดภัยและสาธารณสุข', ic: '🛡️', wall: 0xffffff, roof: 0xc62828, bg: '#c62828', off: ['police', 'fire', 'health', 'hospreg'], ex: safety },
-      { k: 'post', n: 'ไปรษณีย์ ศุลกากร เกษตร', ic: '📮', wall: 0xfff3e0, roof: 0xe65100, bg: '#e65100', off: ['post', 'customs', 'agri', 'livestock', 'fisheries'] },
+      { k: 'safe', n: 'ศูนย์ความปลอดภัย', ic: '🛡️', wall: 0xffffff, roof: 0xc62828, bg: '#c62828', off: ['police', 'fire'], ex: safety },
+      { k: 'post', n: 'ไปรษณีย์ ศุลกากร', ic: '📮', wall: 0xfff3e0, roof: 0xe65100, bg: '#e65100', off: ['post', 'customs'] },
       { k: 'uni', n: 'มหาวิทยาลัย', ic: '🎓', wall: 0xf3e5f5, roof: 0x4a148c, bg: '#4a148c', ex: E.uni },
       { k: 'museum', n: 'พิพิธภัณฑ์และห้องสมุด', ic: '🏛️', wall: 0xefebe9, roof: 0x4e342e, bg: '#4e342e', ex: E.museum },
       { k: 'stadium', n: 'สนามกีฬากลาง', ic: '🏟️', wall: 0xe8f5e9, roof: 0x1b5e20, bg: '#1b5e20', ex: E.stadium },
@@ -112,11 +111,11 @@ V23.add('civic25', () => {
     medium: [
       { k: 'hall', n: 'ที่ว่าการอำเภอ', ic: '🏛️', wall: 0xfff8e1, roof: 0x1a237e, bg: '#1a237e', off: ['district', 'welfare', 'election', 'draft', 'edu', 'labour', 'post'] },
       { k: 'land', n: 'ศูนย์บริการภาครัฐ ที่ดิน ภาษี ขนส่ง', ic: '🗺️', wall: 0xf1ebdc, roof: 0x33691e, bg: '#33691e', off: ['land', 'municipal', 'tambon', 'revenue', 'dlt', 'pwa', 'pea'] },
-      { k: 'agri', n: 'สาธารณสุขและเกษตรอำเภอ', ic: '🌾', wall: 0xf1f8e9, roof: 0x558b2f, bg: '#558b2f', off: ['health', 'agri', 'livestock', 'fisheries', 'hospreg'] },
+      { k: 'agri', n: 'ที่ทำการเขต', ic: '🏛️', wall: 0xf1f8e9, roof: 0x558b2f, bg: '#558b2f', off: ['welfare'] },
       { k: 'bus', n: 'สถานีขนส่ง', ic: '🚌', wall: 0xfffde7, roof: 0xf57f17, bg: '#f57f17', ex: E.bus },
     ],
     small: [
-      { k: 'tambon', n: 'ที่ทำการ อบต.', ic: '🏛️', wall: 0xfff8e1, roof: 0x1a237e, bg: '#1a237e', off: ['district', 'welfare', 'tambon', 'municipal', 'labour', 'health', 'agri', 'livestock', 'fisheries'] },
+      { k: 'tambon', n: 'ที่ทำการ อบต.', ic: '🏛️', wall: 0xfff8e1, roof: 0x1a237e, bg: '#1a237e', off: ['district', 'welfare', 'tambon', 'municipal', 'labour'] },
       { k: 'post', n: 'ที่ทำการไปรษณีย์', ic: '📮', wall: 0xfff3e0, roof: 0xe65100, bg: '#e65100', off: ['post'] },
     ],
   };

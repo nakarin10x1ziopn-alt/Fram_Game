@@ -77,12 +77,13 @@ const Life2 = {
   },
   // ----- utility bills every 7 days -----
   bill() {
+    const f = MonthCal.take(S.day) / 7;   // v235: the monthly amounts are the weekly rates x the days since the last close / 7
     const ap = ['aircon', 'washer', 'console', 'tv', 'fan', 'aquarium'].filter(k => S.furn[k]).length;
-    const elec = Math.round((120 + ap * 60 + (S.ac ? 210 : 0) + S.up.house * 40) * (S.furn.solar ? 0.4 : 1)), water = 60 + S.animals.length * 8 + (S.f2 ? 30 : 0);
-    const old = S.billDue; S.billDue = { elec: elec + (old ? old.elec : 0), water: water + (old ? old.water : 0), day: S.day + 3 }; Phone.msg('การไฟฟ้า & การประปา', `บิลสัปดาห์นี้: ค่าไฟ ${baht(elec)} ค่าน้ำ ${baht(water)} ชำระภายใน${RD(S.billDue.day)} ผ่านแอปธนาคาร`);
+    const elec = Math.round((120 + ap * 60 + (S.ac ? 210 : 0) + S.up.house * 40) * f * (S.furn.solar ? 0.4 : 1)), water = Math.round((60 + S.animals.length * 8 + (S.f2 ? 30 : 0)) * f);
+    const old = S.billDue; S.billDue = { elec: elec + (old ? old.elec : 0), water: water + (old ? old.water : 0), day: S.day + 3 }; Phone.msg('การไฟฟ้า & การประปา', `บิลรอบเดือนนี้: ค่าไฟ ${baht(elec)} ค่าน้ำ ${baht(water)} ชำระภายใน${RD(S.billDue.day)} ผ่านแอปธนาคาร`);
   },
   payBill() { const b = S.billDue; if (!b) return; const t = b.elec + b.water; if (S.money < t) { UI.toast('เงินไม่พอจ่ายบิล', '💸'); return; } S.money -= t; Bank2.log('ค่าน้ำค่าไฟ', -t); S.billDue = null; S.powerOff = 0; UI.toast('ชำระค่าน้ำค่าไฟแล้ว', '🧾'); },
-  billHTML() { const b = S.billDue; return `<h5>🧾 ค่าน้ำค่าไฟ</h5>${b ? `<div class="card"><div class="ci">⚡</div><div class="cb"><h4>ค้างชำระ ${baht(b.elec + b.water)}</h4><p class="dim">ไฟ ${baht(b.elec)} · น้ำ ${baht(b.water)} · ครบกำหนด${RD(b.day)}${S.powerOff ? ' · ⚠️ ถูกตัดไฟแล้ว แอร์ ทีวี เกม ใช้ไม่ได้' : ''}</p><div class="row"><button class="btn" data-a="paybill">ชำระเลย</button></div></div></div>` : '<p class="lead">ไม่มีบิลค้างชำระ (บิลออกทุก 7 วัน)</p>'}`; },
+  billHTML() { const b = S.billDue; return `<h5>🧾 ค่าน้ำค่าไฟ</h5>${b ? `<div class="card"><div class="ci">⚡</div><div class="cb"><h4>ค้างชำระ ${baht(b.elec + b.water)}</h4><p class="dim">ไฟ ${baht(b.elec)} · น้ำ ${baht(b.water)} · ครบกำหนด${RD(b.day)}${S.powerOff ? ' · ⚠️ ถูกตัดไฟแล้ว แอร์ ทีวี เกม ใช้ไม่ได้' : ''}</p><div class="row"><button class="btn" data-a="paybill">ชำระเลย</button></div></div></div>` : '<p class="lead">ไม่มีบิลค้างชำระ (บิลออกทุกสิ้นเดือน)</p>'}`; },
   // ----- part-time jobs -----
   jobsUI() {
     UI.open('งานพิเศษวันนี้', null, () => this.job ? `<p class="lead">กำลังทำงาน: ${this.job.n} — ${this.job.hint}</p><div class="row"><button class="btn ghost" data-a="jobquit">ยกเลิกงาน</button></div>` : `<p class="lead">ทำได้วันละ 2 งาน (วันนี้ทำไปแล้ว ${S.jobN === S.day ? S.jobC : 0})</p><div class="grid">${PT_JOBS.map(j => `<div class="card"><div class="ci">${j.i}</div><div class="cb"><h4>${j.n}</h4><p class="dim">${j.desc} · ประมาณ ${baht(j.pay)}</p><div class="row"><button class="btn" data-a="jobgo" data-k="${j.k}" ${(S.jobN === S.day && S.jobC >= 2) ? 'disabled' : ''}>รับงาน</button></div></div></div>`).join('')}</div>`);
@@ -133,7 +134,7 @@ const Life2 = {
   day() {
     const d = this.dayInYear();
     if (S.vax > S.day) {} else if (S.vax) S.vax = 0;
-    if (S.day % 7 === 0) this.bill();
+    if (MonthCal.isPayDay(S.day)) this.bill();   // v235: the month close (last day of the month, or 3 days earlier if that is a Saturday)
     if (S.billDue && S.day > S.billDue.day && !S.powerOff) { S.powerOff = 1; S.ac = false; Phone.msg('การไฟฟ้า', 'ค้างชำระเกินกำหนด ระงับการจ่ายไฟชั่วคราว ชำระแล้วไฟจะกลับมาทันที'); }
     const bd = G.npcs.filter(n => !n.staff && this.bdayOf(n.name) === d).slice(0, 2);
     for (const n of bd) Phone.msg('ปฏิทิน', `วันนี้วันเกิด${n.name}! ให้ของขวัญวันนี้ได้หัวใจ 3 เท่า`, true);

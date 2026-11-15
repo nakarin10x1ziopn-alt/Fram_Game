@@ -10,7 +10,7 @@ V23.add('v83_notebook', () => {
   document.head.appendChild(css);
   const apply = () => {
     const b = document.body, touch = b.classList.contains('touch') || matchMedia('(pointer: coarse)').matches;
-    const on = !touch && innerWidth >= 1100 && innerWidth < 1900 && innerHeight > 520;
+    const on = false && !touch && innerWidth >= 1100 && innerWidth < 1900 && innerHeight > 520;   // v230: off. This shrank the HUD to 0.6x on 1366-1536 px laptops and fought with the v215 scale (which sizes the HUD and windows from the window size); v215 now does it alone
     const k = on ? Math.max(0.6, Math.min(innerWidth / 1920, innerHeight / 1080)) : 1;
     b.classList.toggle('nb', on && k < 0.999); b.style.setProperty('--nbz', k.toFixed(4));
   };

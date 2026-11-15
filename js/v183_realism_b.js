@@ -73,13 +73,18 @@ V23.add('v183_realism_b', () => {
   // ---------- B5: monthly pay, leave, public-holiday pay ----------
   if (typeof Career !== 'undefined') {
     const dim = (y, m) => Cal36.daysIn(y, m);
+    // v237: leave quotas are checked every morning (a new year, or a new job, starts with the full quota), working days in a range, and the pay of a part month
+    const ensureLeave = (j, dt) => { if (!j.leave || j.leave.cy !== dt.y) { const emp = j.empDays || (j.weeks || 0) * 7; j.leave = { sick: 30, biz: 3, vac: emp >= 365 ? 6 : 0, cy: dt.y, year: 0 }; } };
+    const wdays = (self, C, a, b) => { let n = 0; for (let d = a; d <= b; d++) if (C.days.includes(self.dayIdx(d))) n++; return n; };
+    const takeHome = (C, gross) => { const ss = C.gov ? Math.round(gross * 0.03) : Math.min(875, Math.round(Math.min(gross, 17500) * 0.05)), tax = typeof Biz31 !== 'undefined' ? Biz31.whtMonthly(gross) : 0; return { ss, tax, net: gross - ss - tax }; };
     Career.payday = function () {
       const j = this.st(), C = this.C(); if (!C) return;
-      const dt = Cal36.date(); if (dt.dom !== dim(dt.y, dt.m)) return;                      // the last day of the calendar month
+      const dt = Cal36.date(); ensureLeave(j, dt);
+      if (!MonthCal.isPayDay(S.day)) return;                      // v237: the same pay day as every other monthly payment (the last day of the month, 3 days earlier if that is a Saturday)
       const n0 = j.slips.length && j.slips[0].day;
-      if (!j.leave || j.leave.cy !== dt.y) { const emp = j.empDays || (j.weeks || 0) * 7; j.leave = { sick: 30, biz: 3, vac: emp >= 365 ? 6 : 0, cy: dt.y, year: 0 }; }
-      const from = j.lastPay != null ? j.lastPay + 1 : S.day - dt.dom + 1, days = []; for (let d = from; d <= S.day; d++) if (C.days.includes(this.dayIdx(d))) days.push(d);
-      const work = Math.max(1, days.length), absent = days.filter(d => j.done[d] === 'absent').length, gross = this.salary(), cut = Math.round(gross / work * absent);
+      const mFirst = S.day - dt.dom + 1, mLast = mFirst + dim(dt.y, dt.m) - 1, firstPay = j.lastPay == null && j.start != null && j.start > mFirst;   // hired during this month: only the days from the start are paid
+      const from = j.lastPay != null ? j.lastPay + 1 : Math.max(mFirst, j.start != null ? j.start : mFirst), days = []; for (let d = from; d <= S.day; d++) if (C.days.includes(this.dayIdx(d))) days.push(d);
+      const work = Math.max(1, days.length), absent = days.filter(d => j.done[d] === 'absent').length, gross = firstPay ? Math.round(this.salary() * wdays(this, C, j.start, mLast) / Math.max(1, wdays(this, C, mFirst, mLast))) : this.salary(), cut = Math.round(gross / work * absent);
       const hol = days.filter(d => j.done[d] && j.done[d] !== 'absent' && (() => { try { const e = Cal36.event(d); return e && e.hol; } catch (er) { return false; } })()).length, holPay = Math.round(gross / 30 * hol);
       const ss = C.gov ? Math.round((gross - cut) * 0.03) : Math.min(875, Math.round(Math.min(gross - cut, 17500) * 0.05)), tax = typeof Biz31 !== 'undefined' ? Biz31.whtMonthly(gross - cut + holPay) : 0, net = gross - cut + holPay - ss - tax;
       earn(net); Bank2.income('เงินเดือน ' + C.n, net);
@@ -93,17 +98,32 @@ V23.add('v183_realism_b', () => {
       try { const sl = j.slips[0]; if (sl && sl.day !== n0) { const c = PTax.st().cur; c.sal += sl.gross - sl.cut; c.wht += sl.tax; c.ss += sl.ss; } } catch (e) { }
     };
     // days of service (for severance) and the leave kinds
+    // v237: when a job ends (resign or fire) the wages already earned this month are paid (unless this month's pay day has passed), and the exam right, service days and leave quota do not carry over to the next job
+    const finalPay = self => {
+      const j = self.st(), C = self.C(); if (!C || j.start == null) return;
+      const dt = Cal36.date(), mFirst = S.day - dt.dom + 1, mLast = mFirst + dim(dt.y, dt.m) - 1;
+      if (j.lastPay != null && j.lastPay >= mFirst) return;
+      const done = wdays(self, C, Math.max(mFirst, j.start), S.day); if (!done) return;
+      const gross = Math.round(self.salary() * done / Math.max(1, wdays(self, C, mFirst, mLast))), t = takeHome(C, gross);
+      earn(t.net); Bank2.income('เงินเดือนงวดสุดท้าย ' + C.n, t.net);
+      try { const c = PTax.st().cur; c.sal += gross; c.wht += t.tax; c.ss += t.ss; } catch (e) { }
+      msg('ฝ่ายบุคคล', `จ่ายเงินเดือนงวดสุดท้าย ${baht(gross)} (ทำงาน ${done} วัน) หัก${C.gov ? 'กบข. 3%' : 'ประกันสังคม 5%'} ${baht(t.ss)}${t.tax ? ` ภาษี ${baht(t.tax)}` : ''} รับสุทธิ ${baht(t.net)}`);
+    };
+    const resetJob = self => { const j = self.st(); j.examOK = 0; j.empDays = 0; j.start = null; j.lastPay = null; j.leave = { sick: 30, biz: 3, vac: 0, cy: Cal36.date().y, year: 0 }; };
+    { const _res = Career.resign.bind(Career); Career.resign = function () { if (this.C()) finalPay(this); const r = _res(); resetJob(this); return r; }; }
+    { const _ans = Career.answer.bind(Career); Career.answer = function (i) { const had = !!this.st().k, r = _ans(i), j = this.st(); if (!had && j.k && j.start === S.day) { j.examOK = 0; j.empDays = 0; j.lastPay = null; j.leave = { sick: 30, biz: 3, vac: 0, cy: Cal36.date().y, year: 0 }; } return r; }; }
     const _fire = Career.fire.bind(Career);
     Career.fire = function (why, grave) {
       const j = this.st(), had = j.k, emp = j.empDays || (j.weeks || 0) * 7, gov = this.C() && this.C().gov; const sal = this.salary();
-      const r = _fire(why, grave);
+      if (had) finalPay(this);
+      const r = _fire(why, grave); resetJob(this);
       try { if (had && !grave && !gov && emp >= 180) { X().un = { until: S.day + 180, next: S.day + 30, wage: Math.min(sal, 17500) }; msg('สำนักงานประกันสังคม', 'คุณถูกเลิกจ้างโดยไม่มีความผิด และส่งเงินสมทบครบ 6 เดือน มีสิทธิ์รับเงินทดแทนการว่างงาน 50% ของค่าจ้าง (ไม่เกินฐาน 17,500) นานสูงสุด 180 วัน จะโอนเข้าบัญชีทุกเดือนระหว่างที่ยังไม่มีงานทำ'); } } catch (e) { }
       return r;
     };
     const _h = Career.html.bind(Career);
     Career.html = function (tab) {
       let h = _h(tab); const j = this.st();
-      h = h.replace('1 สัปดาห์ในเกม = 1 เดือน · เงินเดือนออกทุกวันที่ 7 ของสัปดาห์', 'เงินเดือนออกวันสุดท้ายของเดือน · ลาป่วยปีละ 30 วัน (ใบรับรองแพทย์ถ้าลา 3 วันขึ้นไป) · ลากิจ 3 วัน · พักร้อน 6 วันหลังทำงานครบ 1 ปี · ทำงานวันหยุดนักขัตฤกษ์ได้ค่าแรงเพิ่ม 1 วัน');
+      h = h.replace('1 สัปดาห์ในเกม = 1 เดือน · เงินเดือนออกทุกวันที่ 7 ของสัปดาห์', 'เงินเดือนออกวันสุดท้ายของเดือน (ถ้าตรงวันเสาร์ ออกก่อน 3 วัน) · ลาป่วยปีละ 30 วัน (ใบรับรองแพทย์ถ้าลา 3 วันขึ้นไป) · ลากิจ 3 วัน · พักร้อน 6 วันหลังทำงานครบ 1 ปี · ทำงานวันหยุดนักขัตฤกษ์ได้ค่าแรงเพิ่ม 1 วัน');
       if (this.C() && j.leave && j.leave.vac > 0) h += `<div class="row"><button class="btn ghost" data-a="jobleave" data-k="vac" data-v="${S.day + 1}">🏖️ ลาพักร้อนพรุ่งนี้ (เหลือ ${j.leave.vac} วัน)</button></div>`;
       return h;
     };

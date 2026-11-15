@@ -174,7 +174,7 @@ V23.add('v31_farm', () => {
     if (a.sick) return 'ป่วยอยู่';
     if (!adult(a)) return 'ยังเป็นลูกสัตว์';
     if (kind === 'pet') { if (!vacOk(a)) return 'ต้องฉีดวัคซีนพิษสุนัขบ้าให้ครบ (คลินิกสัตว์)'; if ((a.joy ?? 60) < 50) return 'สัตว์เหนื่อย/ไม่มีความสุข (ความสุขต้อง ≥ 50)'; }
-    else { if (!vacOk(a)) return 'ต้องมีวัคซีนปากและเท้าเปื่อยที่ยังไม่หมดอายุ'; if (quarantined()) return 'ฟาร์มอยู่ในช่วงกักกันโรค'; if (!hasDoc('livereg') && !hasDoc('farmer')) return 'ต้องมีทะเบียนเกษตรกรหรือทะเบียนฟาร์มปศุสัตว์'; }
+    else { if (!vacOk(a)) return 'ต้องมีวัคซีนปากและเท้าเปื่อยที่ยังไม่หมดอายุ'; if (quarantined()) return 'ฟาร์มอยู่ในช่วงกักกันโรค'; if (!hasDoc('livereg') && !hasDoc('farmer')) return 'ต้องมีทะเบียนเกษตรกรหรือทะเบียนร้านสัตว์เลี้ยง'; }
     return '';
   };
   const regShow = (fid, kind) => {
@@ -231,7 +231,7 @@ V23.add('v31_farm', () => {
     const hs = herd(); if (!hs.length) { UI.toast('ไม่มีสัตว์ในฟาร์ม', '🐄'); return; }
     if (hs.some(a => a.sick)) { UI.toast('มีสัตว์ป่วย ต้องรักษาให้หายก่อนขอใบอนุญาต', '🤒'); return; }
     if (hs.some(a => !vacOk(a))) { UI.toast('สัตว์ทุกตัวต้องมีวัคซีนปากและเท้าเปื่อยที่ยังไม่หมดอายุ', '💉'); return; }
-    if (!govOpen()) { UI.toast('ปศุสัตว์อำเภอปิดอยู่ (จ-ศ 07:30–18:00 · ส 08:00–16:00)', '🕒'); return; }
+    if (!govOpen()) { UI.toast('ปศุสัตว์อำเภอปิดอยู่ (ทุกวัน 05:00–18:00 ไม่มีวันหยุด)', '🕒'); return; }
     if (!pay(150, 'ค่าธรรมเนียมใบอนุญาตเคลื่อนย้ายสัตว์')) return; grantDoc('animmove', { n: hs.length });
   };
   const reportOutbreak = () => { const o = F().out; if (o.until < S.day || o.rep) return; o.rep = S.day; o.q = S.day + 14; msg('ปศุสัตว์อำเภอ', 'รับแจ้งโรคระบาดสัตว์ (ปากและเท้าเปื่อย) แล้ว ประกาศกักกันฟาร์ม 14 วัน: ห้ามขายหรือเคลื่อนย้ายสัตว์ ห้ามส่งประกวด · รักษาสัตว์ป่วยได้รับการสนับสนุนค่ายา 50% (ถ้ามีทะเบียนฟาร์ม)'); UI.toast('แจ้งโรคระบาดแล้ว ฟาร์มถูกกักกัน 14 วัน', '🚨'); };
@@ -410,8 +410,8 @@ V23.add('v31_farm', () => {
       return LEAD('พ่อแม่พันธุ์ส่งยีนให้ลูก (ผลผลิต · สุขภาพ · รูปทรง) · ยีนผลผลิตสูงให้ผลผลิตเพิ่ม · ยีนสุขภาพต่ำป่วยง่าย · ผสมพันธุ์ญาติกันลูกอ่อนแอ') +
         (o.until >= S.day ? `<div class="card"><div class="ci">🚨</div><div class="cb"><h4>โรคปากและเท้าเปื่อยในฟาร์ม</h4><p class="dim">เริ่ม${RD(o.start)} · ${o.rep ? `แจ้งแล้ว กักกันถึง${RD(o.q)}` : 'ยังไม่ได้แจ้งปศุสัตว์อำเภอ! (ต้องแจ้งภายใน 3 วัน มิฉะนั้นปรับ 20,000 ฿)'} · สัตว์ป่วย ${hs.filter(a => a.sick).length} ตัว</p><div class="row">${B('report', 'แจ้งปศุสัตว์อำเภอ', { dis: !!o.rep })}</div></div></div>` : '') +
         (preg.length ? DIM('🤰 ตั้งท้อง: ' + preg.join(' · ')) : '') +
-        `<h5>🐄 ปศุสัตว์ในฟาร์ม (${hs.length}/${barnCap()})</h5>` + (hs.length ? GR(hs.map(animalCard).join('')) : DIM('ยังไม่มีสัตว์ ซื้อที่ฟาร์มปศุสัตว์ในหมู่บ้านได้')) +
-        `<h5>🐕 สัตว์เลี้ยง (${ps.length}/5)</h5>` + (ps.length ? GR(ps.map(animalCard).join('') ) + `<div class="row">${B('petvet', '🏥 ไปคลินิกสัตว์เลี้ยง (วัคซีน/ทำหมัน/รักษา)', { ghost: 1 })}</div>` : DIM('ยังไม่มีสัตว์เลี้ยง รับเลี้ยงได้ที่ฟาร์มปศุสัตว์')) +
+        `<h5>🐄 ปศุสัตว์ในฟาร์ม (${hs.length}/${barnCap()})</h5>` + (hs.length ? GR(hs.map(animalCard).join('')) : DIM('ยังไม่มีสัตว์ ซื้อที่ร้านสัตว์เลี้ยงในหมู่บ้านได้')) +
+        `<h5>🐕 สัตว์เลี้ยง (${ps.length}/5)</h5>` + (ps.length ? GR(ps.map(animalCard).join('') ) + `<div class="row">${B('petvet', '🏥 ไปคลินิกสัตว์เลี้ยง (วัคซีน/ทำหมัน/รักษา)', { ghost: 1 })}</div>` : DIM('ยังไม่มีสัตว์เลี้ยง รับเลี้ยงได้ที่ร้านสัตว์เลี้ยง')) +
         `<h5>🧬 ซื้อพ่อ/แม่พันธุ์คุณภาพ (ยีนดี ฉีดวัคซีนแล้ว)</h5>` + GR(['cow', 'pig', 'sheep', 'chicken'].map(tp => C(ANIMALS[tp].i, `${KIND[tp].dam} / ${KIND[tp].stud}`, `ราคา ${baht(Math.round(ANIMALS[tp].price * 1.7 / 10) * 10)} · ยีนเฉลี่ย 6–8/10`, B('buy|' + tp + '|F', `ซื้อ${KIND[tp].dam}`, { dis: hs.length >= barnCap() }) + B('buy|' + tp + '|M', `ซื้อ${KIND[tp].stud}`, { ghost: 1, dis: hs.length >= barnCap() }))).join(''));
     }
     if (t === 1) {
@@ -422,7 +422,7 @@ V23.add('v31_farm', () => {
         `<h5>🐕 ประกวดสัตว์เลี้ยง · ${RD(nextP)}</h5>` + (ps.length ? reg(ps, 'pet') : DIM('ยังไม่มีสัตว์เลี้ยง')) + `<h5>🐄 งานประกวดปศุสัตว์ · ${RD(nextL)}</h5>` + (hs.length ? reg(hs, 'live') : DIM('ยังไม่มีปศุสัตว์')) +
         (sh.res.length ? `<h5>🏅 ผลการประกวดล่าสุด</h5>` + sh.res.slice(0, 5).map(r => DIM(`${RD(r.day)}: ${esc(r.t)}`)).join('') : '') +
         `<h5>📋 ทะเบียนและใบรับรองของฟาร์ม</h5>` + GR(
-          C('🌾', 'ทะเบียนเกษตรกร / ฟาร์มปศุสัตว์', `${doc('farmer')}<br>${doc('livereg')}<br>${doc('farmaid')}`, B('gov', '🏛️ ไปทำที่ศูนย์ราชการ', { ghost: 1 })),
+          C('🌾', 'ทะเบียนเกษตรกร / ร้านสัตว์เลี้ยง', `${doc('farmer')}<br>${doc('livereg')}<br>${doc('farmaid')}`, B('gov', '🏛️ ไปทำที่ศูนย์ราชการ', { ghost: 1 })),
           C('🌿', 'ใบรับรอง GAP (ส่งออก/ขายห้าง)', `${doc('gap')}${f.gap ? ` · กำลังตรวจแปลง ผล${RD(f.gap.res)}` : ''}<br>ค่าตรวจ ${baht(Math.round(1500 * (coopOn() ? 0.5 : 1)))} · ต้องมีทะเบียนเกษตรกร · อายุ 2 ปี`, B('gap', 'ยื่นขอ GAP', { dis: hasDoc('gap') || !!f.gap })),
           C('🚚', 'ใบอนุญาตเคลื่อนย้ายสัตว์', `${doc('animmove')}<br>ต้องมีทะเบียนฟาร์ม · สัตว์ทุกตัวสุขภาพดีและฉีดวัคซีน · ไม่ถูกกักกันโรค · อายุ 7 วัน ค่าธรรมเนียม 150`, B('move', 'ขอใบอนุญาต', { dis: hasDoc('animmove') })),
           C('📜', 'ใบเพ็ดดีกรีสัตว์ของฉัน', Object.keys(f.ped).map(id => { const a = byFid(+id); return a ? `${itemI(a)} ${esc(a.name)} · ${f.ped[id].no}` : ''; }).filter(Boolean).join('<br>') || 'ยังไม่มี · ขอได้ในแท็บสัตว์ (ต้องมีสายเลือดบันทึกไว้ หรือยีนเฉลี่ย ≥ 6)')

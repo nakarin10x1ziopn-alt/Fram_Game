@@ -34,9 +34,7 @@ const Fest = {
       return b;
     };
     this.stall = booth(-22, -253, 'ซุ้มของในงาน', 0xe53935, 'fstall', null, '🎪');
-    const contest = booth(-35, -253, 'ประกวดผลผลิต', 0x1e88e5, 'contest', null, '🏆');
-    U.mk(contest, GEO.cyl, mc(0xd9b44a, { metalness: 0.6, roughness: 0.3 }), [0, 1.15, 0], [0.12, 0.35, 0.12]);
-    U.mk(contest, GEO.sph, mc(0xd9b44a, { metalness: 0.6, roughness: 0.3 }), [0, 1.42, 0], [0.18, 0.14, 0.18]);
+    // v245: the produce-contest booth is gone with the farm
     // sky lanterns (khom loi) for Loy Krathong night
     const n = 60, pos = new Float32Array(n * 3); this.sky = [];
     for (let i = 0; i < n; i++) this.sky.push({ x: 0, y: -999, z: 0, v: 0.8 + Math.random() * 0.8, ph: Math.random() * TAU });

@@ -34,7 +34,7 @@ V23.add('v26_life', () => {
   const hh = h => `${String(Math.floor(h)).padStart(2, '0')}:${h % 1 ? '30' : '00'}`;
   const dayIdx = () => (S.day - 1) % 7;
   const holiday = () => !!(window.Cal24 && typeof Cal24.isHoliday === 'function' && Cal24.isHoliday(S.day));
-  const govOpen = () => hrOf() >= 8.5 && hrOf() < 16.5 && dayIdx() < 5 && !holiday();
+  const govOpen = () => (window.Hours36 ? Hours36.open('district') : (hrOf() >= 8.5 && hrOf() < 16.5 && dayIdx() < 5 && !holiday()));
   const gov = (ids, what) => !window.Gov24 || Gov24.need(ids, what);
   const has = id => !window.Gov24 || !!Gov24.has(id);
   const rnd = (a, b) => a + Math.random() * (b - a);
@@ -125,7 +125,7 @@ V23.add('v26_life', () => {
   SYS.vet = { tab: 0, i: '🐾', n: 'สัตวแพทย์สัตว์เลี้ยง', sum: () => { const p = petsL(); return p.length ? `สัตว์เลี้ยง ${p.length} ตัว${p.some(x => vr(x.name).sick) ? ' · มีตัวป่วย' : ''}` : 'ยังไม่มีสัตว์เลี้ยง'; },
     view() {
       const ps = petsL(), op = openNow(9, 19) && !holiday();
-      if (!ps.length) return LEAD('โรงพยาบาลสัตว์สุขใจ เปิด 09:00–19:00 น.') + DIM('ยังไม่มีสัตว์เลี้ยง รับเลี้ยงได้ที่ฟาร์มปศุสัตว์หรือศูนย์สัตว์เลี้ยงภูผา');
+      if (!ps.length) return LEAD('โรงพยาบาลสัตว์สุขใจ เปิด 09:00–19:00 น.') + DIM('ยังไม่มีสัตว์เลี้ยง รับเลี้ยงได้ที่ร้านสัตว์เลี้ยงหรือศูนย์สัตว์เลี้ยงภูผา');
       return LEAD(`โรงพยาบาลสัตว์สุขใจ เปิด ${hh(9)}–${hh(19)} น. (หยุดวันนักขัตฤกษ์)`) + DIM('วัคซีนพิษสุนัขบ้า ปีละครั้ง (84 วัน) · ถ่ายพยาธิทุก 4 สัปดาห์ · สัตว์ที่ไม่ได้ฉีดวัคซีนหรือไม่ถ่ายพยาธิมีโอกาสป่วย ถ้าป่วยเกิน 5 วันไม่ได้รักษาความสุขของสัตว์จะลดลงมาก') +
         GR(ps.map(p => { const r = vr(p.name), t = (typeof PETS !== 'undefined' && PETS[p.type]) || { i: '🐾', n: p.type };
           return C(t.i, esc(p.name), `วัคซีนพิษสุนัขบ้า: ${r.rab >= S.day ? '✅ ถึง ' + r.rab : '❌ หมดอายุ'} · ถ่ายพยาธิ: ${r.worm >= S.day ? '✅ ถึง ' + r.worm : '❌ ครบกำหนด'} · ทำหมัน: ${r.neut ? 'แล้ว' : 'ยัง'}${r.sick ? ' · <b class="bad">🤒 ป่วย</b>' : ''}`,

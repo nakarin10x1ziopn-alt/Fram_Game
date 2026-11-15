@@ -7,15 +7,15 @@
 // START MONEY  every new save: 10,000 cash. Test period (before 1 Dec 2569): bank 80,000,000. After it: bank 30,000. Old saves keep their total; cash above 10,000 moves into the bank.
 // PAYMENT RULES (per payment)   cash up to 50,000 | app transfer / PromptPay up to 100,000 (200,000 a day) | from 100,000 up: personal cheque, cashier's cheque or counter withdrawal only.
 //   Personal cheque: a current account with a chequebook, clears next business day (funds held), shops stop taking your cheques for 60 days after a bounce.
-//   Cashier's cheque / counter withdrawal: bank hours Mon-Fri 08:30-16:30, a small fee.
+//   Cashier's cheque / counter withdrawal: bank hours every day 05:00-18:00, a small fee.
 V23.add('v49_bank', () => {
   const BIZ_APP = 100000000, CASH_MAX = 50000, APP_MAX = 100000, APP_DAY = 200000, HIGH = 100000, AUTO_CASH = 300, START_CASH = 10000, LEAVES = 20;
   const OWN_MAX = 10000000;      // moving money between your own accounts in the app: any typed amount, up to 10 million baht a time
   const PAYEES = ['ร้านค้าในหมู่บ้าน', 'ซูเปอร์มาร์เก็ตสุขใจมาร์ท', 'ร้านวัสดุก่อสร้าง', 'ร้านเฟอร์นิเจอร์สุขใจ', 'ร้านอุปกรณ์เกษตร', 'ร้านอาหาร', 'คาเฟ่', 'อู่ซ่อมรถ', 'โชว์รูมรถยนต์', 'คอมพิวเตอร์พลาซ่า', 'ห้างสุขใจพลาซ่า', 'โรงพยาบาล / คลินิก', 'ร้านขายยา', 'การไฟฟ้า', 'การประปา', 'โรงเรียน / สถาบันอบรม', 'ผู้รับเหมาก่อสร้าง', 'เจ้าของบ้านเช่า / ที่ดิน', 'ศูนย์ราชการ', 'บุคคลทั่วไป (พิมพ์ชื่อเอง)'];
   const PURPOSES = ['ค่าสินค้า', 'ค่าบริการ / ค่าซ่อม', 'ค่าเช่า', 'ค่าน้ำ / ค่าไฟ', 'ค่าเล่าเรียน / ค่าอบรม', 'ค่ารักษาพยาบาล', 'ค่าก่อสร้าง / ต่อเติม', 'ค่าผ่อนชำระ', 'ค่ามัดจำ', 'อื่น ๆ'];
-  const wkOf = d => (d - 1) % 7, isHolB = d => { try { return !!(window.Cal24 && Cal24.isHoliday(d)); } catch (e) { return false; } }, isBiz = d => wkOf(d) < 5 && !isHolB(d), nextBiz = d => { let x = d + 1; while (!isBiz(x)) x++; return x; };   // banks are shut on public holidays too
+  const wkOf = d => (d - 1) % 7, isHolB = d => { try { return !!(window.Cal24 && Cal24.isHoliday(d)); } catch (e) { return false; } }, isBiz = d => true, nextBiz = d => { let x = d + 1; while (!isBiz(x)) x++; return x; };   // banks are shut on public holidays too
   const hasId = () => { try { return !!Gov24.has('idcard'); } catch (e) { return false; } };
-  const hourNow = () => S.time / 60, bankOpen = () => isBiz(S.day) && hourNow() >= 8.5 && hourNow() < 16.5;
+  const hourNow = () => S.time / 60, bankOpen = () => hourNow() >= 5 && hourNow() < 18;   // v210: the branch counter is open every day 05:00-18:00, no holidays
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
   const toast = (t, i) => { try { UI.toast(t, i || '🏦'); } catch (e) { } };
   const val = id => (document.getElementById(id) || {}).value;
@@ -71,7 +71,7 @@ V23.add('v49_bank', () => {
     if (!hasId()) { toast('เปิดบัญชีต้องใช้บัตรประชาชน (ทำที่ศูนย์ราชการ)', '🪪'); return null; }
     if (type === 'cur' && v.accts.some(a => a.type === 'cur')) { toast('มีบัญชีกระแสรายวันแล้ว', 'ℹ️'); return null; }
     if (type === 'sav' && v.accts.filter(a => a.type === 'sav').length >= 5) { toast('เปิดบัญชีออมทรัพย์เพิ่มได้สูงสุด 5 บัญชี', 'ℹ️'); return null; }
-    if ((type === 'cur' || counter) && !bankOpen()) { toast('เปิดบัญชีที่สาขาได้ จ-ศ 08:30–16:30', '🕘'); return null; }
+    if ((type === 'cur' || counter) && !bankOpen()) { toast('เปิดบัญชีที่สาขาได้ ทุกวัน 05:00–18:00', '🕘'); return null; }
     if (dep < min) { toast(`ฝากเปิดบัญชีขั้นต่ำ ${baht(min)}`, '💸'); return null; }
     if (src === 'cash' ? S._c < dep : Bank.st().sav < dep) { toast(src === 'cash' ? 'เงินสดในกระเป๋าไม่พอสำหรับฝากเปิดบัญชี' : 'เงินในบัญชีออมทรัพย์หลักไม่พอสำหรับฝากเปิดบัญชี', '💸'); return null; }
     if (src === 'cash') S._c -= dep; else Bank.st().sav -= dep;
@@ -130,10 +130,10 @@ V23.add('v49_bank', () => {
     const appWhy = big ? `เงินในบัญชีออมทรัพย์ ${baht(Bank.st().sav)} ไม่พอ (ต้องมี ${baht(n)})` : high ? 'ยอด ≥ 100,000 ต้องจ่ายเช็คหรือเบิกที่ธนาคาร' : n > APP_MAX ? `โอนผ่านแอปได้ไม่เกิน ${baht(APP_MAX)}/ครั้ง` : used + n > dayLim() ? `เกินวงเงินโอนต่อวัน ${baht(dayLim())}` : `เงินในบัญชีออมทรัพย์ ${baht(Bank.st().sav)} ไม่พอ`;
     add('app', appOk, appWhy, 0, `หักจากบัญชีออมทรัพย์ คงเหลือ ${baht(Bank.st().sav - n)}`);
     add('pp', appOk && hasId() && v.pp.reg, !hasId() ? 'ต้องมีบัตรประชาชนลงทะเบียนพร้อมเพย์' : !v.pp.reg ? 'ยังไม่ได้ลงทะเบียนพร้อมเพย์ (ในแอปธนาคาร > ตั้งค่า)' : appWhy, 0, 'หักจากบัญชีออมทรัพย์');
-    add('cheque', !!a && v.book.left > 0 && a.bal >= n && accepts(), !a ? 'ต้องเปิดบัญชีกระแสรายวันก่อน: ไปที่สาขาธนาคาร (จ–ศ 08:30–16:30) ใช้บัตรประชาชน ฝากเริ่มต้น 2,000 ฿ จะได้สมุดเช็ค 20 ใบ' : v.book.left < 1 ? 'สมุดเช็คหมด ขอเล่มใหม่ในแอปธนาคาร > เช็ค (100 ฿)' : !accepts() ? 'เพิ่งมีเช็คคืน ร้านค้าไม่รับเช็คของคุณ (60 วัน)' : `เงินในบัญชีกระแสรายวัน ${baht(a.bal)} ไม่พอ ยังขาด ${baht(n - a.bal)}${Bank.st().sav >= n - a.bal ? ' · กดปุ่ม "โอนเข้ากระแสรายวัน" ด้านล่างเพื่อเติมจากออมทรัพย์แล้วจ่ายเช็คได้ทันที' : ' · ออมทรัพย์ก็ไม่พอ'}`, 0, `เช็คใบที่ ${v.book.next} · เคลียร์ ${RD(nextBiz(S.day))}`);
+    add('cheque', !!a && v.book.left > 0 && a.bal >= n && accepts(), !a ? 'ต้องเปิดบัญชีกระแสรายวันก่อน: ไปที่สาขาธนาคาร (ทุกวัน 05:00–18:00) ใช้บัตรประชาชน ฝากเริ่มต้น 2,000 ฿ จะได้สมุดเช็ค 20 ใบ' : v.book.left < 1 ? 'สมุดเช็คหมด ขอเล่มใหม่ในแอปธนาคาร > เช็ค (100 ฿)' : !accepts() ? 'เพิ่งมีเช็คคืน ร้านค้าไม่รับเช็คของคุณ (60 วัน)' : `เงินในบัญชีกระแสรายวัน ${baht(a.bal)} ไม่พอ ยังขาด ${baht(n - a.bal)}${Bank.st().sav >= n - a.bal ? ' · กดปุ่ม "โอนเข้ากระแสรายวัน" ด้านล่างเพื่อเติมจากออมทรัพย์แล้วจ่ายเช็คได้ทันที' : ' · ออมทรัพย์ก็ไม่พอ'}`, 0, `เช็คใบที่ ${v.book.next} · เคลียร์ ${RD(nextBiz(S.day))}`);
     const cf = cashierFee(n), src = Bank.st().sav >= n + cf ? 'sav' : (a && a.bal >= n + cf ? 'cur' : '');
-    add('cashier', n >= 5000 && bankOpen() && hasId() && !!src, n < 5000 ? 'แคชเชียร์เช็คออกขั้นต่ำ 5,000' : [!bankOpen() && 'ธนาคารปิด (เปิด จ–ศ 08:30–16:30 ไม่ใช่วันหยุด)', !hasId() && 'ต้องมีบัตรประชาชน (ทำที่ศูนย์ราชการ)', !src && `เงินในบัญชีไม่พอ (ต้องมี ${baht(n + cf)})`].filter(Boolean).join(' · '), cf, `ค่าธรรมเนียม ${baht(cf)}`);
-    const df = drawFee(n); add('draw', high && bankOpen() && hasId() && Bank.st().sav >= n + df, !high ? 'ใช้กับยอด ≥ 100,000' : [!bankOpen() && 'ธนาคารปิด (เปิด จ–ศ 08:30–16:30 ไม่ใช่วันหยุด)', !hasId() && 'ต้องมีบัตรประชาชน (ทำที่ศูนย์ราชการ)', !(Bank.st().sav >= n + df) && `เงินในบัญชีออมทรัพย์ไม่พอ (ต้องมี ${baht(n + df)})`].filter(Boolean).join(' · '), df, `ค่าธรรมเนียม ${baht(df)}`);
+    add('cashier', n >= 5000 && bankOpen() && hasId() && !!src, n < 5000 ? 'แคชเชียร์เช็คออกขั้นต่ำ 5,000' : [!bankOpen() && 'ธนาคารปิด (เปิด ทุกวัน 05:00–18:00)', !hasId() && 'ต้องมีบัตรประชาชน (ทำที่ศูนย์ราชการ)', !src && `เงินในบัญชีไม่พอ (ต้องมี ${baht(n + cf)})`].filter(Boolean).join(' · '), cf, `ค่าธรรมเนียม ${baht(cf)}`);
+    const df = drawFee(n); add('draw', high && bankOpen() && hasId() && Bank.st().sav >= n + df, !high ? 'ใช้กับยอด ≥ 100,000' : [!bankOpen() && 'ธนาคารปิด (เปิด ทุกวัน 05:00–18:00)', !hasId() && 'ต้องมีบัตรประชาชน (ทำที่ศูนย์ราชการ)', !(Bank.st().sav >= n + df) && `เงินในบัญชีออมทรัพย์ไม่พอ (ต้องมี ${baht(n + df)})`].filter(Boolean).join(' · '), df, `ค่าธรรมเนียม ${baht(df)}`);
     if (window.Debit169) for (const x of window.Debit169.methods(n)) out.push(x);
     if (window.Card168) for (const x of window.Card168.methods(n)) out.push(x);
     if (window.Evt170 && window.Evt170.outage()) for (const x of out) if (x.k === 'app' || x.k === 'pp') { x.ok = false; x.why = 'ระบบแอปธนาคารและพร้อมเพย์ขัดข้องชั่วคราว'; }
@@ -169,9 +169,9 @@ V23.add('v49_bank', () => {
     const a = curAcct(), v = V(), cf = cashierFee(n), row = (ok, t) => `<p style="margin:2px 0;color:${ok ? '#8be28b' : '#ff9e8a'}">${ok ? '✅' : '❌'} ${t}</p>`;
     return `<div class="card" style="grid-template-columns:1fr"><div class="cb"><h4>ยอด ${baht(n)} ต้องจ่ายด้วยเช็คหรือเบิกที่ธนาคาร</h4>
       <p class="dim" style="margin:6px 0 2px"><b>ทางที่ 1 · เช็คส่วนตัว</b> (จ่ายได้ทุกเวลา ทุกที่ ไม่ต้องรอเวลาธนาคาร)</p>
-      ${row(!!a, 'มีบัญชีกระแสรายวัน (เปิดที่สาขา จ–ศ 08:30–16:30 ต้องมีบัตรประชาชน ฝากเริ่มต้น 2,000 ฿)')}${row(!!a && v.book.left > 0, 'มีสมุดเช็ค' + (a ? ` (เหลือ ${v.book.left} ใบ)` : ''))}${row(!!a && a.bal >= n, `เงินในกระแสรายวัน ${baht(a ? a.bal : 0)} ต้องมีอย่างน้อย ${baht(n)} (โอนจากออมทรัพย์ได้ในแอป)`)}${row(accepts(), 'ร้านยังรับเช็คของคุณ (ไม่มีเช็คคืนใน 60 วัน)')}
+      ${row(!!a, 'มีบัญชีกระแสรายวัน (เปิดที่สาขา ทุกวัน 05:00–18:00 ต้องมีบัตรประชาชน ฝากเริ่มต้น 2,000 ฿)')}${row(!!a && v.book.left > 0, 'มีสมุดเช็ค' + (a ? ` (เหลือ ${v.book.left} ใบ)` : ''))}${row(!!a && a.bal >= n, `เงินในกระแสรายวัน ${baht(a ? a.bal : 0)} ต้องมีอย่างน้อย ${baht(n)} (โอนจากออมทรัพย์ได้ในแอป)`)}${row(accepts(), 'ร้านยังรับเช็คของคุณ (ไม่มีเช็คคืนใน 60 วัน)')}
       <p class="dim" style="margin:8px 0 2px"><b>ทางที่ 2 · แคชเชียร์เช็ค / เบิกที่ธนาคาร</b> (เฉพาะเวลาทำการ มีค่าธรรมเนียมเล็กน้อย ตัดจากออมทรัพย์)</p>
-      ${row(hasId(), 'มีบัตรประชาชน (ทำที่ศูนย์ราชการ)')}${row(bankOpen(), 'ธนาคารเปิดอยู่ (จ–ศ 08:30–16:30 ไม่ใช่วันหยุด)')}${row(Bank.st().sav >= n + cf, `เงินออมทรัพย์ ${baht(Bank.st().sav)} ต้องมี ${baht(n + cf)} (รวมค่าธรรมเนียม)`)}
+      ${row(hasId(), 'มีบัตรประชาชน (ทำที่ศูนย์ราชการ)')}${row(bankOpen(), 'ธนาคารเปิดอยู่ (ทุกวัน 05:00–18:00)')}${row(Bank.st().sav >= n + cf, `เงินออมทรัพย์ ${baht(Bank.st().sav)} ต้องมี ${baht(n + cf)} (รวมค่าธรรมเนียม)`)}
       <div class="row"><button class="btn ghost" data-a="p49app">📱 เปิดแอปธนาคาร (โอนเข้ากระแสรายวัน / ขอสมุดเช็ค) — ยอดนี้จะรอคุณอยู่</button></div></div></div>`;
   };
   const topUp = n => { const a = curAcct(); if (!a || V().book.left < 1 || !accepts() || a.bal >= n) return 0; const need = Math.ceil(n - a.bal); return Bank.st().sav >= need ? need : 0; };
@@ -251,7 +251,7 @@ V23.add('v49_bank', () => {
     const v = V(), l = all(), curA = curAcct();
     return `<div class="card" style="background:linear-gradient(135deg,#08481f,#0b5a2a)"><div class="ci">🏦</div><div class="cb"><h4>ธนาคารสุขใจ</h4><p>เงินสดในกระเป๋า <b>${bahtS(S._c)}</b> · เงินในธนาคารรวม <b>${bahtS(l.reduce((s, a) => s + balOf(a), 0))}</b></p></div></div>
       <div class="grid">${l.map(acctCard).join('')}</div>
-      <div class="card"><div class="ci">🏧</div><div class="cb"><h4>ถอน / ฝากเงินสด</h4><p class="dim">แอปธนาคารโอนเงินระหว่างบัญชีได้ แต่ <b>ถอนหรือฝากเงินสดไม่ได้</b> เหมือนในชีวิตจริง · ไปที่ <b>ตู้ ATM</b> (ตลอด 24 ชม. ครั้งละไม่เกิน 20,000 ฿) หรือ <b>เคาน์เตอร์สาขา</b> (จ–ศ 08:30–16:30 ถอนได้ไม่จำกัดจำนวน ทั้งออมทรัพย์และกระแสรายวัน) ถอนแล้วเงินเข้ากระเป๋าเงินสดทันที</p></div></div>
+      <div class="card"><div class="ci">🏧</div><div class="cb"><h4>ถอน / ฝากเงินสด</h4><p class="dim">แอปธนาคารโอนเงินระหว่างบัญชีได้ แต่ <b>ถอนหรือฝากเงินสดไม่ได้</b> เหมือนในชีวิตจริง · ไปที่ <b>ตู้ ATM</b> (ตลอด 24 ชม. ครั้งละไม่เกิน 20,000 ฿) หรือ <b>เคาน์เตอร์สาขา</b> (ทุกวัน 05:00–18:00 ถอนได้ไม่จำกัดจำนวน ทั้งออมทรัพย์และกระแสรายวัน) ถอนแล้วเงินเข้ากระเป๋าเงินสดทันที</p></div></div>
       <h5>เปิดบัญชีใหม่</h5><p class="dim">ใช้บัตรประชาชน · ฝากเริ่มต้นจากบัญชีออมทรัพย์หลัก ${hasId() ? '' : '· <b>ยังไม่มีบัตรประชาชน</b>'}</p>
       <div class="row"><input id="b49Dep" type="number" min="0" step="100" placeholder="เงินฝากเริ่มต้น (บาท)" style="flex:1;font-size:16px;padding:8px;border-radius:10px;border:1px solid #ccc"></div>
       <div class="row"><button class="btn" data-a="b49" data-v="open|sav">💰 เปิดบัญชีออมทรัพย์เพิ่ม (ขั้นต่ำ 500)</button><button class="btn" data-a="b49" data-v="open|cur" ${curA ? 'disabled' : ''}>🧾 เปิดบัญชีกระแสรายวัน (ขั้นต่ำ 2,000 · สาขา)</button></div>`;
@@ -278,7 +278,7 @@ V23.add('v49_bank', () => {
   const KIND = { personal: 'เช็คส่วนตัว', cashier: 'แคชเชียร์เช็ค', draw: 'เบิกที่ธนาคาร' };
   function tabCheque() {
     const v = V(), a = curAcct(), f = 'font:inherit;font-size:15px;padding:6px 8px;border-radius:8px;border:1px solid #b9a77a;background:#fffdf3;color:#3a2f10;min-width:0';
-    if (!a) return `${window.BankPlus ? window.BankPlus.rcvHtml() : ''}<div class="card"><div class="ci">🧾</div><div class="cb"><h4>เช็คใช้กับบัญชีกระแสรายวัน</h4><p class="dim">ยังไม่มีบัญชี เปิดได้ที่แท็บ "บัญชี" (บัตรประชาชน ฝากเริ่มต้น 2,000 ที่สาขา จ–ศ 08:30–16:30) ได้สมุดเช็คเล่มแรก ${LEAVES} ใบ</p></div></div>
+    if (!a) return `${window.BankPlus ? window.BankPlus.rcvHtml() : ''}<div class="card"><div class="ci">🧾</div><div class="cb"><h4>เช็คใช้กับบัญชีกระแสรายวัน</h4><p class="dim">ยังไม่มีบัญชี เปิดได้ที่แท็บ "บัญชี" (บัตรประชาชน ฝากเริ่มต้น 2,000 ที่สาขา ทุกวัน 05:00–18:00) ได้สมุดเช็คเล่มแรก ${LEAVES} ใบ</p></div></div>
       <p class="dim">ซื้อบ้าน รถ ที่ดิน หรือของราคา ${bahtS(HIGH)} ขึ้นไป ต้องจ่ายด้วยเช็คหรือเบิกที่ธนาคาร</p>`;
     const nextNo = v.book.next, list = v.ch, show = B.chAll ? list.slice(0, 40) : list.slice(0, 5);
     const row = c => `<div style="display:grid;grid-template-columns:1fr auto;gap:2px 10px;padding:7px 2px;border-bottom:1px solid rgba(255,255,255,.1);font-size:13.5px"><span><b>#${c.no}</b> ${esc(c.payee)}<br><small class="dim">${KIND[c.kind] || 'เช็ค'} · ${esc(c.memo || '')} · ${RD(c.date)}</small></span><span style="text-align:right"><b>${bahtS(c.amt)}</b><br><small>${STAT[c.status] || c.status}${c.status === 'pending' && !c.held ? ` · <button class="btn ghost" style="padding:1px 8px;font-size:11.5px" data-a="b49" data-v="stop|${c.no}">ระงับจ่าย</button>` : ''}${c.kind !== 'draw' ? ` · <button class="btn ghost" style="padding:1px 8px;font-size:11.5px" data-a="s163cv" data-v="${c.no}">เปิดใบเช็ค</button>` : ''}</small></span></div>`;
@@ -292,7 +292,7 @@ V23.add('v49_bank', () => {
           <span>บาท</span><input id="b49Amt" type="number" min="1" value="${amtV()}" oninput="var w=document.getElementById('b49Words');if(w)w.textContent=Bank49.words(this.value)" placeholder="จำนวนเงิน" style="${f};font-weight:600"><span>ตัวอักษร</span><small id="b49Words" style="font-weight:600">${esc(words(amtV()))}</small>
           <span>ลงวันที่</span><select id="b49Ahead" style="${f}"><option value="0">วันนี้</option><option value="1">ล่วงหน้า 1 วัน</option><option value="3">ล่วงหน้า 3 วัน</option><option value="7">ล่วงหน้า 7 วัน</option><option value="14">ล่วงหน้า 14 วัน</option><option value="30">ล่วงหน้า 30 วัน</option></select>
         </div>
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;font-size:11.5px"><b style="border:1px solid #3a2f10;padding:0 6px">A/C PAYEE ONLY</b><span>ผู้สั่งจ่าย ${esc(S.name || 'ชาวไร่')}</span></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;font-size:11.5px"><b style="border:1px solid #3a2f10;padding:0 6px">A/C PAYEE ONLY</b><span>ผู้สั่งจ่าย ${esc(S.name || 'ผู้เล่น')}</span></div>
       </div>
       <div class="row"><button class="btn" data-a="b49" data-v="wr">✍️ เขียนเช็ค</button><button class="btn ghost" data-a="b49" data-v="book">📒 ขอสมุดเช็คเล่มใหม่ (100 ฿)</button></div>
       <div class="row"><input id="b49Mv" type="number" min="1" placeholder="โอนเงินเข้าบัญชีกระแสรายวัน (พิมพ์จำนวน)" style="flex:1;min-width:0;font:inherit;font-size:15px;padding:8px;border-radius:10px;border:1px solid #ccc"></div>
@@ -377,7 +377,7 @@ V23.add('v49_bank', () => {
   // ===== branch counter (the bank building): big transfers between your own accounts, no app limit, bank hours + ID card =====
   UI.H.c49x = () => {
     const f = all().find(q => q.id === val('c49F')), t = all().find(q => q.id === val('c49T')), n = Math.round(+val('c49N') || 0);
-    if (!bankOpen()) { toast('เคาน์เตอร์ปิดอยู่ เปิด จ–ศ 08:30–16:30', '🕘'); return; }
+    if (!bankOpen()) { toast('เคาน์เตอร์ปิดอยู่ เปิด ทุกวัน 05:00–18:00', '🕘'); return; }
     if (!hasId()) { toast('ทำรายการที่เคาน์เตอร์ต้องใช้บัตรประชาชน (ทำที่ศูนย์ราชการ)', '🪪'); return; }
     if (!f || !t || f === t || !(n >= 1)) { toast('เลือกบัญชีต้นทางกับปลายทางที่ต่างกัน และพิมพ์จำนวนเงิน', 'ℹ️'); return; }
     if (balOf(f) < n) { toast(`เงินใน${f.name}ไม่พอ (มี ${bahtS(balOf(f))})`, '💸'); return; }
@@ -389,7 +389,7 @@ V23.add('v49_bank', () => {
     c.render = t => {
       const html = r0(t); if (t !== 0) return html;
       const l = all(), sel = 'font-size:16px;padding:8px;border-radius:10px;border:1px solid #ccc;margin:2px 0;flex:1', o = l.map(a => `<option value="${a.id}">${esc(a.name)} (${bahtS(balOf(a))})</option>`).join(''), o2 = l.map((a, i) => `<option value="${a.id}" ${i === 1 ? 'selected' : ''}>${esc(a.name)} (${bahtS(balOf(a))})</option>`).join('');
-      return html + `<h5>🏦 โอนระหว่างบัญชีของฉันที่เคาน์เตอร์</h5><p class="dim">${bankOpen() ? '🟢 เคาน์เตอร์เปิด' : '🔴 เคาน์เตอร์ปิด (จ–ศ 08:30–16:30)'} · ไม่จำกัดวงเงิน ไม่มีค่าธรรมเนียม · ใช้บัตรประชาชน ${hasId() ? '✅' : '❌ ยังไม่มี'}</p>
+      return html + `<h5>🏦 โอนระหว่างบัญชีของฉันที่เคาน์เตอร์</h5><p class="dim">${bankOpen() ? '🟢 เคาน์เตอร์เปิด' : '🔴 เคาน์เตอร์ปิด (ทุกวัน 05:00–18:00)'} · ไม่จำกัดวงเงิน ไม่มีค่าธรรมเนียม · ใช้บัตรประชาชน ${hasId() ? '✅' : '❌ ยังไม่มี'}</p>
         <div class="row"><select id="c49F" style="${sel}">${o}</select> → <select id="c49T" style="${sel}">${o2}</select></div>
         <div class="row"><input id="c49N" type="number" min="1" placeholder="พิมพ์จำนวนเงิน (บาท)" style="flex:1;${sel}"><button class="btn" data-a="c49x">โอน</button></div>`;
     };

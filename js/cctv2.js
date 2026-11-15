@@ -3,16 +3,16 @@
 // cable runs are measured (Ethernet stops at 100 m, so far points need a switch in between), each camera shows
 // a live picture rendered from where it hangs (black & white infrared at night), and motion at night raises an
 // alert with a saved snapshot you can play back ----------
-const MOUNTS = {
+const MOUNTS = new Proxy({
   house: { n: 'หน้าบ้าน (มองไปทางไร่)', x: -12, z: -24, y: 3.4, lx: 9, lz: -9 },        // v47: a pole in the front yard with an open view over the farm (it used to look at the porch roof)
   gate: { n: 'ทางเข้าไร่', x: 4, z: -58, y: 3.2, lx: 2, lz: -40 },
-  field: { n: 'แปลงผัก', x: 0, z: -14, y: 3.2, lx: 10, lz: -4 },
+  field: { n: 'ลานหน้าบ้านฝั่งตะวันออก', x: 0, z: -14, y: 3.2, lx: 10, lz: -4 },
   pen: { n: 'คอกสัตว์', x: -16, z: 12, y: 3.2, lx: -34, lz: 28 },
   garage: { n: 'โรงจอดรถ', x: -47, z: -43, y: 4.0, lx: -58, lz: -46 },                    // v47: in front of the garage, clear of the trees, sees every bay and the driveway
   orchard: { n: 'สวนผลไม้', x: 28, z: -40, y: 3.2, lx: 38, lz: -28 },
-  south: { n: 'ท้ายไร่ (บ้านเช่า)', x: 40, z: 40, y: 3.2, lx: 40, lz: 52 },
+  south: { n: 'ท้ายบ้าน (บ้านเช่า)', x: 40, z: 40, y: 3.2, lx: 40, lz: 52 },
   road: { n: 'ปากทางถนนใหญ่ (ไกล)', x: 3, z: -110, y: 4, lx: 0, lz: -140 },
-};
+}, { get: (t, k) => (typeof k === 'symbol' || k in t) ? t[k] : t.house });   // v213: a camera saved with an unknown mount spot falls back to the front yard instead of crashing the load ('a.x')
 const CCTV = {
   spotOf(d) { return MOUNTS[d.spot || 'house']; },
   len(a, b) { return Math.round(Math.hypot(a.x - b.x, a.z - b.z) * 1.15 + 6); },

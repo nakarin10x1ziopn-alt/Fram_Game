@@ -28,9 +28,9 @@ V23.add('v28_walkin', () => {
   const DOC_GROUP = {};                                         // application key -> document counter key
   const DOCS_CT = [
     { k: 'regis', n: 'ทะเบียนราษฎร์และครอบครัว', s: 'ยื่นคำขอทะเบียน', i: '👪', apps: ['birth', 'marry', 'divorce', 'rename'] },
-    { k: 'health', n: 'ใบรับรองแพทย์และสัตว์เลี้ยง', s: 'ใบรับรอง/สัตว์', i: '🩺', apps: ['med', 'pet'] },
+    { k: 'health', n: 'ทะเบียนสัตว์เลี้ยง', s: 'สัตว์เลี้ยง', i: '🐾', apps: ['pet'] },
     { k: 'biz', n: 'ธุรกิจและใบอนุญาตประกอบกิจการ', s: 'ใบอนุญาตธุรกิจ', i: '🏪', apps: ['comm', 'alc', 'food', 'hotel', 'factory'] },
-    { k: 'land', n: 'ที่ดิน เกษตร และภาษี', s: 'ที่ดิน/เกษตร/ภาษี', i: '🗺️', apps: ['deed', 'aid', 'taxrefund'] },
+    { k: 'land', n: 'ที่ดินและภาษี', s: 'ที่ดิน/ภาษี', i: '🗺️', apps: ['deed', 'taxrefund'] },
     { k: 'travel', n: 'วีซ่า ขนส่ง และ พ.ร.บ.', s: 'วีซ่า/ขนส่ง', i: '🛂', apps: ['visa', 'ps', 'cmpi'] },
     { k: 'edu', n: 'ทุนการศึกษา', s: 'ทุนการศึกษา', i: '🎓', apps: ['schol'] },
   ];
@@ -242,7 +242,7 @@ V23.add('v28_walkin', () => {
   { const _en = Rooms.enter;
     Rooms.enter = function (poi) {
       const d = poi && poi.room && poi.room.v28;
-      if (d && !d.items().some(cOpen)) { UI.toast(`${NAME}ปิดทำการ (เปิดจ-ศ ${hh(8.5)}–${hh(16.5)} · คลินิกและโรงรับจำนำเปิดนานกว่า)`, '🕒'); return; }
+      if (d && !d.items().some(cOpen)) { UI.toast(`${NAME}ปิดทำการ (เปิดทุกวัน ${hh(5)}–${hh(18)} · คลินิกและโรงรับจำนำเปิดนานกว่า)`, '🕒'); return; }
       return _en.call(this, poi);
     };
     const _lv = Rooms.leave;

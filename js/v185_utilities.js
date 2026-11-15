@@ -35,7 +35,7 @@ V23.add('v185_utilities', () => {
   };
   const cityName = k => { if (!k || k === 'village') return 'หมู่บ้านสุขใจ'; try { const c = V25.cityList().find(x => x.key === k); return c ? c.n : k; } catch (e) { return k; } };
   const where = (id, I) => {
-    if (id === 'main') return 'บ้านหลักของคุณ · ไร่สุขใจ';
+    if (id === 'main') return 'บ้านหลักของคุณ · บ้านสุขใจ';
     if (isLot(I)) { const L = HomeBuild.lot(I.key); let z = ''; try { z = (zoneAt(L.x, L.z) || {}).n || ''; } catch (e) { } return 'ที่ดิน “' + (L ? L.n : I.key) + '”' + (L ? ` · พิกัดบนแผนที่ (${Math.round(L.x)}, ${Math.round(L.z)})` : '') + (z ? ' · โซน' + z : ''); }
     return cityName(I.city) + (I.units > 1 ? ` · ${I.units} ห้อง` : '');
   };

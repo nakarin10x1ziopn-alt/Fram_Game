@@ -144,9 +144,10 @@ const Career = {
   },
   // payday every 7th day (end of the game "month")
   payday() {
-    const j = this.st(), C = this.C(); if (!C || this.dayIdx() !== 6) return;
-    if (Math.floor((S.day - 1) / 28) !== j.leave.year) { j.leave = { sick: 3, biz: 3, year: Math.floor((S.day - 1) / 28) }; }
-    const work = C.days.length, days = []; for (let d = S.day - 6; d < S.day; d++) if (C.days.includes(this.dayIdx(d))) days.push(d);
+    const j = this.st(), C = this.C(); if (!C || !MonthCal.isPayDay(S.day)) return;   // v235: monthly
+    const yr = Cal36.date(S.day).y; if (j.leave.year !== yr) { j.leave = { sick: 3, biz: 3, year: yr }; }   // leave quotas reset every calendar year
+    const from = j.lastPay != null ? j.lastPay : S.day - 30, days = []; for (let d = from + 1; d <= S.day; d++) if (C.days.includes(this.dayIdx(d))) days.push(d);
+    const work = Math.max(1, days.length); j.lastPay = S.day;   // the working days since the last pay slip
     const absent = days.filter(d => j.done[d] === 'absent').length, gross = this.salary(), cut = Math.round(gross / work * absent);
     const ss = C.gov ? Math.round((gross - cut) * 0.03) : Math.min(875, Math.round(Math.min(gross - cut, 17500) * 0.05)), tax = typeof Biz31 !== 'undefined' ? Biz31.whtMonthly(gross - cut) : Math.max(0, Math.round((gross - cut - 26000) * 0.1)), net = gross - cut - ss - tax;
     earn(net); Bank2.income('เงินเดือน ' + C.n, net);

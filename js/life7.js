@@ -90,7 +90,7 @@ const WATER_SIZES = {
 const WaterReq = {
   st() { const w = Water.st(); if (!w.req) w.req = {}; return w.req; },
   places() {
-    const L = [{ id: 'home', n: 'บ้านหลัก (ไร่สุขใจ)', has: Water.st().meter }];
+    const L = [{ id: 'home', n: 'บ้านหลัก (บ้านสุขใจ)', has: Water.st().meter }];
     const hb = S.hb && S.hb.lots || {};
     for (const [id, l] of Object.entries(hb)) if (l && l.design) L.push({ id, n: `บ้านที่สร้างแปลง ${id}${HOUSE_DESIGNS[l.design] ? ` (${HOUSE_DESIGNS[l.design].n})` : ''}`, has: false });
     return L;

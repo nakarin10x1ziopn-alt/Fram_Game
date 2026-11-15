@@ -40,6 +40,7 @@ const CoMap = {
   draw(c) {
     if (this.g[c.id]) { const o0 = this.g[c.id].g; (o0.parent || World.outdoor).remove(o0); this.g[c.id].cols.forEach(x => Col.remove(x)); const i = World.pois.indexOf(this.g[c.id].poi); if (i >= 0) World.pois.splice(i, 1); delete this.g[c.id]; }
     if (!['setup', 'open'].includes(c.st)) return;
+    if (!CO_TYPES[c.type]) return;   // v212: the extra company types (IT, hosting, ISP ...) are added by modules that load AFTER the first draw at start-up; they are drawn by the next daily draw (and by v211_tools right after the modules)
     const p = this.spotOf(c); if (!p) return;
     const TA = p.town ? Town2.areas[p.town] : null; if (p.town && (!TA || TA.lazy || !TA.g)) return;   // a far town is built on the first visit: the building is drawn right after (see v195_cotown.js)
     const T = CO_TYPES[c.type], g = new THREE.Group(), y = TA ? TA.y : World.groundY(p.x, p.z); g.position.set(p.x, y, p.z); g.rotation.y = p.rot; (TA ? TA.g : World.outdoor).add(g);

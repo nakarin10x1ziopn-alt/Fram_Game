@@ -12,7 +12,7 @@ V23.add('v70_coop', () => {
   const chickens = () => (S.animals || []).filter(a => a.type === 'chicken');
   const collectEggs = () => {
     const list = chickens().filter(a => (a.pend || 0) > 0);
-    if (!list.length) { UI.toast(chickens().length ? 'ยังไม่มีไข่ในรัง ไว้มาใหม่ทีหลัง' : 'ยังไม่มีไก่ในฟาร์ม ซื้อไก่ได้ที่ฟาร์มปศุสัตว์', '🥚'); return; }
+    if (!list.length) { UI.toast(chickens().length ? 'ยังไม่มีไข่ในรัง ไว้มาใหม่ทีหลัง' : 'ยังไม่มีไก่ในฟาร์ม ซื้อไก่ได้ที่ร้านสัตว์เลี้ยง', '🥚'); return; }
     let tot = 0; const prod = (typeof ANIMALS !== 'undefined' && ANIMALS.chicken && ANIMALS.chicken.prod) || 'egg';
     for (const a of list) { addItem(prod, a.pend); S.stats.products = (S.stats.products || 0) + a.pend; tot += a.pend; a.pend = 0; a.prod = false; }
     try { Prog.add(Math.min(24, 4 * tot)); Sfx.pop(); } catch (e) { }

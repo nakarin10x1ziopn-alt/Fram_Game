@@ -1,7 +1,7 @@
 'use strict';
 // ---------- v23_prop: property on the map, enterable (empty) new homes with ordered + installed furniture, 20 more
 // roadside lots, farm / barn / house wing expansion and a garage that grows to 6 cars ----------
-const P23 = { slots: [], estSlots: [], names: ['ถนนสายหลักไปเมืองริมทะเล', 'ถนนสายทุ่งทอง', 'ถนนสายภูผาใหม่'] };
+const P23 = { slots: [], estSlots: [], names: ['ถนนสายหลักสุขใจ', 'ถนนสายตะวันออกสุขใจ', 'ถนนสายตะวันตกสุขใจ'] };
 // --- roadside plots: found from the real road lines at load time so the terrain pads can be levelled before the world is built ---
 (() => {
   const segD = (px, pz, ax, az, bx, bz) => { const dx = bx - ax, dz = bz - az, l2 = dx * dx + dz * dz || 1, t = Math.max(0, Math.min(1, ((px - ax) * dx + (pz - az) * dz) / l2)); return Math.hypot(px - ax - dx * t, pz - az - dz * t); };
@@ -89,7 +89,7 @@ const Prop23 = {
   homeDoor() { return World.houseDoor || { x: HOUSE_POS.x, z: HOUSE_POS.z + 8 }; },
   list() {
     const L = [], hd = this.homeDoor();
-    L.push({ k: 'farm', i: '🏡', n: 'บ้านและฟาร์มของคุณ', d: `ฟาร์ม ${typeof farmPlotCount === 'function' ? farmPlotCount() : (S.plots.length > 30 ? '30+' + (S.plots.length - 30) : 30)} แปลง · บ้านระดับ ${S.up.house}`, x: hd.x, z: hd.z });
+    L.push({ k: 'farm', i: '🏡', n: 'บ้านของคุณ', d: `บ้านระดับ ${S.up.house}`, x: hd.x, z: hd.z });
     const hb = HomeBuild.st().lots;
     for (const Lt of LOTS) {
       const st = hb[Lt.id]; if (!st) continue; const D = st.design && HOUSE_DESIGNS[st.design], o = D && D.o;
@@ -409,7 +409,8 @@ const Prop23 = {
   // ================= farm expansion =================
   fcost: [8000, 14000, 24000],
   extraPlots() { return 6 * this.V().fx; },
-  ensurePlots() {
+  ensurePlots() { return; },   // v231: no vegetable plots any more
+  _ensurePlotsOld() {
     const want = 30 + this.extraPlots();
     while (S.plots.length < want) S.plots.push({ c: null, g: 0, w: 0, f: 0 });
     while (G.plots.length < S.plots.length) G.plots.push(makePlot(G.plots.length));
@@ -439,7 +440,7 @@ const Prop23 = {
 
   // ================= property menu =================
   open(tab) {
-    UI.open('ทรัพย์สินและก่อสร้าง', ['ทรัพย์สินของฉัน', 'ที่ดินและบ้านจัดสรร', 'ฟาร์มและคอก', 'บ้านและโรงจอดรถ'], t => [() => this.t0(), () => this.t1(), () => this.t2(), () => this.t3()][t](), { tab: tab || 0 });
+    UI.open('ทรัพย์สินและก่อสร้าง', ['ทรัพย์สินของฉัน', 'ที่ดินและบ้านจัดสรร', 'บ้านและโรงจอดรถ'], t => [() => this.t0(), () => this.t1(), () => this.t3()][t](), { tab: tab === 3 ? 2 : (tab === 2 ? 0 : (tab || 0)) });   // v231: no farm tab
   },
   t0() { return `<p class="lead">ที่ดิน บ้าน อาคาร และบริษัทที่คุณเป็นเจ้าของ แสดงในแผนที่ด้วยวงสีทอง</p><div class="grid">${this.listHTML()}</div>`; },
   t1() {

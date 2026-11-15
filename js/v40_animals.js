@@ -110,7 +110,7 @@
     if (S.trough < Math.ceil(r) && count('feed') > 0 && want > 0) { filled = Math.min(want, count('feed')); takeItem('feed', filled); S.trough += filled; }
     const feedTxt = S.trough >= Math.ceil(r)
       ? `ในรางมีอาหาร ${S.trough} ถุง${filled ? ` (เติมให้จากกระเป๋า ${filled} ถุง)` : ''} พรุ่งนี้ 06:00 จะได้${p.n}`
-      : `⚠️ ในรางมีอาหารแค่ ${S.trough} ถุง — เติมอาหารสัตว์ที่รางอาหารข้างคอกก่อน (ซื้อได้ที่ร้านเกษตรหรือฟาร์มปศุสัตว์ ถุงละ ${baht(TOOLS.feed.price)}) ไม่งั้นพรุ่งนี้จะไม่มี${p.n}`;
+      : `⚠️ ในรางมีอาหารแค่ ${S.trough} ถุง — เติมอาหารสัตว์ที่รางอาหารข้างคอกก่อน (ซื้อได้ที่ร้านเกษตรหรือร้านสัตว์เลี้ยง ถุงละ ${baht(TOOLS.feed.price)}) ไม่งั้นพรุ่งนี้จะไม่มี${p.n}`;
     const msg = `ซื้อ${A.n} “${a.name}” แล้ว (โตเต็มวัย) · ${r < 1 ? `กิน 1 ถุงต่อ ${Math.round(1 / r)} วัน` : `กิน ${r} ถุง/วัน`} · ให้${p.n} ${p.i} ประมาณ 1–2 ชิ้น/วัน (≈ ${baht(incomeDay(t, 1))}–${baht(incomeDay(t, 2))}) · ${feedTxt} · เก็บที่ตัวสัตว์ด้วยปุ่ม E หรือที่จุด "เก็บผลผลิตสัตว์ทั้งหมด"`;
     try { Phone.msg('ฟาร์มของคุณ', msg, true); } catch (e) { }
     toastOk(S.trough >= Math.ceil(r) ? `${A.n} “${a.name}” มาแล้ว — พรุ่งนี้เช้าจะมี${p.n} ${p.i}` : `${A.n} “${a.name}” มาแล้ว — ใส่อาหารในรางก่อน ไม่งั้นไม่มี${p.n}`, A.i);
@@ -155,7 +155,7 @@
   };
   const penHtml = () => {
     migrate();
-    if (!S.animals.length) return '<p class="empty">ยังไม่มีสัตว์ ซื้อได้ที่ฟาร์มปศุสัตว์ป้าศรี</p>';
+    if (!S.animals.length) return '<p class="empty">ยังไม่มีสัตว์ ซื้อได้ที่ร้านสัตว์เลี้ยงป้าศรี</p>';
     const waiting = S.animals.reduce((s, a) => s + (a.pend || 0), 0), hungry = S.animals.filter(a => a.hungry).length, sick = S.animals.filter(a => a.sick).length;
     const dayNeed = Math.ceil(S.animals.reduce((s, a) => s + rate(a), 0)), dayFeed = S.animals.reduce((s, a) => s + feedDay(a.type), 0);
     const dayInc = S.animals.filter(a => isAdult(a) && !a.sick).reduce((s, a) => s + incomeDay(a.type, yieldBase(a)), 0);

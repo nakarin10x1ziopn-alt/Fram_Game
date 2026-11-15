@@ -1,37 +1,34 @@
 'use strict';
 // ---------- Set E: weekly missions, achievements, online leaderboard, mine treasure, flood season, disaster relief ----------
 const MISSIONS = [
-  { k: 'harvest', n: 'เก็บเกี่ยวผลผลิต', i: '🧺', goal: () => 25 + S.lvl * 3, reward: 1200 },
   { k: 'sold', n: 'ขายของ', i: '💰', goal: () => 40 + S.lvl * 5, reward: 1200 },
-  { k: 'fish', n: 'ตกปลา', i: '🎣', goal: () => 6, reward: 900 },
+  { k: 'bought', n: 'ซื้อของ', i: '🛍️', goal: () => 6, reward: 800 },
   { k: 'cooked', n: 'ทำอาหาร', i: '🍳', goal: () => 4, reward: 900 },
   { k: 'earned', n: 'หารายได้ (บาท)', i: '📈', goal: () => 4000 + S.lvl * 800, reward: 1500 },
-  { k: 'planted', n: 'ปลูกผัก', i: '🌱', goal: () => 20, reward: 800 },
 ];
 // 50 achievements: [id, name, icon, test]
 const ACH = [
-  ['h10', 'มือใหม่หัดเก็บ', '🌱', s => s.stats.harvest >= 10], ['h100', 'ชาวไร่ขยัน', '🧺', s => s.stats.harvest >= 100], ['h500', 'เซียนเก็บเกี่ยว', '🏅', s => s.stats.harvest >= 500], ['h2000', 'ราชาแห่งไร่', '👑', s => s.stats.harvest >= 2000],
   ['s50', 'พ่อค้าแม่ค้า', '💵', s => s.stats.sold >= 50], ['s500', 'นักขายมือทอง', '💰', s => s.stats.sold >= 500], ['e10k', 'หมื่นแรก', '🪙', s => s.stats.earned >= 10000], ['e100k', 'เศรษฐีบ้านนา', '💎', s => s.stats.earned >= 100000], ['e1m', 'เศรษฐีล้านบาท', '🏦', s => s.stats.earned >= 1000000],
   ['lv5', 'เลเวล 5', '⭐', s => s.lvl >= 5], ['lv10', 'เลเวล 10', '🌟', s => s.lvl >= 10], ['lv15', 'เลเวล 15', '✨', s => s.lvl >= 15],
-  ['f1', 'ปลาตัวแรก', '🐟', s => (s.stats.fish || 0) >= 1], ['f50', 'นักตกปลา', '🎣', s => (s.stats.fish || 0) >= 50], ['f200', 'เทพเบ็ดทอง', '🐋', s => (s.stats.fish || 0) >= 200],
+  
   ['c10', 'แม่ครัวหัวป่าก์', '🍳', s => (s.stats.cooked || 0) >= 10], ['c100', 'เชฟประจำบ้าน', '👩‍🍳', s => (s.stats.cooked || 0) >= 100],
-  ['a1', 'สัตว์ตัวแรก', '🐔', s => s.animals.length >= 1], ['a8', 'ฟาร์มปศุสัตว์', '🐄', s => s.animals.length >= 8], ['pet', 'เพื่อนซี้สี่ขา', '🐕', s => !!s.pet],
+  ['pet', 'เพื่อนซี้สี่ขา', '🐕', s => !!s.pet],
   ['car1', 'มีรถคันแรก', '🚗', s => s.cars.length >= 1], ['car3', 'นักสะสมรถ', '🏎️', s => s.cars.length >= 3], ['lic', 'ผู้ขับขี่มีใบอนุญาต', '🪪', s => !!s.license], ['tune', 'สายซิ่ง', '🔧', s => s.cars.some(c => c.tune && c.tune.engine >= 3)],
-  ['house2', 'บ้านหลังใหม่', '🏠', s => s.up.house >= 2], ['house3', 'คฤหาสน์ในไร่', '🏡', s => s.up.house >= 3], ['furn5', 'นักแต่งบ้าน', '🛋️', s => Object.keys(s.furn).length >= 5], ['furn12', 'บ้านในฝัน', '🏰', s => Object.keys(s.furn).length >= 12],
+  ['house2', 'บ้านหลังใหม่', '🏠', s => s.up.house >= 2], ['house3', 'คฤหาสน์หลังใหญ่', '🏡', s => s.up.house >= 3], ['furn5', 'นักแต่งบ้าน', '🛋️', s => Object.keys(s.furn).length >= 5], ['furn12', 'บ้านในฝัน', '🏰', s => Object.keys(s.furn).length >= 12],
   ['friend', 'มีเพื่อนสนิท', '🤝', s => Object.values(s.friends).some(v => v >= 6)], ['popular', 'คนดังประจำหมู่บ้าน', '🎉', s => Object.values(s.friends).filter(v => v >= 5).length >= 8],
   ['date', 'รักแรกพบ', '💕', s => s.rel && !!s.rel.partner], ['wed', 'วิวาห์หวาน', '💒', s => s.rel && s.rel.stage === 'married'], ['kid', 'พ่อแม่มือใหม่', '👶', s => s.rel && s.rel.kids.length >= 1], ['kid3', 'ครอบครัวใหญ่', '👨‍👩‍👧‍👦', s => s.rel && s.rel.kids.length >= 3],
   ['race', 'นักแข่งดาวรุ่ง', '🏁', s => s.contest && s.contest.best.race && s.contest.best.race < 30], ['win3', 'แชมป์ 3 สมัย', '🏆', s => s.contest && s.contest.wins >= 3],
   ['mine10', 'นักขุดชั้นลึก', '⛏️', s => (s.mineMax || 0) >= 10], ['dia', 'เพชรเม็ดงาม', '💎', s => !!s.found.diamond],
-  ['rice', 'ข้าวหอมมะลิของเรา', '🌾', s => !!s.found.rice], ['fact', 'เจ้าของโรงงาน', '🏭', s => !!(s.found.chili_paste || s.found.tomato_sauce || s.found.rice_cracker)], ['hands', 'นายจ้างใจดี', '👷', s => s.f2 && s.f2.hands >= 2],
+  ['hands', 'นายจ้างใจดี', '👷', s => s.f2 && s.f2.hands >= 2],
   ['bank', 'นักออม', '🐷', s => s.bank && s.bank.sav >= 20000], ['fund', 'นักลงทุน', '📈', s => s.bank && Object.values(s.bank.funds || {}).some(v => v >= 5000)], ['debt', 'ปลอดหนี้', '✅', s => s.bank && s.bank.log && s.bank.log.some(l => l.t === 'ชำระหนี้') && !s.bank.debt],
   ['caught', 'มือปราบขโมย', '🚓', s => s.emerg && s.emerg.caught >= 1], ['fire', 'วีรบุรุษดับเพลิง', '🚒', s => s.emerg && s.emerg.fires >= 3],
   ['merit', 'สายบุญ', '🙏', s => s.s2 && s.s2.merit >= 5000], ['travel', 'นักเดินทาง', '🧳', s => (s.diary || []).some(d => d.t.includes('ดอยสุขใจ')) && (s.diary || []).some(d => d.t.includes('เกาะสุขใจ'))],
   ['art', 'ศิลปินบ้านทุ่ง', '🎨', s => s.hob && s.hob.paint >= 10], ['music', 'นักดนตรีเปิดหมวก', '🎸', s => s.hob && s.hob.music >= 10],
 ];
 const BOARD_LABEL = { earned: 'รายได้รวมสูงสุด', lvl: 'เลเวลสูงสุด', ach: 'ความสำเร็จมากที่สุด', race: 'เวลาแข่งรถดีที่สุด' };
-GOODS.sandbag = { n: 'กระสอบทรายกันน้ำ', i: '🧱', price: 60, desc: 'วางที่หน้าฟาร์ม 10 กระสอบ กันน้ำท่วมแปลงผักได้ทั้งฤดู' };
+GOODS.sandbag = { n: 'กระสอบทรายกันน้ำ', i: '🧱', price: 60, desc: 'วางที่หน้าบ้าน 10 กระสอบ กันน้ำท่วมแปลงผักได้ทั้งฤดู' };
 ITEMS.sandbag = { n: 'กระสอบทรายกันน้ำ', i: '🧱', cat: 'tool' }; TOOLS.sandbag = { n: GOODS.sandbag.n, i: '🧱', price: 60, desc: GOODS.sandbag.desc };
-SHOPS.farmshop.tabs[1].items.push('tool:sandbag');
+if (SHOPS.farmshop && SHOPS.farmshop.tabs[1]) SHOPS.farmshop.tabs[1].items.push('tool:sandbag');
 
 const Events = {
   st() { if (!S.ev) S.ev = { week: 0, base: {}, claimed: {}, ach: {}, flood: 0, bags: 0, relief: 0 }; return S.ev; },
@@ -68,7 +65,7 @@ const Events = {
   // ----- online leaderboard (server.py) -----
   pushScore() {
     if (!Net.on) return;
-    Net.api('board', { id: Net.id(), name: S.name || 'ชาวไร่', earned: S.stats.earned, lvl: S.lvl, ach: Object.keys(this.st().ach).length, race: S.contest && S.contest.best.race || 0 }).then(b => { this.board = b; }).catch(() => {});
+    Net.api('board', { id: Net.id(), name: S.name || 'ผู้เล่น', earned: S.stats.earned, lvl: S.lvl, ach: Object.keys(this.st().ach).length, race: S.contest && S.contest.best.race || 0 }).then(b => { this.board = b; }).catch(() => {});
   },
   boardView() {
     if (!Net.on) return '<p class="empty">ต้องเปิดเกมผ่านเซิร์ฟเวอร์ (start-server.bat) เพื่อดูอันดับออนไลน์</p>';
@@ -98,11 +95,11 @@ const Events = {
     if (this.weekNo() !== e.week) this.newWeek();
     // floods only in the rainy season, announced a day ahead
     if (e.flood === S.day) {
-      if (e.bags >= 10) { UI.toast('น้ำท่วมทั้งหมู่บ้าน แต่กระสอบทรายกันแปลงผักไว้ได้!', '🧱'); Life2.note('รอดน้ำท่วมเพราะเตรียมกระสอบทราย'); }
+      if (e.bags >= 10) { UI.toast('น้ำท่วมทั้งหมู่บ้าน แต่กระสอบทรายกันน้ำเข้าบ้านไว้ได้!', '🧱'); Life2.note('รอดน้ำท่วมเพราะเตรียมกระสอบทราย'); }
       else { let lost = 0; S.plots.forEach((p, i) => { if (p.c && Math.random() < 0.35) { Bank2.claim('น้ำท่วมแปลงผัก', CROPS[p.c].sell * 2); p.c = null; p.g = 0; p.f = 0; lost++; } }); for (const a of S.animals) a.happy = Math.max(0, (a.happy ?? 50) - 20); G.plots.forEach((_, i) => refreshPlot(i)); Phone.msg('เตือนภัย', `น้ำท่วมไร่! ผักเสียหาย ${lost} แปลง สัตว์เครียด เตรียมกระสอบทรายครั้งหน้านะ`); Life2.note('น้ำท่วมไร่ ผักเสียหาย ' + lost + ' แปลง'); }
       e.relief = S.day + 2; Phone.msg('ผู้ใหญ่บ้าน', 'หมู่บ้านโดนน้ำท่วม ใครมีอาหารหรือเงินช่วยบริจาคได้ที่ศาลากลางหมู่บ้าน หรือมาช่วยซ่อมบ้านกันนะ', true);
     }
-    if (season().id === 'rain' && e.flood < S.day && Math.random() < 0.18) { e.flood = S.day + 1; Phone.msg('กรมอุตุนิยมวิทยา', 'พรุ่งนี้ฝนตกหนักมาก มีโอกาสน้ำท่วม! วางกระสอบทรายหน้าฟาร์มให้ครบ 10 กระสอบ'); }
+    if (season().id === 'rain' && e.flood < S.day && Math.random() < 0.18) { e.flood = S.day + 1; Phone.msg('กรมอุตุนิยมวิทยา', 'พรุ่งนี้ฝนตกหนักมาก มีโอกาสน้ำท่วม! วางกระสอบทรายหน้าบ้านให้ครบ 10 กระสอบ'); }
     if (season().id !== 'rain' && e.bags) { e.bags = 0; this.drawBags(); }
     this.pushScore();
   },

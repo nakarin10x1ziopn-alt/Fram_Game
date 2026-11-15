@@ -21,7 +21,7 @@ V23.add('v206_docrules', () => {
     bizcert: [m(3), 0, 0, 'หนังสือรับรองบริษัท (DBD) ผู้รับมักรับไม่เกิน 3 เดือน', 1],
     edcert: [0, 0, 0, 'ไม่มีวันหมดอายุ'],
     farmer: [y(1), m(1), 1, 'ทะเบียนเกษตรกรต้องปรับปรุงข้อมูลทุกปี'],
-    livereg: [y(3), m(3), 1, 'ใบรับรองฟาร์มปศุสัตว์ ~3 ปี', 1],
+    livereg: [y(3), m(3), 1, 'ใบรับรองร้านสัตว์เลี้ยง ~3 ปี', 1],
     fishreg: [y(1), m(1), 1, 'ใบอนุญาตประมงต่อรายปี'],
     ssoreg: [0, 0, 0, 'ไม่มีวันหมดอายุ (ต้องส่งเงินสมทบรายเดือน)'],
     firecert: [y(1), m(1), 1, 'ตรวจความปลอดภัยอัคคีภัยรายปี'],
@@ -110,8 +110,11 @@ V23.add('v206_docrules', () => {
   }
 
   // ----- company licences: they expire now, and are renewed at the authority -----
-  const LIC_LIFE = { nbtc: y(5), erc: y(5), fda: y(5), rong4: y(5), food: y(1), build: y(1), dlt: y(5) };
-  const LIC_WIN = m(3);
+  // v237: company licences live in calendar years and months (a year = 365 days, a month = 30 days), the same clock as the monthly close; the personal documents above keep the game year
+  const yc = n => Math.round(n * 365), mc = n => Math.round(n * 30);
+  const LIC_LIFE = { nbtc: yc(5), erc: yc(5), fda: yc(5), rong4: yc(5), food: yc(1), build: yc(1), dlt: yc(5) };
+  const LIC_WIN = mc(3);
+  window.LicRules206 = { LIC_LIFE, LIC_WIN };   // for the self-tests
   const CoLic = window.CoLic205;
   if (CoLic && typeof CO_LIC !== 'undefined') {
     CoLic.body = function (key) {
@@ -175,8 +178,8 @@ V23.add('v206_docrules', () => {
         if (c.renew[k] && !c.licApp[k]) { const from = c.licExp[k] >= S.day ? c.licExp[k] : S.day; c.licExp[k] = from + life; delete c.renew[k]; Phone.msg(c.name, `ต่ออายุ${CO_LIC[k].n}แล้ว ใช้ได้ถึง${RD(c.licExp[k])}`, false); }
         else if (c.licExp[k] == null) c.licExp[k] = S.day + life;
         const l = c.licExp[k] - S.day;
-        if (l < 0) { delete c.lic[k]; Phone.msg(c.name, `⛔ ${CO_LIC[k].n} หมดอายุ — ธุรกิจต้องหยุดจนกว่าจะขอใหม่ที่ศูนย์ราชการ`, true); continue; }
-        for (const t of [m(3), m(1), 0]) if (l === t) warn(`cl${c.id}${k}${c.licExp[k]}${t}`, t ? `${c.name}: ${CO_LIC[k].n} จะหมดอายุในอีก ${t} วัน (${RD(c.licExp[k])}) ต่ออายุที่ศูนย์ราชการ` : `${c.name}: ${CO_LIC[k].n} หมดอายุวันนี้`, !t ? false : true);
+        if (l < 0) { delete c.lic[k]; delete c.licExp[k]; Phone.msg(c.name, `⛔ ${CO_LIC[k].n} หมดอายุ — ธุรกิจต้องหยุดจนกว่าจะขอใหม่ที่ศูนย์ราชการ`, true); continue; }
+        for (const t of [mc(3), mc(1), 0]) if (l === t) warn(`cl${c.id}${k}${c.licExp[k]}${t}`, t ? `${c.name}: ${CO_LIC[k].n} จะหมดอายุในอีก ${t} วัน (${RD(c.licExp[k])}) ต่ออายุที่ศูนย์ราชการ` : `${c.name}: ${CO_LIC[k].n} หมดอายุวันนี้`, !t ? false : true);
       }
       for (let i = c.staff.length - 1; i >= 0; i--) {
         const s = c.staff[i]; if (!s.fw) continue; const l = s.wp - S.day;

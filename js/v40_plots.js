@@ -228,7 +228,7 @@ V23.add('v40_plots', () => {
         const p = S.plots[i];
         const btn = p.off ? `<button class="btn" data-a="v40" data-v="place|${i}">📍 วางแปลง</button>` : `<button class="btn" data-a="v40" data-v="place|${i}">📍 ย้าย / หมุน</button><button class="btn ghost" data-a="v40" data-v="store|${i}">📦 เก็บเข้าคลัง</button><button class="btn ghost" data-a="v40" data-v="go|${i}">🚶 ไปที่แปลง</button>`;
         return `<div class="card"><div class="ci">${p.off ? '📦' : '🟫'}</div><div class="cb"><h4>แปลงเพิ่ม #${n + 1}${p.off ? ' (ในคลัง)' : ''}</h4><p class="dim">${p.off ? 'ยังไม่ได้วาง' : `${esc(stateTxt(i))} · หมุน ${Math.round((p.r || 0) * 180 / Math.PI)}° · ตำแหน่ง ${Math.round(p.x)}, ${Math.round(p.z)}`}</p><div class="row">${btn}</div></div></div>`;
-      }).join('')}</div>` : '<p class="dim">ยังไม่มีแปลงเพิ่ม ซื้อได้ที่แท็บ "ซื้อแปลง" ร้านเกษตรรุ่งเรือง หรือช่างไม้ และจากคอมพิวเตอร์ที่บ้าน</p>');
+      }).join('')}</div>` : '<p class="dim">ยังไม่มีแปลงเพิ่ม ซื้อได้ที่แท็บ "ซื้อแปลง" ร้านวัสดุรุ่งเรือง หรือช่างไม้ และจากคอมพิวเตอร์ที่บ้าน</p>');
     }
     const l = left(), lock = S.lvl < 2 ? 'ปลดล็อกที่เลเวล 2' : '';
     const b = (cond, label, v) => `<button class="btn" data-a="v40" data-v="${v}" ${cond ? 'disabled' : ''}>${label}</button>`;

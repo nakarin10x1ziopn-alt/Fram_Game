@@ -10,9 +10,9 @@ V23.add('v179_shopmerge', () => {
   if (typeof SHOPS === 'undefined' || typeof UI === 'undefined') return;
   const M = [
     // village (the door that is kept is the one that exists: nightmarket / islandbar / mountain have no reachable door any more)
-    { host: 'farmshop', abs: ['hardware'], n: 'ร้านเกษตร & วัสดุก่อสร้าง' },
-    { host: 'ranch', abs: ['petshop'], n: 'ปศุสัตว์ & สัตว์เลี้ยง' },
-    { host: 'florist', abs: ['rare'], n: 'ร้านดอกไม้ & พันธุ์ไม้หายาก' },
+    { host: 'farmshop', abs: ['hardware'], n: 'ร้านวัสดุก่อสร้าง' },
+    { host: 'ranch', abs: ['petshop'], n: 'ร้านสัตว์เลี้ยง' },
+    { host: 'florist', abs: ['rare'], n: 'ร้านดอกไม้ & ต้นไม้ประดับ' },
     { host: 'itshop', abs: ['secshop'], n: 'ไอที & ซีเคียวริตี้' },
     { host: 'citycafe', abs: ['islandbar'], n: 'คาเฟ่ & บาร์ สุขใจ' },
     { host: 'floating', abs: ['nightmarket'], n: 'ตลาดน้ำ & ถนนคนเดิน สุขใจ' },
@@ -30,7 +30,7 @@ V23.add('v179_shopmerge', () => {
     { host: 'v23_orchard_5', abs: ['v23_orchard_7'], n: 'ร้านชำ & ร้านยา' },
     { host: 'v23_orchard_2', abs: ['v23_orchard_6'], n: 'ตลาดผลไม้ & ครัวสวนทอง' },
     // small city
-    { host: 'v23_sunflower_0', abs: ['v23_sunflower_4'], n: 'ร้านชำ & เกษตร' },
+    { host: 'v23_sunflower_0', abs: ['v23_sunflower_4'], n: 'ร้านชำ & ของใช้ทั่วไป' },
     { host: 'v23_sunflower_1', abs: ['v23_sunflower_3'], n: 'ข้าวแกง & กาแฟ' },
   ];
   const GONE = new Set(), NAME = {};

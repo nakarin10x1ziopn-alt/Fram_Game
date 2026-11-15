@@ -47,9 +47,15 @@ V23.add('v39_testperiod', function () {
     if (!S) return;
     const v = V();
     // 1. a brand-new save
-    if (G.fresh && !v.init) {
+    if (G.fresh && !v.init && (G.started || why === 'play')) {   // v211: a brand-new save gets its money when the player presses Play (after choosing the start on the start screen), not at page load
       v.init = 1;
-      if (true) { v.given = 1; if (window.Pay49) Pay49.setStart(CFG.START_CASH, CFG.TEST_MONEY); else S.money = CFG.TEST_MONEY; setLevel(CFG.TEST_LEVEL()); log('เงินเริ่มต้น (เซฟใหม่)', CFG.TEST_MONEY); }   // v1.1: the same start for every new save, whatever the date
+      if (true) {
+        // v211: the start of a NEW save follows the choice on the start screen: test (10,000 million + level 50, the default) · medium (1 million + level 5) · real (30,000 + 10,000 cash, level 1)
+        const PR = { test: [CFG.START_CASH, CFG.TEST_MONEY, CFG.TEST_LEVEL()], mid: [5000, 1000000, 5], real: [10000, CFG.AFTER_MONEY, 1] };
+        let key = 'test'; try { key = localStorage.getItem('raisukjai_startmoney') || 'test'; } catch (e) { }
+        const pr = PR[key] || PR.test; v.given = 1; v.profile = key;
+        if (window.Pay49) Pay49.setStart(pr[0], pr[1]); else S.money = pr[1]; setLevel(pr[2]); log('เงินเริ่มต้น (เซฟใหม่)', pr[1]);
+      }   // v1.1: the same start for every new save, whatever the date
       else { v.reset = 1; v.resetDay = S.day; if (window.Pay49) Pay49.setStart(10000, CFG.AFTER_MONEY); else S.money = CFG.AFTER_MONEY; setLevel(CFG.AFTER_LEVEL); if (safeGet(T39_FLAG)) { safeSet(T39_FLAG, ''); notice(); } }
     }
     // 2. the cutoff passed while a test save was open: wipe it (the reload starts the real game from nothing)
@@ -59,7 +65,8 @@ V23.add('v39_testperiod', function () {
   }
 
   // check on load, at every new game day, when the tab comes back to the front, and once a minute (a tab left open across midnight)
-  setTimeout(() => { try { apply('load'); } catch (e) { console.warn('v39 testperiod', e); } }, 0);   // after every module has registered, so Lvl39.MAX is known
+  setTimeout(() => { try { apply('load'); } catch (e) { console.warn('v39 testperiod', e); } }, 0);
+  { const _sg = startGame; if (typeof _sg === 'function') startGame = function (fresh) { if (!fresh) { try { apply('play'); } catch (e) { console.warn('v39 play', e); } } return _sg.apply(this, arguments); }; }   // after every module has registered, so Lvl39.MAX is known
   { const _nd = newDay; newDay = function () { const r = _nd.apply(this, arguments); try { apply('day'); } catch (e) { } return r; }; }
   document.addEventListener('visibilitychange', () => { if (!document.hidden) { try { apply('visible'); } catch (e) { } } });
   setInterval(() => { try { if (G.started && !V().reset && !inTest()) apply('timer'); } catch (e) { } }, 60000);

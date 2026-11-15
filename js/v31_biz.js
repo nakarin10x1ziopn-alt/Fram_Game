@@ -7,7 +7,7 @@ V23.add('v31_biz', () => {
   const YD = 84, MO = 28;                                     // a game year = 12 weeks, a "month" = 4 weeks (same as v26)
   const MIN_WAGE = 12000;                                     // full-time minimum per 4-week month (~400 ฿/day x 30)
   const SSO_RATE = 0.05, SSO_BASE = 17500, SSO_CAP = 875, VAT = 0.07, VAT_LIMIT = 1800000;
-  const MAX_SHOPS = 6, MAX_STAFF = 8;
+  const maxShops = () => 6 + (S.v212 && S.v212.rm ? 4 : 0), MAX_STAFF = 8;   // v212: a regional manager lifts the limit from 6 to 10 branches
   const B31 = () => { const x = S.v31b = S.v31b || {}; if (!x.shops) x.shops = []; if (!x.n) x.n = 0; if (!x.cand) x.cand = {}; if (!x.hist) x.hist = []; if (x.mon === undefined) x.mon = -1; if (!x.fines) x.fines = 0; if (!x.log) x.log = []; return x; };
 
   // ================= helpers =================
@@ -93,7 +93,7 @@ V23.add('v31_biz', () => {
   const buyFranchise = (brand, locKey) => {
     const T = BR[brand], L = locOf(locKey), z = SIZE[L.size] || SIZE.medium, b = B31();
     if (!T) return;
-    if (live().length >= MAX_SHOPS) { UI.toast(`เปิดร้านได้สูงสุด ${MAX_SHOPS} สาขา`, '🏪'); return; }
+    if (live().length >= maxShops()) { UI.toast(`เปิดร้านได้สูงสุด ${maxShops()} สาขา`, '🏪'); return; }
     if (live().some(s => s.brand === brand && s.loc === locKey)) { UI.toast('มีสาขาแบรนด์นี้ในทำเลนี้แล้ว (เจ้าของแฟรนไชส์ไม่อนุญาตให้ซ้อนทำเล)', '📑'); return; }
     if (!L.visited) { UI.toast(`ต้องไปดูทำเลที่${L.n}ก่อน (กดปุ่ม "ไปดูทำเล")`, '🗺️'); return; }
     if (!need(['idcard', 'commreg'], `ซื้อแฟรนไชส์ ${T.n}`)) return;
@@ -313,7 +313,7 @@ V23.add('v31_biz', () => {
       const sh = shopById(hub.sel);
       if (sh && sh.st !== 'gone') return shopView(sh);
       const L = live();
-      return LEAD(`ร้านค้าแฟรนไชส์ของคุณ ${L.length}/${MAX_SHOPS} สาขา · เจ้าของแฟรนไชส์เก็บรอยัลตี้ทุกเดือน · พนักงานต้องส่งประกันสังคม 5% (เพดาน ${baht(SSO_CAP)}) และหักภาษี ณ ที่จ่าย`) + (L.length ? GR(L.map(shopCard).join('')) : DIM('ยังไม่มีร้านค้า ไปแท็บ 📑 ซื้อแฟรนไชส์ เพื่อเปิดสาขาแรก (ต้องมีบัตรประชาชนและทะเบียนพาณิชย์)'));
+      return LEAD(`ร้านค้าแฟรนไชส์ของคุณ ${L.length}/${maxShops()} สาขา · เจ้าของแฟรนไชส์เก็บรอยัลตี้ทุกเดือน · พนักงานต้องส่งประกันสังคม 5% (เพดาน ${baht(SSO_CAP)}) และหักภาษี ณ ที่จ่าย`) + (L.length ? GR(L.map(shopCard).join('')) : DIM('ยังไม่มีร้านค้า ไปแท็บ 📑 ซื้อแฟรนไชส์ เพื่อเปิดสาขาแรก (ต้องมีบัตรประชาชนและทะเบียนพาณิชย์)'));
     }
     if (t === 1) {
       const ls = locs(), h = hub.loc || 'home', Lc = locOf(h), z = SIZE[Lc.size] || SIZE.medium;
@@ -321,7 +321,7 @@ V23.add('v31_biz', () => {
         `<div class="row">${ls.map(l => B('hub.loc|' + l.key, `${l.i} ${esc(l.n.split(' ')[0])}${l.visited ? '' : ' 🔒'}`, { ghost: h !== l.key })).join('')}</div>` +
         DIM(`ทำเล: ${Lc.i} ${esc(Lc.n)} (${z.n}) · คนเดินผ่าน ×${z.k} · ค่าเช่าเริ่มต้นราว ${baht(z.rent)}/เดือน`) +
         (Lc.visited ? '' : `<div class="row">${B('loc.go|' + Lc.key, `🚕 ไปดูทำเลที่${esc(Lc.n)} (${baht(Lc.fee || 0)})`)}</div>`) +
-        GR(Object.entries(BR).map(([k, T]) => { const rent = Math.round(z.rent * T.rent / 100) * 100, tot = T.fee + T.fit + rent * 3, ex = live().some(s => s.brand === k && s.loc === h); return C(T.i, esc(T.n), `ค่าสิทธิ ${baht(T.fee)} · ตกแต่ง ${baht(T.fit)} · เช่า ${baht(rent)}/เดือน (มัดจำ 3 เดือน) · รอยัลตี้ ${T.roy}%<br>รวมจ่ายวันเซ็นสัญญา ${baht(tot)} · ต้องมี: ${T.docs.map(d => (Gov24.docs[d] || { n: d }).n).join(', ')}${T.pharm ? ' + เภสัชกรประจำ' : ''}<br>ลูกค้าโดยประมาณ ${Math.round(T.base * z.k)} คน/วัน · ราคาเฉลี่ย ${baht(T.tkt)}/ราย · ต้นทุนสินค้า ${T.cogs}%`, B('fr.buy|' + k + '|' + h, 'ซื้อแฟรนไชส์', { dis: ex || S.money < tot || live().length >= MAX_SHOPS })); }).join(''));
+        GR(Object.entries(BR).map(([k, T]) => { const rent = Math.round(z.rent * T.rent / 100) * 100, tot = T.fee + T.fit + rent * 3, ex = live().some(s => s.brand === k && s.loc === h); return C(T.i, esc(T.n), `ค่าสิทธิ ${baht(T.fee)} · ตกแต่ง ${baht(T.fit)} · เช่า ${baht(rent)}/เดือน (มัดจำ 3 เดือน) · รอยัลตี้ ${T.roy}%<br>รวมจ่ายวันเซ็นสัญญา ${baht(tot)} · ต้องมี: ${T.docs.map(d => (Gov24.docs[d] || { n: d }).n).join(', ')}${T.pharm ? ' + เภสัชกรประจำ' : ''}<br>ลูกค้าโดยประมาณ ${Math.round(T.base * z.k)} คน/วัน · ราคาเฉลี่ย ${baht(T.tkt)}/ราย · ต้นทุนสินค้า ${T.cogs}%`, B('fr.buy|' + k + '|' + h, 'ซื้อแฟรนไชส์', { dis: ex || S.money < tot || live().length >= maxShops() })); }).join(''));
     }
     if (t === 2) {
       const L = live().filter(s => s.st !== 'gone');

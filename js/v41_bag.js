@@ -10,8 +10,8 @@ V23.add('v41_bag', () => {
   const PER = 12;                                  // 4 per row × 3 rows
   const HELD_GEAR = ['fert', 'compost', 'sprinkler', 'sprinkler_pro', 'feed'];
   const GROUPS = [
-    { k: 'gear', t: '🌱 เมล็ด & อุปกรณ์', hint: 'ของที่ถือไว้ในมือแล้วใช้กับแปลง: เมล็ด ปุ๋ย บัวรดน้ำ คันเบ็ด · เลือกแล้วกด “ถือ” ตัวละครจะถือของนั้น' },
-    { k: 'harvest', t: '🌾 ผลผลิตไร่', hint: 'ของที่ได้จากไร่ สัตว์ การตกปลาและการขุดเหมือง · ขายที่กล่องส่งขายหน้าบ้านหรือตลาดริมทะเล' },
+    { k: 'gear', t: '🧰 อุปกรณ์ & เครื่องมือ', hint: 'ของใช้ที่ถือไว้ในมือแล้วกดใช้งาน' },
+    { k: 'harvest', t: '📦 ของสะสม', hint: 'ของที่ได้จากการขุด แปรรูป หรือได้รับมา' },
     { k: 'food', t: '🍳 อาหาร', hint: 'อาหารที่ทำเอง อาหารสำเร็จรูปที่ซื้อ และของแปรรูป · กินเพื่อเพิ่มพลังงาน' },
     { k: 'bought', t: '🛍️ ของที่ซื้อ', hint: 'ของใช้ เสื้อผ้า อุปกรณ์และของที่ซื้อมาจากร้านหรือสั่งออนไลน์' },
   ];
@@ -103,9 +103,8 @@ V23.add('v41_bag', () => {
       const capW = (() => { try { return CAN_CAP[S.up.can - 1]; } catch (e) { return ''; } })(), cw = S.can ? S.can.water : 0, canOn = G.sel === 'can';
       hb.classList.toggle('fold', fold);
       hb.innerHTML = fold
-        ? `<button class="slot bagbtn on mini" id="bagBtn" title="กระเป๋า (I) · ถือ: ${esc(cur.n)}"><span class="si">🎒</span></button><button class="slot bagbtn mini ${canOn ? 'on' : ''}" id="canBtn" title="บัวรดน้ำ ${cw}/${capW}"><span class="si">🚿</span></button><button class="slot bagx" id="bagX" title="ขยายแถบ">›</button>`
-        : `<button class="slot bagbtn on" id="bagBtn" title="กระเป๋า (I)"><span class="si">🎒</span><small>กระเป๋า<em>ถือ: ${cur.i} ${esc(cur.n)}${cur.c != null && cur.id !== 'can' ? ' ×' + cur.c : ''}</em></small></button><button class="slot bagbtn ${canOn ? 'on' : ''}" id="canBtn" title="บัวรดน้ำ — กดเพื่อถือ / เก็บ"><span class="si">🚿</span><small>บัวรดน้ำ<em>น้ำ ${cw}/${capW}</em></small></button><button class="slot bagx" id="bagX" title="ซ่อนแถบให้เล็กลง">×</button>`;
-      $('canBtn').onclick = () => { G.sel = G.sel === 'can' ? 'hand' : 'can'; try { Sfx.click(); } catch (e) { } UI.hotbar(); G.tgtT = 0; };
+        ? `<button class="slot bagbtn on mini" id="bagBtn" title="กระเป๋า (I) · ถือ: ${esc(cur.n)}"><span class="si">🎒</span></button><button class="slot bagx" id="bagX" title="ขยายแถบ">›</button>`
+        : `<button class="slot bagbtn on" id="bagBtn" title="กระเป๋า (I)"><span class="si">🎒</span><small>กระเป๋า<em>ถือ: ${cur.i} ${esc(cur.n)}${cur.c != null && cur.id !== 'can' ? ' ×' + cur.c : ''}</em></small></button><button class="slot bagx" id="bagX" title="ซ่อนแถบให้เล็กลง">×</button>`;
       $('bagX').onclick = e => { e.stopPropagation(); try { localStorage.setItem('raisukjai_hbfold', fold ? '0' : '1'); } catch (x) { } UI.hotbar(); };
       $('bagBtn').onclick = () => UI.inventory();
       const sn = $('selName'); if (sn) sn.textContent = '';
@@ -142,8 +141,7 @@ V23.add('v41_bag', () => {
   // bag entries of a tab: gear tab starts with what the hand can hold (empty hand, can, rod) that are not items
   // v208: the bag tabs follow where things came from: own plots / shop / online order (the split is kept by Bag208 in v208_bagsrc.js); the first tab keeps the hand tools
   const TABS = [
-    { k: 'gear', t: '✋ อุปกรณ์ประจำตัว', hint: 'สิ่งที่ถือในมือได้เสมอ: มือเปล่า บัวรดน้ำ คันเบ็ด · เมล็ดและปุ๋ยที่ซื้อมาอยู่ในหมวดซื้อจากร้าน เลือกแล้วกด “ถือ”' },
-    { k: 'f', t: '🌾 จากแปลง/ไร่', hint: 'ของที่เก็บเองจากแปลงผัก ต้นไม้ สัตว์ การตกปลา เหมืองและอาหารที่ทำเอง · ขายที่กล่องส่งขายหน้าบ้านหรือตลาดริมทะเล' },
+    { k: 'gear', t: '✋ อุปกรณ์ประจำตัว', hint: 'สิ่งที่ถือในมือได้เสมอ: มือเปล่า · ของที่ซื้อมาจากร้านจะอยู่ในแท็บ "ซื้อจากร้านค้า" แตะของแล้วเลือกการใช้งาน' },
     { k: 's', t: '🏪 ซื้อจากร้านค้า', hint: 'ของที่ซื้อจากร้านค้าในหมู่บ้านและในเมือง: เมล็ด ปุ๋ย อุปกรณ์ เสื้อผ้า อาหารกล่อง' },
     { k: 'o', t: '📦 สั่งออนไลน์', hint: 'พัสดุที่สั่งผ่านร้านออนไลน์ และอาหารที่ไรเดอร์ส่งถึงบ้าน' },
   ];
@@ -158,13 +156,13 @@ V23.add('v41_bag', () => {
   UI.inventory = function (filter) {
     B.food = filter === 'food' ? 1 : 0;
     // the fridge shows food: open the tab that has food in it (own cooking first, then shop, then online)
-    let tab0 = 0; if (filter === 'food') { tab0 = 1; for (const k of [1, 2, 3]) { if (bagEntries(TABS[k].k).length) { tab0 = k; break; } } }
+    let tab0 = 0; if (filter === 'food') { tab0 = 1; for (let k = 1; k < TABS.length; k++) { if (bagEntries(TABS[k].k).length) { tab0 = k; break; } } }
     UI.open('🎒 กระเป๋า', TABS.map(g => g.t), tab => {
       if (tab !== B.last) { B.last = tab; B.page[tab] = 0; B.sel = null; }
       const g = TABS[tab], list = bagEntries(g.k), pages = Math.max(1, Math.ceil(list.length / PER));
       const pg = B.page[tab] = Math.max(0, Math.min(pages - 1, B.page[tab] || 0));
       let h = `<p class="lead dim">${g.hint}</p>`;
-      if (g.k === 'gear') h += `<p class="dim">🚿 บัวรดน้ำ ${S.can.water}/${CAN_CAP[S.up.can - 1]} · 🐄 อาหารสัตว์ในราง ${S.trough}</p>`;
+      if (g.k === 'gear') h += '';
       else h += `<div class="ch41"><button class="${B.food ? '' : 'on'}" data-a="bgfood" data-v="0">ทั้งหมด</button><button class="${B.food ? 'on' : ''}" data-a="bgfood" data-v="1">🍳 เฉพาะอาหาร</button></div>`;
       const sel = list.find(c => c.id === B.sel);
       if (sel) h += sel.pseudo ? `<div class="dt41"><div class="ci">${sel.i}</div><div class="cb"><h4>${esc(sel.n)}</h4><p class="dim">อุปกรณ์ประจำตัว ไม่ถูกใช้หมด</p><div class="row"><button class="btn" data-a="bghold" data-id="${sel.id}">${G.sel === sel.id ? 'ถืออยู่แล้ว' : '🤚 ถือ'}</button></div></div></div>` : detail(sel.id, { [sel.id]: sel.c }, 'bag');
@@ -185,11 +183,10 @@ V23.add('v41_bag', () => {
   };
   UI.H.use = d => UI.H.bghold(d);               // the old “ถือใช้” button everywhere does the same
   UI.H.bginfo = () => UI.open('ที่เก็บของในเกม', null, () => `<div class="grid">${[
-    ['🎒', 'กระเป๋า', 'ของที่ติดตัว กดปุ่มกระเป๋าเพื่อเปิด มี 4 หมวด: อุปกรณ์ประจำตัว · จากแปลง/ไร่ · ซื้อจากร้านค้า · สั่งออนไลน์ (ของจะเข้าหมวดตามที่มา)'],
+    ['🎒', 'กระเป๋า', 'ของที่ติดตัว กดปุ่มกระเป๋าเพื่อเปิด มี 3 หมวด: อุปกรณ์ประจำตัว · จากแปลง/ไร่ · ซื้อจากร้านค้า · สั่งออนไลน์ (ของจะเข้าหมวดตามที่มา)'],
     ['🧰', 'หีบในบ้าน', 'คลังเก็บของ ผลผลิตที่ลูกจ้างเก็บและของจากสัตว์จะมาลงที่หีบ เปิดที่หีบในบ้านเพื่อเก็บ/หยิบของ'],
     ['📦', 'กล่องส่งขาย', 'ขายแล้วของหายจากกระเป๋าทันที (หน้าบ้านหรือตลาดริมทะเล ราคาดีกว่า 50%)'],
     ['🧊', 'ตู้เย็น / โต๊ะอาหาร', 'เปิดกระเป๋าที่หมวดอาหาร เลือกกินเพื่อเพิ่มพลังงาน'],
-    ['🚿', 'ถังบัวรดน้ำ & รางอาหารสัตว์', 'เป็นปริมาณ ไม่ใช่ของในกระเป๋า เติมน้ำที่บ่อ/ก๊อก เติมอาหารสัตว์ที่ราง'],
   ].map(r => `<div class="card"><div class="ci">${r[0]}</div><div class="cb"><h4>${r[1]}</h4><p class="dim">${r[2]}</p></div></div>`).join('')}</div><div class="row end"><button class="btn" data-a="bgback">กลับกระเป๋า</button></div>`);
   UI.H.bgback = () => UI.inventory();
 

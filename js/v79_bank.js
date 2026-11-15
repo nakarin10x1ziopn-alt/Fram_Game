@@ -2,7 +2,7 @@
 //  - savings interest is a real 0.50 % a year (it was 0.08 % a DAY = 34 % a year), accrued daily and paid twice a year at the end of June and December,
 //    15 % withholding tax when a year's interest passes 20,000 baht (real rule). Fixed deposit is 90 days at 1.5 % a year (it was 7 days at 0.6 %), and it can be broken early (interest lost)
 //  - mutual funds move only on business days, charge a yearly management fee, and selling pays out one or two business days later (T+1 / T+2), not instantly
-//  - the branch door is locked outside bank hours (Mon-Fri 08:30-16:30, shut on public holidays); the ATM works around the clock (except in a village-wide blackout)
+//  - the branch door is locked outside bank hours (every day 05:00-18:00); the ATM works around the clock (except in a village-wide blackout)
 //  - ATMs stand in the other towns too (before: two in the whole game); the first time a card is used the machine asks you to choose a PIN
 V23.add('v79_bank', () => {
   const B = window.Bank49; if (!B || typeof Bank === 'undefined' || typeof Bank2 === 'undefined') return;
@@ -70,7 +70,7 @@ V23.add('v79_bank', () => {
   { const _en = Rooms.entrance.bind(Rooms);
     Rooms.entrance = function (poi) {
       const r = _en(poi);
-      try { if (poi && poi.room && poi.room.kind === 'bank' && !B.bankOpen()) { r.icon = '🔒'; r.label = `🔒 ${poi.room.title} ปิดอยู่ (จ–ศ 08:30–16:30 ปิดวันหยุดราชการ) · ใช้ตู้ ATM ได้ตลอด 24 ชม.`; r.fn = () => toast('สาขาปิดแล้ว ไปที่ตู้ ATM ข้างสาขาได้ หรือใช้แอปธนาคารบนมือถือ', '🔒'); delete r.info; } } catch (e) { }
+      try { if (poi && poi.room && poi.room.kind === 'bank' && !B.bankOpen()) { r.icon = '🔒'; r.label = `🔒 ${poi.room.title} ปิดอยู่ (ทุกวัน 05:00–18:00 ปิดวันหยุดราชการ) · ใช้ตู้ ATM ได้ตลอด 24 ชม.`; r.fn = () => toast('สาขาปิดแล้ว ไปที่ตู้ ATM ข้างสาขาได้ หรือใช้แอปธนาคารบนมือถือ', '🔒'); delete r.info; } } catch (e) { }
       return r;
     }; }
 

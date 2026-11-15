@@ -35,10 +35,12 @@ V23.add('v31_news', () => {
 
   // ================= the feed =================
   // post({ c: category, h: headline, x: body, imp: 1-3, brk: breaking, k: key (once per day) })
+  const NEWS_ONLY = { market: 1, econ: 1, biz: 1, rumour: 1 };
   const post = o => {
     const x = N();
     if (x.kd !== S.day) { x.kd = S.day; x.keys = {}; }
     if (o.k) { if (x.keys[o.k]) return null; x.keys[o.k] = 1; }
+    if (!NEWS_ONLY[o.c]) return null;   // v242: the feed carries business, the economy and the stock market only (no weather, village or festival items)
     const c = CAT[o.c] ? o.c : 'local';
     const e = { n: ++x.n, d: S.day, t: Math.floor(S.time || 0), c, h: String(o.h).slice(0, 110), x: String(o.x || '').slice(0, 320), imp: o.imp || 1, brk: o.brk ? 1 : 0 };
     x.feed.unshift(e); if (x.feed.length > 220) x.feed.length = 220;

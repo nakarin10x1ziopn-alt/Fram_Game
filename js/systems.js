@@ -20,7 +20,7 @@ const Prog = {
       S.xp -= xpNeed(S.lvl); S.lvl++;
       const unl = Object.keys(SEED_LVL).filter(k => SEED_LVL[k] === S.lvl).map(k => CROPS[k].i + ' ' + CROPS[k].n);
       Sfx.goal(); S.energy = Math.min(maxEnergy(), S.energy + 20);
-      UI.toast(`เลื่อนเป็นเกษตรกรระดับ ${S.lvl}! พลังงานสูงสุด +5${unl.length ? ' · ปลดล็อก ' + unl.join(', ') : ''}`, '🎉');
+      UI.toast(`เลเวลอัปเป็นระดับ ${S.lvl}! พลังงานสูงสุด +5${unl.length ? ' · ปลดล็อก ' + unl.join(', ') : ''}`, '🎉');
       FX.burst(G.player.pos.x, G.player.pos.y + 2, G.player.pos.z, 40, new THREE.Color(1, 0.85, 0.25), 4, 5);
     }
   },
@@ -72,7 +72,7 @@ const Orders = {
 };
 
 // ---- Friendship: talk daily, give gifts, receive presents at 3 / 6 / 10 hearts ----
-const GIFT_TIERS = [[3, 'เมล็ดพันธุ์ 6 ซอง'], [6, 'ปุ๋ย 5 ถุง + เงิน 800 ฿'], [10, 'สปริงเกอร์โปร + เงิน 2,000 ฿']];
+const GIFT_TIERS = [[3, 'เงิน 500 ฿'], [6, 'เงิน 1,500 ฿'], [10, 'เงิน 3,000 ฿']];
 function favOf(name) { if (typeof SINGLE_FAV !== 'undefined' && SINGLE_FAV[name]) return SINGLE_FAV[name]; const pool = ['tomato', 'strawberry', 'corn', 'egg', 'milk', 'fish_nile', 'pumpkin', 'cabbage', 'dish_salad', 'sunflower', 'chili', 'carrot']; return pool[Math.abs(strHash(name)) % pool.length]; }
 const Friends = {
   get(name) { return Math.max(0, S.friends[name] || 0); },
@@ -82,9 +82,9 @@ const Friends = {
     const paid = (S.friendPaid = S.friendPaid || {});
     for (const [h, desc] of GIFT_TIERS) if (before < h && S.friends[name] >= h && (paid[name] || 0) < h) {
       paid[name] = h;
-      if (h === 3) { const pool = Object.keys(CROPS).filter(k => !CROPS[k].tree && (SEED_LVL[k] || 1) <= S.lvl); addItem('seed_' + U.pick(pool), 6); }
-      if (h === 6) { addItem('fert', 5); earn(800); }
-      if (h === 10) { addItem('sprinkler_pro', 1); earn(2000); }
+      if (h === 3) earn(500);
+      if (h === 6) earn(1500);
+      if (h === 10) earn(3000);
       setTimeout(() => UI.toast(`${name}ให้ของขวัญตอบแทนความสนิท: ${desc}`, '🎁'), 600);
     }
   },

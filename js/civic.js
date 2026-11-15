@@ -50,7 +50,7 @@ const CV_EXAM = {
 // ===== transport =====
 const CV_KM = 40; // world units per km
 const CV_SONG = [
-  { n: 'สาย 1 ไร่สุขใจ–หมู่บ้าน–วัด', c: '🔵', stops: [{ n: 'หน้าไร่', x: 7.5, z: -64 }, { n: 'สุขใจพลาซ่า', x: -16, z: -112 }, { n: 'หมู่บ้าน', x: 8.6, z: -232 }, { n: 'โรงเรียน', x: 24, z: -320 }, { n: 'วัดสุขใจาราม', x: -22, z: -322 }] },
+  { n: 'สาย 1 บ้านสุขใจ–หมู่บ้าน–วัด', c: '🔵', stops: [{ n: 'หน้าบ้าน', x: 7.5, z: -64 }, { n: 'สุขใจพลาซ่า', x: -16, z: -112 }, { n: 'หมู่บ้าน', x: 8.6, z: -232 }, { n: 'โรงเรียน', x: 24, z: -320 }, { n: 'วัดสุขใจาราม', x: -22, z: -322 }] },
   { n: 'สาย 2 หมู่บ้าน–ทุ่งทอง–ริมทะเล', c: '🟡', stops: [{ n: 'หมู่บ้าน', x: 8.6, z: -232 }, { n: 'เมืองทุ่งทอง', x: 200, z: -248 }, { n: 'ตลาดริมทะเล', x: 300, z: -373 }] },
   { n: 'สาย 3 หมู่บ้าน–ภูผาใหม่', c: '🟢', stops: [{ n: 'หมู่บ้าน', x: 8.6, z: -232 }, { n: 'วัดสุขใจาราม', x: -22, z: -322 }, { n: 'เมืองภูผาใหม่', x: -70, z: -430 }] },
 ];
@@ -464,8 +464,8 @@ const Civic = {
       if (!on || !lv || lv === 'done' || lv === 'hs?') continue;
       if (wd && (lv === 'hs' || lv === 'voc')) k.edu = (k.edu || 0) + 1;
       if (wd && (lv === 'ecd' || lv === 'k')) k.joy = Math.min(100, (k.joy ?? 60) + 2);
-      // Monday: weekly extras
-      if (this.dIdx() === 0 && lv !== 'ecd') {
+      // the month close: school extras (transport, meals, tutoring)
+      if (MonthCal.isPayDay(S.day) && lv !== 'ecd') {
         let fee = 0; for (const o of Object.keys(CV_OPTS)) if (ee[o]) fee += this.optFee(k, o);
         if (fee) this.charge(fee, `ค่ารถ/อาหาร/เรียนพิเศษ ${k.name}`);
         if (ee.tutor) k.edu = (k.edu || 0) + 2;

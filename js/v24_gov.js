@@ -25,7 +25,7 @@ V23.add('gov24', () => {
     bizcert: { n: 'หนังสือรับรองนิติบุคคล (DBD)', i: '🏢', life: 2 * YD, off: 'dbd' },
     edcert: { n: 'ใบรับรองวุฒิการศึกษา', i: '🎓', life: 0, off: 'edu' },
     farmer: { n: 'ทะเบียนเกษตรกร (ทบก.)', i: '🌾', life: YD, off: 'agri' },
-    livereg: { n: 'ทะเบียนฟาร์มปศุสัตว์', i: '🐄', life: YD, off: 'livestock' },
+    livereg: { n: 'ทะเบียนร้านสัตว์เลี้ยง', i: '🐄', life: YD, off: 'livestock' },
     fishreg: { n: 'ทะเบียนผู้ประกอบการประมง', i: '🐟', life: YD, off: 'fisheries' },
     ssoreg: { n: 'ผู้ประกันตนมาตรา 40 (ประกันสังคม)', i: '🛡️', life: 0, off: 'sso' },
     firecert: { n: 'ใบรับรองตรวจความปลอดภัยอัคคีภัย', i: '🧯', life: YD, off: 'fire' },
@@ -172,7 +172,7 @@ V23.add('gov24', () => {
   const hrForm = () => { const a = (rec('idcard') || {}).data || {}, ad = a.addr || { no: '99/1', moo: 5, tam: 'สุขใจ' }; return `${formHead('คำขอลงทะเบียนบ้าน / ย้ายเข้าที่อยู่ใหม่ (ท.ร.14)', 'ต้องมีบัตรประชาชนที่ยังไม่หมดอายุ ใช้เป็นเอกสารยืนยันที่อยู่ในการซื้ออสังหา ขอสินเชื่อ และติดตั้งอินเทอร์เน็ต')}
     <div class="card"><div class="cb"><p class="dim">บ้านเลขที่</p>${inp('gfHNo', 'เช่น 99/1', ad.no, 10)}<p class="dim">หมู่ที่ ${ad.moo || 5} ตำบล${ad.tam || 'สุขใจ'} อำเภอสุขใจ จังหวัดสุขใจ</p>
     <p class="dim">สถานะในบ้าน</p>${sel('gfHT', ['เจ้าบ้าน', 'ผู้อาศัย'], 'เจ้าบ้าน')}
-    <p class="dim">ชื่อบ้าน / สถานที่ (ถ้ามี)</p>${inp('gfHN', 'เช่น ไร่สุขใจ', S.farm || '', 30)}</div></div>
+    <p class="dim">ชื่อบ้าน / สถานที่ (ถ้ามี)</p>${inp('gfHN', 'เช่น บ้านสุขใจ', S.farm || '', 30)}</div></div>
     <div class="row"><button class="btn" data-a="g24hrsub">ยื่นคำขอ (ฟรี)</button></div>`; };
   const hrSubmit = () => {
     const no = $v('gfHNo'); if (!/^\d{1,4}(\/\d{1,3})?$/.test(no)) { UI.toast('บ้านเลขที่ไม่ถูกต้อง', '⚠️'); return; }
@@ -279,7 +279,7 @@ V23.add('gov24', () => {
       sx('subsidy', 'ขอรับเงินช่วยเหลือเกษตรกรประจำฤดู', '💰', 'ฤดูละครั้ง = 1,500 ฿ × ระดับที่นา (ต้องขึ้นทะเบียนเกษตรกร)', { req: ['farmer'], can: () => st().subs === seasonKey() ? 'ฤดูนี้รับเงินช่วยเหลือไปแล้ว' : '', run: () => { const n = 1500 * (S.up.field || 1); st().subs = seasonKey(); earn(n); Bank2.income('เงินช่วยเหลือเกษตรกร', n); UI.toast(`รับเงินช่วยเหลือเกษตรกร ${baht(n)}`, '💰'); }, st: () => st().subs === seasonKey() ? '<span class="dim">รับแล้วในฤดูนี้</span>' : '<span class="good">รับได้</span>' }),
     ]),
     office('livestock', 'สำนักงานปศุสัตว์อำเภอสุขใจ', 'ปศุสัตว์', '🐄', [
-      sx('livereg', 'ขึ้นทะเบียนฟาร์มปศุสัตว์', '🐄', 'จำเป็นเมื่อเลี้ยงสัตว์เกิน 5 ตัว ค่าธรรมเนียม 200 ฿ ต่อทุกปี', { req: ['idcard', 'housereg'], run: () => spend(20 + queue(), () => apply({ doc: 'livereg', off: 'livestock', offName: 'สำนักงานปศุสัตว์อำเภอ', fee: 200, days: 0 })), st: () => status('livereg') }),
+      sx('livereg', 'ขึ้นทะเบียนร้านสัตว์เลี้ยง', '🐄', 'จำเป็นเมื่อเลี้ยงสัตว์เกิน 5 ตัว ค่าธรรมเนียม 200 ฿ ต่อทุกปี', { req: ['idcard', 'housereg'], run: () => spend(20 + queue(), () => apply({ doc: 'livereg', off: 'livestock', offName: 'สำนักงานปศุสัตว์อำเภอ', fee: 200, days: 0 })), st: () => status('livereg') }),
     ]),
     office('fisheries', 'สำนักงานประมงอำเภอสุขใจ', 'ประมง', '🐟', [
       sx('fishreg', 'ขึ้นทะเบียนผู้ประกอบการประมง', '🐟', '300 ฿ ต่อปี ขายปลาได้ราคา +5% ผ่านตลาดกลาง', { req: ['idcard'], run: () => spend(20 + queue(), () => apply({ doc: 'fishreg', off: 'fisheries', offName: 'สำนักงานประมงอำเภอ', fee: 300, days: 0 })), st: () => status('fishreg') }),
@@ -380,7 +380,7 @@ V23.add('gov24', () => {
       <h5>🚔 ใบสั่ง / ค่าปรับ</h5>${F.length ? F.map(f => `<p class="lead bad">${esc(f.what)} ${baht(f.amt)} (ครบกำหนด${RD(f.due)})</p>`).join('') : '<p class="empty">ไม่มีใบสั่งค้าง</p>'}
       <h5>🏘️ ภาษีที่ดิน</h5>${B.length ? B.map(f => `<p class="lead bad">${esc(f.what)} ${baht(f.amt)} (ครบกำหนด${RD(f.due)})</p>`).join('') : '<p class="empty">ไม่มีภาษีค้าง</p>'}`;
   };
-  const dirHtml = () => `<p class="lead">🏛️ ${hallWhere()} — ${OFFICES.length} หน่วยงานในอาคารเดียว (เดินเข้าไปที่เคาน์เตอร์แต่ละแห่ง) เวลาทำการ: จ-ศ 07:30–18:00 · ส 08:00–16:00 · วันหยุดราชการเปิดบางเคาน์เตอร์ 09:00–15:00</p><div class="grid">${OFFICES.map(o => `<div class="card"><div class="ci">${o.i}</div><div class="cb"><h4>${esc(o.n)}</h4><p class="dim">${esc(o.sv.map(s => s.n).join(' · '))}</p><p class="dim">${isOpen(o) ? '🟢' : '🔴'} ${hoursText(o)}</p></div></div>`).join('')}${window.Agency26 ? `<h5>🏛️ หน่วยงานเพิ่มเติม ${Agency26.agencies.length} แห่ง — เคาน์เตอร์อยู่ที่ ศูนย์รวมบริการภาครัฐ (🏛️ บนแผนที่ ไม่ได้อยู่ในอาคารนี้)</h5>` : ''}${(window.Agency26 ? Agency26.agencies : []).map(o => `<div class="card"><div class="ci">${o.i}</div><div class="cb"><h4>${esc(o.n)}</h4><p class="dim">${esc(o.sv.map(s => s.n).join(' · '))}</p><p class="dim">${Agency26.isOpen(o) ? '🟢' : '🔴'} ${(window.Hours36 ? Hours36.text(o.id) : '')}</p></div></div>`).join('')}</div>`;
+  const dirHtml = () => `<p class="lead">🏛️ ${hallWhere()} — ${OFFICES.length} หน่วยงานในอาคารเดียว (เดินเข้าไปที่เคาน์เตอร์แต่ละแห่ง) เวลาทำการ: ทุกวัน 05:00–18:00 ไม่มีวันหยุด</p><div class="grid">${OFFICES.map(o => `<div class="card"><div class="ci">${o.i}</div><div class="cb"><h4>${esc(o.n)}</h4><p class="dim">${esc(o.sv.map(s => s.n).join(' · '))}</p><p class="dim">${isOpen(o) ? '🟢' : '🔴'} ${hoursText(o)}</p></div></div>`).join('')}${window.Agency26 ? `<h5>🏛️ หน่วยงานเพิ่มเติม ${Agency26.agencies.length} แห่ง — เคาน์เตอร์อยู่ที่ ศูนย์รวมบริการภาครัฐ (🏛️ บนแผนที่ ไม่ได้อยู่ในอาคารนี้)</h5>` : ''}${(window.Agency26 ? Agency26.agencies : []).map(o => `<div class="card"><div class="ci">${o.i}</div><div class="cb"><h4>${esc(o.n)}</h4><p class="dim">${esc(o.sv.map(s => s.n).join(' · '))}</p><p class="dim">${Agency26.isOpen(o) ? '🟢' : '🔴'} ${(window.Hours36 ? Hours36.text(o.id) : '')}</p></div></div>`).join('')}</div>`;
   const onlineHtml = () => {
     const L = carList().filter(({ c }) => c.reg), F = finesDue(), B = unpaidBills();
     return `<p class="lead">บริการออนไลน์ (ตลอด 24 ชม. ต้องมีบัตรประชาชนที่ไม่หมดอายุ)</p>
@@ -562,7 +562,7 @@ V23.add('gov24', () => {
       if (S.animals.length >= 6) x0.docs.livereg = { no: docNo('LIV'), issued: S.day, exp: S.day + YD, data: {} };
       for (const L of lotsOwned()) x0.docs['buildhome:' + L.id] = { no: docNo('BLD'), issued: S.day, exp: 0, data: { lot: L.id } };
       setTimeout(() => msg('ที่ว่าการอำเภอสุขใจ', `ระบบเอกสารราชการเริ่มใช้แล้ว: เราออกบัตรประชาชน/ทะเบียนบ้านชั่วคราวให้ใช้ได้ 14 วัน (ถึง${RD(S.day + 14)}) กรุณามากรอกข้อมูลทำบัตรจริงที่ ${hallWhere()}`), 2500);
-    } else setTimeout(() => msg('ที่ว่าการอำเภอสุขใจ', `ยินดีต้อนรับ! ก่อนซื้อรถ ซื้อที่ดิน ขอสินเชื่อ จดบริษัท หรือสมัครอินเทอร์เน็ต ต้องมีบัตรประชาชนก่อน ไปทำที่ ${hallWhere()} (จ-ศ 07:30–18:00 · ส 08:00–16:00)`), 2500);
+    } else setTimeout(() => msg('ที่ว่าการอำเภอสุขใจ', `ยินดีต้อนรับ! ก่อนซื้อรถ ซื้อที่ดิน ขอสินเชื่อ จดบริษัท หรือสมัครอินเทอร์เน็ต ต้องมีบัตรประชาชนก่อน ไปทำที่ ${hallWhere()} (ทุกวัน 05:00–18:00 ไม่มีวันหยุด)`), 2500);
   }
   buildHall();
   // v192: every new save gets its own random identity (name, surname, sex, birthday, blood group, religion) instead of the same "นายชาวไร่ สุขใจ, 1 ม.ค., 25 ปี" for everybody

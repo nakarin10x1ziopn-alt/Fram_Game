@@ -22,7 +22,6 @@ const RL = {
     if (WEATHER[S.weather.type].rain > 0.5 && r() < 0.35) this.start('flood', 1, 'ฝนตกหนัก น้ำรอระบายบนถนนหมู่บ้าน รถวิ่งได้ช้า ระวังเครื่องดับ', '🌊');
     if (dIdx === 0 || dIdx === 3) this.lotteryDraw();
     if (yd % 21 === 20 && r() < 0.5) { s.wage = +(s.wage * 1.04).toFixed(3); for (const c of Company.list()) for (const st of c.staff) st.sal = Math.round(st.sal * 1.04); this.log('💼 คณะกรรมการค่าจ้างประกาศปรับค่าแรงขั้นต่ำ +4% เงินเดือนพนักงานบริษัทปรับขึ้นตาม'); Phone.msg('ข่าวเศรษฐกิจ', 'ปรับค่าแรงขั้นต่ำขึ้น 4% บริษัทต้องปรับเงินเดือนพนักงานตาม', true); }
-    if ((dIdx === 5 || dIdx === 6) && r() < 0.3 && S.farm) { const n = 8 + (r() * 25 | 0), fee = n * 80; earn(fee); Bank2.income('รายได้เกษตรท่องเที่ยว', fee); this.start('tour', 1, `รถทัวร์นักท่องเที่ยว ${n} คนแวะชม${S.farm} จ่ายค่าเข้าชม ${baht(fee)} วันนี้ของที่แผงหน้าไร่ขายได้แพงขึ้น 50%`, '🚌'); }
     if (r() < 0.02 && !this.on('viral')) { this.start('viral', 3, `อินฟลูเอนเซอร์รีวิว${S.farm || 'ไร่ของคุณ'}จนเป็นไวรัล! 3 วันนี้คนแห่มาซื้อของ ขายได้ +30%`, '📱'); }
     if (dIdx === 0) { s.cpi = +(s.cpi * (1 + 0.002 + r() * 0.004)).toFixed(4); }
     if (yd === 40) this.landTax();

@@ -7,7 +7,7 @@ V23.add('v36_shop', () => {
   const now = () => S.day * 1440 + S.time;
   const log = (t, n) => { try { Bank2.log(t, n); } catch (e) { } };
   const msg = (t, important) => { try { Phone.msg('สุขใจมอลล์ ออนไลน์', t, !!important); } catch (e) { } };
-  const GROUPS = [['all', '🛍️ ทั้งหมด'], ['farm', '🌱 ฟาร์ม/เกษตร'], ['food', '🍜 อาหาร/เครื่องดื่ม'], ['home', '🛋️ บ้าน/ของแต่งบ้าน'], ['pc', '💻 คอมพิวเตอร์/อุปกรณ์'], ['it', '🔐 ไอที/ความปลอดภัย/พลังงาน'], ['wear', '👗 แฟชั่น/ของใช้'], ['veh', '🚗 ยานพาหนะ'], ['animal', '🐄 สัตว์เลี้ยง/ปศุสัตว์'], ['misc', '🎁 อื่นๆ']];
+  const GROUPS = [['all', '🛍️ ทั้งหมด'], ['food', '🍜 อาหาร/เครื่องดื่ม'], ['home', '🛋️ บ้าน/ของแต่งบ้าน'], ['pc', '💻 คอมพิวเตอร์/อุปกรณ์'], ['it', '🔐 ไอที/ความปลอดภัย/พลังงาน'], ['wear', '👗 แฟชั่น/ของใช้'], ['veh', '🚗 ยานพาหนะ'], ['animal', '🐄 สัตว์เลี้ยง/ปศุสัตว์'], ['misc', '🎁 อื่นๆ']];
   const FARM_TOOL = /feed|fert|sprink|seed|pest|water|hoe|net|rod|bait|soil|mulch|ladybug|sandbag|v_(seed|bird|rabbit|grow|farm|work|rain|feed|mulch|water)/;
   const groupOf = (kind, id, name) => {
     if (kind === 'seed') return 'farm'; if (kind === 'food') return 'food'; if (kind === 'furn') return 'home'; if (kind === 'car') return 'veh'; if (kind === 'animal') return 'animal';
@@ -93,7 +93,7 @@ V23.add('v36_shop', () => {
     const slice = list.slice(ui.page * ui.per, ui.page * ui.per + ui.per), cnt = Object.values(st().cart).reduce((a, b) => a + (b > 0 ? b : 0), 0);
     return `<div class="row"><span class="dim" style="align-self:center">พบ ${U.fmt(list.length)} รายการ${ui.q.trim() ? ' สำหรับ “' + esc(ui.q.trim()) + '”' : ''} · ตะกร้า ${cnt} ชิ้น</span></div>
       <p class="lead">${rate()}</p>
-      <div class="grid">${slice.map(it => { const e = live(it.k); if (!e) return ''; const u = unit(e); return `<div class="card"><div class="ci">${it.icon}</div><div class="cb"><h4>${esc(e.name)}${e.own ? `<small> มี ${e.own}</small>` : ''}</h4><p class="dim">${esc(String(e.desc || '').slice(0, 110))}</p><div class="row">${e.block ? `<button class="btn" disabled>${esc(e.block)}</button>` : `<button class="btn" data-a="m36add" data-k="${it.k}" data-q="1">🧺 ${baht(u)}</button>${e.multi ? `<button class="btn ghost" data-a="m36add" data-k="${it.k}" data-q="5">×5</button>` : ''}`}</div></div></div>`; }).join('') || '<p class="empty">ไม่พบสินค้า ลองคำค้นอื่น หรือเลือก “ทุกร้านในเกม”</p>'}</div>
+      <div class="grid">${slice.map(it => { const e = live(it.k); if (!e) return ''; const u = unit(e); return `<div class="card"><div class="ci">${it.icon}</div><div class="cb"><h4>${esc(e.name)}${e.own ? `<small> มี ${e.own}</small>` : ''}</h4><p class="dim">${esc(String(e.desc || '').slice(0, 110))}</p><div class="row">${e.block ? `<button class="btn" disabled>${esc(e.block)}</button>` : `<input type="number" class="qty36" inputmode="numeric" min="1" max="999" value="1" data-ck="${esc(it.k)}" data-u="${u}" aria-label="จำนวน" oninput="UI.H.m36card(this)" onkeydown="if(event.key==='Enter'){UI.H.m36addq(this);this.blur()}"><button class="btn" data-a="m36add" data-k="${it.k}" data-q="in">🧺 <span data-cb="${esc(it.k)}">${baht(u)}</span></button>${e.multi ? `<button class="btn ghost" data-a="m36add" data-k="${it.k}" data-q="5">×5</button>` : ''}`}</div></div></div>`; }).join('') || '<p class="empty">ไม่พบสินค้า ลองคำค้นอื่น หรือเลือก “ทุกร้านในเกม”</p>'}</div>
       <div class="row end"><button class="btn ghost" data-a="m36page" data-v="-1" ${ui.page <= 0 ? 'disabled' : ''}>‹ ก่อนหน้า</button><span class="dim" style="align-self:center">หน้า ${ui.page + 1}/${pages}</span><button class="btn ghost" data-a="m36page" data-v="1" ${ui.page >= pages - 1 ? 'disabled' : ''}>ถัดไป ›</button></div>`;
   };
   const top = () => {
@@ -113,12 +113,12 @@ V23.add('v36_shop', () => {
       const lines = cartLines(), t = totals(lines), s = st(), blocked = lines.find(l => l.e.block);
       if (!lines.length) return '<p class="empty">ตะกร้าว่าง — เลือกสินค้าที่แท็บ "สินค้า"</p>';
       const sav = (S.bank && S.bank.sav) || 0, idBad = lines.some(l => l.g === 'veh') && !(window.Gov24 && Gov24.has && Gov24.has('idcard'));
-      return `<div class="grid">${lines.map(l => `<div class="card"><div class="ci">${l.e.icon}</div><div class="cb"><h4>${esc(l.e.name)}</h4><p class="dim">${baht(l.u)} × ${l.q} = ${baht(l.u * l.q)}${l.e.block ? ' · ⚠️ ' + esc(l.e.block) : ''}</p>
-        <div class="row"><button class="btn ghost" data-a="m36qty" data-k="${l.k}" data-d="-1">−</button><button class="btn ghost" data-a="m36qty" data-k="${l.k}" data-d="1">+</button><button class="btn ghost" data-a="m36qty" data-k="${l.k}" data-d="0">เอาออก</button></div></div></div>`).join('')}</div>
+      return `<div class="grid">${lines.map(l => `<div class="card"><div class="ci">${l.e.icon}</div><div class="cb"><h4>${esc(l.e.name)}</h4><p class="dim">${baht(l.u)} × <span data-lq="${esc(l.k)}">${l.q}</span> = <b data-lp="${esc(l.k)}">${baht(l.u * l.q)}</b>${l.e.block ? ' · ⚠️ ' + esc(l.e.block) : ''}</p>
+        <div class="row"><button class="btn ghost" data-a="m36qty" data-k="${l.k}" data-d="-1">−</button><input type="number" class="qty36" inputmode="numeric" min="1" max="999" value="${l.q}" data-qk="${esc(l.k)}" data-u="${l.u}" aria-label="จำนวน" oninput="UI.H.m36set(this,1)" onchange="UI.H.m36set(this,0)" onkeydown="if(event.key==='Enter'){this.blur()}"><button class="btn ghost" data-a="m36qty" data-k="${l.k}" data-d="1">+</button><button class="btn ghost" data-a="m36qty" data-k="${l.k}" data-d="0">เอาออก</button></div></div></div>`).join('')}</div>
         <h5>การจัดส่ง</h5><div class="row"><button class="btn ${ui.ship === 'std' ? '' : 'ghost'}" data-a="m36ship" data-v="std">📦 ส่งปกติ — พรุ่งนี้เช้า (06:00)</button><button class="btn ${ui.ship === 'exp' ? '' : 'ghost'}" data-a="m36ship" data-v="exp">⚡ ส่งด่วน ${t.foodOnly ? '(ไรเดอร์ 1 ชม.)' : '— ภายใน 3 ชม. (+120 ฿)'}</button></div>
         <h5>ชำระเงิน</h5>${window.Bank49 ? '<p class="dim">กด "สั่งซื้อ" แล้วเลือกวิธีจ่าย: เงินสด · โอนผ่านแอป · พร้อมเพย์ · เช็ค · แคชเชียร์เช็ค · เบิกที่ธนาคาร (ยอดตั้งแต่ 100,000 ฿ ต้องจ่ายด้วยเช็คหรือเบิกที่ธนาคาร) ระบบกรอกยอดและชื่อผู้รับให้เอง</p>' : ''}<div class="row" ${window.Bank49 ? 'hidden' : ''}><button class="btn ${ui.pay === 'cash' ? '' : 'ghost'}" data-a="m36pay" data-v="cash">💵 เงินสด/กระเป๋า (${baht(S.money)})</button><button class="btn ${ui.pay === 'bank' ? '' : 'ghost'}" data-a="m36pay" data-v="bank">🏦 หักบัญชีออมทรัพย์ (${baht(sav)})</button></div>
-        <p class="lead">สินค้า ${baht(t.sub)} · ค่าจัดส่ง ${baht(t.fee)}${t.express ? ' · ส่งด่วน ' + baht(t.express) : ''}<br><b>รวมทั้งหมด ${baht(t.total)}</b>${idBad ? '<br><b class="bad">ซื้อรถต้องมีบัตรประชาชนที่ยังไม่หมดอายุ (ไปทำที่ศูนย์ราชการ)</b>' : ''}</p>
-        <div class="row end"><button class="btn ghost" data-a="m36clear">ล้างตะกร้า</button><button class="btn" data-a="m36checkout" ${blocked || idBad || (!window.Bank49 && (ui.pay === 'cash' ? S.money : sav) < t.total) ? 'disabled' : ''}>✅ สั่งซื้อ ${baht(t.total)}</button></div>`;
+        <p class="lead">สินค้า <span id="m36sub">${baht(t.sub)}</span> · ค่าจัดส่ง <span id="m36fee">${baht(t.fee)}</span>${t.express ? ' · ส่งด่วน ' + baht(t.express) : ''}<br><b id="m36all">รวมทั้งหมด ${baht(t.total)}</b>${idBad ? '<br><b class="bad">ซื้อรถต้องมีบัตรประชาชนที่ยังไม่หมดอายุ (ไปทำที่ศูนย์ราชการ)</b>' : ''}</p>
+        <div class="row end"><button class="btn ghost" data-a="m36clear">ล้างตะกร้า</button><button class="btn" id="m36co" data-a="m36checkout" ${blocked || idBad || (!window.Bank49 && (ui.pay === 'cash' ? S.money : sav) < t.total) ? 'disabled' : ''}>✅ สั่งซื้อ <span id="m36cot">${baht(t.total)}</span></button></div>`;
     }
     const os = st().orders.slice().reverse().slice(0, 20);
     if (!os.length) return '<p class="empty">ยังไม่มีคำสั่งซื้อ</p>';
@@ -195,8 +195,20 @@ V23.add('v36_shop', () => {
     m36shop: d => { ui.shop = d.v || ''; ui.cat = -1; ui.g = 'all'; ui.page = 0; if (UI.cur && UI.cur.render) UI.renderBody(); },
     m36cat: d => { ui.cat = +d.v; ui.page = 0; },
     m36g: d => { ui.g = d.v; ui.page = 0; }, m36sort: d => { ui.sort = d.v; ui.page = 0; }, m36page: d => { ui.page = Math.max(0, ui.page + +d.v); },
-    m36add: d => { const s = st(), e = live(d.k); if (!e || e.block) return; s.cart[d.k] = Math.min(99, (s.cart[d.k] || 0) + (+d.q || 1)); Sfx.click(); UI.toast(`เพิ่ม ${e.name} ในตะกร้า`, '🧺'); if (UI.cur && UI.cur.tabs) UI.cur.tabs[1] = `🧺 ตะกร้า (${Object.values(s.cart).filter(q => q > 0).length})`; },
-    m36qty: d => { const s = st(), q = +d.d; if (!q) delete s.cart[d.k]; else { s.cart[d.k] = (s.cart[d.k] || 0) + q; if (s.cart[d.k] <= 0) delete s.cart[d.k]; } },
+    m36add: d => { const s = st(), e = live(d.k); if (!e || e.block) return; let n = +d.q || 1; if (d.q === 'in') { const inp = [...document.querySelectorAll('input[data-ck]')].find(x => x.dataset.ck === d.k); n = Math.max(1, Math.min(999, Math.floor(+(inp && inp.value) || 1))); } s.cart[d.k] = Math.min(999, (s.cart[d.k] || 0) + n); Sfx.click(); UI.toast(`เพิ่ม ${e.name} ในตะกร้า`, '🧺'); if (UI.cur && UI.cur.tabs) UI.cur.tabs[1] = `🧺 ตะกร้า (${Object.values(s.cart).filter(q => q > 0).length})`; },
+    m36card: el => { const q = Math.max(1, Math.min(999, Math.floor(+el.value || 1))), b = [...document.querySelectorAll('[data-cb]')].find(x => x.dataset.cb === el.dataset.ck); if (b) b.textContent = baht(Math.round(+el.dataset.u * q)); },
+    m36addq: el => { UI.H.m36add({ k: el.dataset.ck, q: 'in' }); if (UI.cur && UI.renderBody) UI.renderBody(); },
+    m36set: (el, live) => {
+      const k = el.dataset.qk, s = st(); let q = Math.floor(+el.value);
+      if (!isFinite(q) || el.value === '') { if (live) return; q = 1; }
+      q = Math.max(1, Math.min(999, q)); s.cart[k] = q;
+      const lp = [...document.querySelectorAll('[data-lp]')].find(x => x.dataset.lp === k), lq = [...document.querySelectorAll('[data-lq]')].find(x => x.dataset.lq === k);
+      if (lp) lp.textContent = baht(Math.round(+el.dataset.u * q)); if (lq) lq.textContent = q;
+      const t = window.Mall36 ? Mall36.totals() : null;
+      if (t) { const a = document.getElementById('m36sub'), f = document.getElementById('m36fee'), l = document.getElementById('m36all'), c = document.getElementById('m36cot'); if (a) a.textContent = baht(t.sub); if (f) f.textContent = baht(t.fee); if (l) l.textContent = 'รวมทั้งหมด ' + baht(t.total); if (c) c.textContent = baht(t.total); }
+      if (!live) { el.value = q; if (UI.renderBody) UI.renderBody(); }
+    },
+    m36qty: d => { const s = st(), q = +d.d; if (!q) delete s.cart[d.k]; else { s.cart[d.k] = Math.min(999, (s.cart[d.k] || 0) + q); if (s.cart[d.k] <= 0) delete s.cart[d.k]; } },
     m36clear: () => { st().cart = {}; }, m36ship: d => { ui.ship = d.v; }, m36pay: d => { ui.pay = d.v; }, m36checkout: () => checkout(), m36ret: d => returnOrder(d.id),
   });
   window.Mall36 = { open, catalog, st, proc, why, totals: () => totals(cartLines()), ui };

@@ -8,9 +8,13 @@
 V23.add('v207_contracts', () => {
   if (typeof Company === 'undefined' || typeof CO_TYPES === 'undefined') return;
   const E = s => (typeof esc === 'function' ? esc(s) : String(s));
-  const YD = typeof YEAR_DAYS !== 'undefined' ? YEAR_DAYS : 84, MO = YD / 12;     // a month = 7 game days = one company "month close"
+  const YD = typeof YEAR_DAYS !== 'undefined' ? YEAR_DAYS : 84, MO = 30;     // v237: a contract month = 30 days = one company month close (it was YD / 12 = 7 days, so a "12-month" contract ended after 84 days and paid about 3 times)
   const rnd = (a, b) => a + Math.random() * (b - a), ri = (a, b) => Math.round(rnd(a, b)), pick = a => a[Math.floor(Math.random() * a.length)];
   const R5 = (n, s = 1000) => Math.round(n / s) * s;
+  const OFFER_X = 4;   // price level of the offers customers make, for every business type (x4 of the original prices; it was x2, then x8 in between: x4 with the caps below is the balanced level)
+  // what a company of this kind pays its starting team each month: the offer caps are measured against it (a retainer is worth at most 5 months of it, a project at most 25 months)
+  const payBase = c => { try { const T = CO_TYPES[c.type]; return Object.entries((T && T.staff) || {}).reduce((a, [r, n]) => a + n * ((typeof ROLES !== 'undefined' && ROLES[r] && ROLES[r].sal) || 15000), 0) || 40000; } catch (e) { return 40000; } };
+  const capRet = c => R5(Math.max(150000, 5 * payBase(c)), 1000), capPrj = c => R5(Math.max(600000, 25 * payBase(c)), 5000);
 
   // ----- new network gear: bigger firewalls and carrier routers (links of 10 Gbps and more need devices that can carry them) -----
   Object.assign(DEV, {
@@ -24,14 +28,15 @@ V23.add('v207_contracts', () => {
 
   // ----- customers -----
   const CU = {
+    gov: ['เทศบาลตำบลสุขใจ', 'โรงพยาบาลส่งเสริมสุขภาพตำบลทุ่งทอง', 'ที่ว่าการอำเภอสุขใจ', 'สถานีตำรวจภูธรสุขใจ', 'ค่ายทหารสุขใจ (กองพันทหารราบ)', 'โรงเรียนประจำอำเภอสุขใจ', 'องค์การบริหารส่วนจังหวัด', 'ศูนย์ราชการสุขใจ', 'วิทยาลัยเทคนิคสุขใจ'],   // v241: public bodies (only offered through a retired officer among the shareholders)
     med: ['โรงพยาบาลสุขใจ', 'คลินิกทุ่งทอง', 'ร้านยาใกล้บ้าน', 'ศูนย์สัตว์เลี้ยงภูผา', 'คลินิกทันตกรรมยิ้มสวย', 'โรงพยาบาลส่งเสริมสุขภาพตำบล'],
     edu: ['โรงเรียนบ้านสุขใจ', 'วิทยาลัยชุมชนสุขใจ', 'โรงเรียนอนุบาลสุขใจ', 'โรงเรียนเทศบาลทุ่งทอง', 'ศูนย์ฝึกอาชีพชุมชน', 'โรงเรียนกวดวิชาเก่งคิด'],
     gov: ['เทศบาลตำบลสุขใจ', 'อบต.ภูผาใหม่', 'ที่ว่าการอำเภอสุขใจ', 'สำนักงานเกษตรอำเภอ', 'สถานีตำรวจทุ่งทอง', 'การประปาส่วนภูมิภาคสาขาสุขใจ'],
-    fin: ['สหกรณ์การเกษตรสุขใจ', 'ธนาคารสุขใจ สาขาทุ่งทอง', 'กองทุนหมู่บ้านสุขใจ', 'บริษัทประกันภัยสุขใจ', 'ร้านทองเยาวราชทุ่งทอง'],
-    shop: ['สุขใจมาร์ท', 'ไฮเปอร์มาร์ทสุขใจ', 'สุขใจพลาซ่า', 'ร้านเกษตรรุ่งเรือง', 'ร้านดอกไม้บ้านมะลิ', 'ร้านเฟอร์นิเจอร์ช่างไม้', 'โชว์รูมรถยนต์สุขใจ', 'ตลาดนัดริมทะเล', 'ร้านเสื้อผ้าแฟชั่นภูผา'],
+    fin: ['สหกรณ์ออมทรัพย์สุขใจ', 'ธนาคารสุขใจ สาขาทุ่งทอง', 'กองทุนหมู่บ้านสุขใจ', 'บริษัทประกันภัยสุขใจ', 'ร้านทองเยาวราชทุ่งทอง'],
+    shop: ['สุขใจมาร์ท', 'ไฮเปอร์มาร์ทสุขใจ', 'สุขใจพลาซ่า', 'ร้านวัสดุรุ่งเรือง', 'ร้านดอกไม้บ้านมะลิ', 'ร้านเฟอร์นิเจอร์ช่างไม้', 'โชว์รูมรถยนต์สุขใจ', 'ตลาดนัดริมทะเล', 'ร้านเสื้อผ้าแฟชั่นภูผา'],
     hotel: ['โรงแรมสุขใจรีสอร์ต', 'โฮมสเตย์ริมทะเล', 'รีสอร์ตทุ่งทานตะวัน', 'ที่พักสวนทองเมือง', 'ลานกางเต็นท์ภูผา'],
     fac: ['โรงสีข้าวสุขใจ', 'โรงงานผลไม้อบแห้ง', 'โรงน้ำแข็งทุ่งทอง', 'โรงงานน้ำตาลภูผา', 'โกดังสินค้าสุขใจ', 'โรงงานอาหารแช่แข็งริมทะเล'],
-    farm: ['ฟาร์มลุงมี', 'ไร่สุขใจอะโกร', 'ฟาร์มไก่ไข่ภูผา', 'สวนผลไม้ทองสุข', 'ฟาร์มปลาริมคลอง', 'กลุ่มวิสาหกิจชุมชนเกษตรอินทรีย์'],
+    farm: ['ฟาร์มลุงมี', 'บ้านสุขใจอะโกร', 'ฟาร์มไก่ไข่ภูผา', 'สวนผลไม้ทองสุข', 'ฟาร์มปลาริมคลอง', 'กลุ่มวิสาหกิจชุมชนเกษตรอินทรีย์'],
     food: ['ร้านอาหารป้าแดง', 'ร้านอาหารจีนเจ๊กิม', 'ร้านก๋วยเตี๋ยวลุงสมชาย', 'ครัวคุณยาย', 'ร้านซีฟู้ดริมทะเล', 'คาเฟ่ในสวน', 'ศูนย์อาหารตลาดเช้า'],
     log: ['บริษัทค้าส่งสุขใจ', 'ร้านค้าออนไลน์น้องใหม่', 'ผู้ค้าปลีกตลาดกลาง', 'บริษัทวัสดุก่อสร้างภูผา', 'โรงงานเฟอร์นิเจอร์ไม้'],
     tech: ['สตาร์ทอัพสุขใจเทค', 'บริษัทซอฟต์แวร์ภูผา', 'ร้านเกมและอีสปอร์ตทุ่งทอง', 'ผู้ให้บริการอินเทอร์เน็ตท้องถิ่น', 'สำนักพิมพ์สุขใจ', 'สถานีวิทยุชุมชน', 'บริษัทโฆษณาสวนทอง'],
@@ -41,19 +46,21 @@ V23.add('v207_contracts', () => {
 
   // ----- offer templates: [title, customer sectors, kind, [min,max] term(months)/length(days), [min,max] fee(monthly)/price, requirements, options] -----
   // requirement words: rack:N bw:N(Mbps) srv:N gpu:N olt:N iotkit:N stock:N staff:role:N dev:N lic:key gen ups fire cam car:N kitchen evdc:N sla via options
+  // v213: fees re-checked against real Thai market prices (colocation rack 42U 37,000-59,000/month, 5 kWp rooftop 160,000-215,000, EV charging ~5.5-7.5 THB/kWh, AC 22 kW charger ~83,000 without install,
+  //       web/CMS site 15,000-30,000 and custom web app 150,000-500,000), the rest scaled from head-count and unit prices (meals per head, trucking per trip, seats per call-centre agent)
   const RET = 'ret', PRJ = 'prj';
   const F = {
     dc: [
-      ['รับฝากเซิร์ฟเวอร์ 1 ตู้แร็ค 42U (Colocation)', 'tech|shop|fac|fin', RET, [6, 24], [28000, 38000], ['rack:1', 'bw:200', 'ups'], { sla: 99.9, cost: 0.38 }],
-      ['รับฝากเซิร์ฟเวอร์ 2 ตู้แร็คติดกัน พร้อมคอนเน็กชันเน็ตสำรอง', 'tech|fin|shop', RET, [12, 36], [62000, 82000], ['rack:2', 'bw:500', 'ups'], { sla: 99.95, cost: 0.4 }],
-      ['ห้องเช่าเฉพาะ (Private Cage) 4 ตู้ ระบบกันไฟและดับเพลิง', 'fin|med|gov', RET, [12, 36], [125000, 165000], ['rack:4', 'bw:1000', 'gen', 'ups', 'fire'], { sla: 99.99, cost: 0.42 }],
+      ['รับฝากเซิร์ฟเวอร์ 1 ตู้แร็ค 42U (Colocation)', 'tech|shop|fac|fin', RET, [6, 24], [36000, 58000], ['rack:1', 'bw:200', 'ups'], { sla: 99.9, cost: 0.38 }],
+      ['รับฝากเซิร์ฟเวอร์ 2 ตู้แร็คติดกัน พร้อมคอนเน็กชันเน็ตสำรอง', 'tech|fin|shop', RET, [12, 36], [68000, 108000], ['rack:2', 'bw:500', 'ups'], { sla: 99.95, cost: 0.4 }],
+      ['ห้องเช่าเฉพาะ (Private Cage) 4 ตู้ ระบบกันไฟและดับเพลิง', 'fin|med|gov', RET, [12, 36], [135000, 215000], ['rack:4', 'bw:1000', 'gen', 'ups', 'fire'], { sla: 99.99, cost: 0.42 }],
       ['ที่เก็บข้อมูลสำรอง (Off-site Backup) 50 TB', 'shop|fac|med|edu', RET, [6, 24], [14000, 21000], ['rack:1', 'bw:100'], { sla: 99.5, cost: 0.3 }],
       ['DR Site สำรองระบบให้สถาบันการเงิน (พร้อมใช้ 24 ชม.)', 'fin', RET, [12, 36], [70000, 98000], ['rack:2', 'bw:300', 'gen', 'ups', 'fire'], { sla: 99.99, cost: 0.4, note: 'ต้องพร้อมรับระบบทันทีเมื่อระบบหลักล่ม' }],
       ['โฮสต์ระบบเวชระเบียนและภาพถ่ายรังสี (PACS) ให้โรงพยาบาล', 'med', RET, [12, 36], [88000, 120000], ['rack:2', 'bw:300', 'gen', 'ups', 'fire', 'staff:eng:1'], { sla: 99.99, cost: 0.42, note: 'ข้อมูลผู้ป่วยต้องปลอดภัยตาม PDPA' }],
       ['ฝากระบบบัญชีและ ERP ให้โรงงาน', 'fac|shop', RET, [6, 18], [24000, 36000], ['rack:1', 'bw:100', 'ups'], { sla: 99.9, cost: 0.36 }],
       ['ฝากเว็บไซต์และอีเมลองค์กรให้หน่วยงานรัฐ', 'gov|edu', RET, [12, 24], [22000, 33000], ['rack:1', 'bw:150', 'ups'], { sla: 99.9, cost: 0.35 }],
       ['เก็บภาพกล้องวงจรปิดบนคลาวด์ (200 กล้อง ย้อนหลัง 30 วัน)', 'shop|gov|res', RET, [6, 24], [32000, 46000], ['rack:1', 'bw:400', 'ups'], { sla: 99.5, cost: 0.4 }],
-      ['เซิร์ฟเวอร์เกมออนไลน์ ความหน่วงต่ำ', 'tech', RET, [6, 18], [45000, 64000], ['rack:1', 'bw:1000', 'ups'], { sla: 99.9, cost: 0.4 }],
+      ['เซิร์ฟเวอร์เกมออนไลน์ ความหน่วงต่ำ', 'tech', RET, [6, 18], [52000, 75000], ['rack:1', 'bw:1000', 'ups'], { sla: 99.9, cost: 0.4 }],
       ['วางอุปกรณ์เครือข่ายเชื่อมต่อตรง (Cross-connect / Peering)', 'tech', RET, [12, 36], [36000, 58000], ['rack:1', 'bw:1000', 'ups'], { sla: 99.95, cost: 0.3 }],
       ['ศูนย์ข้อมูลระบบจัดซื้อจัดจ้างภาครัฐ (ต้องมีใบอนุญาต กสทช.)', 'gov', RET, [12, 36], [95000, 135000], ['rack:2', 'bw:500', 'gen', 'ups', 'fire', 'lic:nbtc'], { sla: 99.99, cost: 0.42 }],
     ],
@@ -69,14 +76,14 @@ V23.add('v207_contracts', () => {
       ['ย้ายเว็บไซต์เก่า 40 เว็บมาโฮสต์ใหม่ (โครงการย้ายระบบ)', 'tech|shop', PRJ, [5, 12], [90000, 160000], ['srv:1', 'staff:sysadmin:1'], { cost: 0.3 }],
     ],
     isp: [
-      ['เช่าสายสัญญาณเฉพาะ (Leased Line) 1 Gbps ให้ธุรกิจ', 'shop|fac|fin', RET, [12, 36], [15000, 25000], ['bw:1000', 'olt:1', 'staff:tech:1'], { sla: 99.9, cost: 0.45 }],
-      ['อินเทอร์เน็ตไฟเบอร์ทั้งอพาร์ตเมนต์ 120 ห้อง', 'res', RET, [12, 36], [36000, 56000], ['bw:1200', 'olt:1', 'staff:tech:2'], { sla: 99.5, cost: 0.5 }],
-      ['เครือข่ายโรงเรียน (WAN) 6 อาคาร + Wi-Fi ทั้งโรงเรียน', 'edu', RET, [12, 36], [28000, 42000], ['bw:600', 'olt:1', 'staff:tech:2'], { sla: 99.5, cost: 0.48 }],
+      ['เช่าสายสัญญาณเฉพาะ (Leased Line) 1 Gbps ให้ธุรกิจ', 'shop|fac|fin', RET, [12, 36], [45000, 90000], ['bw:1000', 'olt:1', 'staff:tech:1'], { sla: 99.9, cost: 0.45 }],
+      ['อินเทอร์เน็ตไฟเบอร์ทั้งอพาร์ตเมนต์ 120 ห้อง', 'res', RET, [12, 36], [55000, 90000], ['bw:1200', 'olt:1', 'staff:tech:2'], { sla: 99.5, cost: 0.5 }],
+      ['เครือข่ายโรงเรียน (WAN) 6 อาคาร + Wi-Fi ทั้งโรงเรียน', 'edu', RET, [12, 36], [36000, 55000], ['bw:600', 'olt:1', 'staff:tech:2'], { sla: 99.5, cost: 0.48 }],
       ['Wi-Fi สาธารณะเทศบาล 40 จุด', 'gov', RET, [12, 36], [42000, 64000], ['bw:800', 'olt:1', 'staff:tech:2'], { sla: 99.5, cost: 0.5 }],
       ['Wi-Fi โรงแรมและรีสอร์ตทั้งโครงการ', 'hotel', RET, [12, 24], [22000, 34000], ['bw:400', 'olt:1', 'staff:tech:1'], { sla: 99.5, cost: 0.45 }],
-      ['เน็ตหมู่บ้านทั้งหมู่ (FTTH 200 หลังคาเรือน)', 'res', RET, [24, 60], [62000, 92000], ['bw:2000', 'olt:2', 'staff:tech:2'], { sla: 99, cost: 0.52 }],
+      ['เน็ตหมู่บ้านทั้งหมู่ (FTTH 200 หลังคาเรือน)', 'res', RET, [24, 60], [80000, 120000], ['bw:2000', 'olt:2', 'staff:tech:2'], { sla: 99, cost: 0.52 }],
       ['วงจรเชื่อมสาขาสหกรณ์ 5 สาขา', 'fin', RET, [12, 36], [34000, 52000], ['bw:500', 'olt:1', 'staff:tech:1'], { sla: 99.9, cost: 0.45 }],
-      ['เน็ตโรงงานและโกดัง พร้อมสายสำรอง', 'fac', RET, [12, 36], [26000, 40000], ['bw:800', 'olt:1', 'staff:tech:1'], { sla: 99.9, cost: 0.46 }],
+      ['เน็ตโรงงานและโกดัง พร้อมสายสำรอง', 'fac', RET, [12, 36], [34000, 52000], ['bw:800', 'olt:1', 'staff:tech:1'], { sla: 99.9, cost: 0.46 }],
       ['วางเครือข่ายใหม่ให้ชุมชนหมู่บ้านทุ่งทานตะวัน (โครงการเดินสายไฟเบอร์)', 'res|gov', PRJ, [10, 24], [380000, 720000], ['olt:1', 'staff:tech:2'], { cost: 0.55 }],
     ],
     dev: [
@@ -126,7 +133,7 @@ V23.add('v207_contracts', () => {
     cyber: [
       ['ทดสอบเจาะระบบ (Penetration Test) ให้ธนาคาร/สหกรณ์', 'fin', PRJ, [6, 12], [160000, 280000], ['staff:sect:2'], { cost: 0.3 }],
       ['ตรวจประเมินความพร้อม PDPA ให้โรงพยาบาล', 'med', PRJ, [8, 16], [120000, 210000], ['staff:sect:1'], { cost: 0.3 }],
-      ['เฝ้าระวังภัยไซเบอร์ 24 ชม. (SOC Retainer)', 'fin|med|fac', RET, [6, 24], [68000, 110000], ['staff:sect:2'], { sla: 99.5, cost: 0.55 }],
+      ['เฝ้าระวังภัยไซเบอร์ 24 ชม. (SOC Retainer)', 'fin|med|fac', RET, [6, 24], [100000, 165000], ['staff:sect:2'], { sla: 99.5, cost: 0.55 }],
       ['อบรมพนักงานรู้ทันฟิชชิ่งให้บริษัทและโรงเรียน', 'edu|shop|gov', PRJ, [3, 6], [38000, 72000], ['staff:sect:1'], { cost: 0.25 }],
       ['ติดตั้งและดูแลไฟร์วอลล์ให้ร้านค้า', 'shop|fac', RET, [6, 18], [18000, 30000], ['staff:sect:1'], { sla: 99, cost: 0.5 }],
     ],
@@ -158,8 +165,8 @@ V23.add('v207_contracts', () => {
       ['ระบบควบคุมโรงเรือนไก่ไข่อัตโนมัติ', 'farm', PRJ, [8, 14], [120000, 210000], ['iotkit:1', 'staff:installer:1'], { cost: 0.5 }],
     ],
     bpo: [
-      ['คอลเซ็นเตอร์รับสายลูกค้า 10 ที่นั่งให้ห้างสรรพสินค้า', 'shop', RET, [6, 24], [48000, 78000], ['staff:agent:5'], { sla: 98, cost: 0.65 }],
-      ['ศูนย์ติดตามพัสดุและแจ้งเตือนลูกค้า', 'log', RET, [6, 18], [36000, 58000], ['staff:agent:4'], { sla: 98, cost: 0.65 }],
+      ['คอลเซ็นเตอร์รับสายลูกค้า 5 ที่นั่งให้ห้างสรรพสินค้า (ที่นั่งละ 25,000-35,000 บาท/เดือน)', 'shop', RET, [6, 24], [125000, 175000], ['staff:agent:5'], { sla: 98, cost: 0.65 }],
+      ['ศูนย์ติดตามพัสดุและแจ้งเตือนลูกค้า', 'log', RET, [6, 18], [90000, 140000], ['staff:agent:4'], { sla: 98, cost: 0.65 }],
       ['คีย์ข้อมูลเอกสาร 50,000 หน้าให้เทศบาล (โครงการ)', 'gov', PRJ, [8, 16], [90000, 160000], ['staff:agent:4'], { cost: 0.6 }],
     ],
     agency: [
@@ -168,9 +175,9 @@ V23.add('v207_contracts', () => {
       ['ถ่ายภาพและทำวิดีโอโปรโมตให้โรงแรม', 'hotel', PRJ, [4, 9], [60000, 110000], ['staff:designer:1'], { cost: 0.4 }],
     ],
     solar: [
-      ['โซลาร์บ้านลูกค้า 5 kWp', 'res|shop', PRJ, [2, 4], [140000, 190000], ['staff:installer:1'], { cost: 0.62 }],
+      ['โซลาร์บ้านลูกค้า 5 kWp', 'res|shop', PRJ, [2, 4], [160000, 215000], ['staff:installer:1'], { cost: 0.62 }],
       ['โซลาร์หลังคาโรงงาน 100 kWp', 'fac', PRJ, [8, 14], [2200000, 3000000], ['staff:eng:1', 'staff:installer:3'], { cost: 0.7 }],
-      ['เครื่องชาร์จ EV 22 kW ให้คอนโด 4 จุด', 'res', PRJ, [3, 6], [220000, 310000], ['staff:installer:2'], { cost: 0.55 }],
+      ['เครื่องชาร์จ EV 22 kW ให้คอนโด 4 จุด', 'res', PRJ, [3, 6], [380000, 480000], ['staff:installer:2'], { cost: 0.55 }],
       ['โซลาร์ปั๊มน้ำให้ไร่และฟาร์ม', 'farm', PRJ, [3, 7], [160000, 260000], ['staff:installer:2'], { cost: 0.6 }],
       ['ดูแลและล้างแผงโซลาร์รายเดือน (O&M)', 'fac|hotel|res', RET, [12, 36], [16000, 30000], ['staff:installer:1'], { sla: 98, cost: 0.55 }],
     ],
@@ -180,17 +187,17 @@ V23.add('v207_contracts', () => {
       ['ดูแลระบบสมาร์ตโฮมรายเดือน', 'res|hotel', RET, [6, 24], [14000, 26000], ['staff:installer:1'], { sla: 98, cost: 0.55 }],
     ],
     ev: [
-      ['สัญญาชาร์จรถตู้แท็กซี่ 15 คัน (ส่วนลดตามปริมาณ)', 'log', RET, [6, 24], [42000, 68000], ['evdc:1'], { sla: 99, cost: 0.7 }],
-      ['สัญญาชาร์จรถขนส่งโรงงาน 8 คัน เวลากลางคืน', 'fac', RET, [6, 24], [34000, 56000], ['evdc:1'], { sla: 99, cost: 0.7 }],
+      ['สัญญาชาร์จรถตู้แท็กซี่ 15 คัน (ส่วนลดตามปริมาณ)', 'log', RET, [6, 24], [60000, 95000], ['evdc:1'], { sla: 99, cost: 0.7 }],
+      ['สัญญาชาร์จรถขนส่งโรงงาน 8 คัน เวลากลางคืน', 'fac', RET, [6, 24], [45000, 70000], ['evdc:1'], { sla: 99, cost: 0.7 }],
       ['สัญญาจอดชาร์จรายเดือนให้โรงแรม', 'hotel', RET, [6, 18], [18000, 30000], ['evdc:1'], { sla: 98, cost: 0.65 }],
     ],
     log: [
-      ['สายส่งสินค้าประจำให้ค้าส่งในตลาด (สัปดาห์ละ 5 เที่ยว)', 'log|shop', RET, [6, 18], [36000, 58000], ['car:1', 'staff:driver:1'], { sla: 98, cost: 0.62 }],
-      ['ส่งวัตถุดิบเข้าโรงงานรายวัน', 'fac', RET, [6, 24], [52000, 84000], ['car:2', 'staff:driver:2'], { sla: 98, cost: 0.62 }],
-      ['ขนส่งผลผลิตเกษตรไปตลาดกลาง (ตู้เย็น)', 'farm', RET, [3, 12], [30000, 52000], ['car:1', 'staff:driver:1'], { sla: 98, cost: 0.6 }],
-      ['ส่งพัสดุให้ร้านค้าออนไลน์ 300 ชิ้นต่อวัน', 'log', RET, [6, 18], [46000, 76000], ['car:2', 'staff:driver:2'], { sla: 98, cost: 0.62 }],
+      ['สายส่งสินค้าประจำให้ค้าส่งในตลาด (สัปดาห์ละ 5 เที่ยว)', 'log|shop', RET, [6, 18], [60000, 90000], ['car:1', 'staff:driver:1'], { sla: 98, cost: 0.62 }],
+      ['ส่งวัตถุดิบเข้าโรงงานรายวัน', 'fac', RET, [6, 24], [110000, 170000], ['car:2', 'staff:driver:2'], { sla: 98, cost: 0.62 }],
+      ['ขนส่งผลผลิตเกษตรไปตลาดกลาง (ตู้เย็น)', 'farm', RET, [3, 12], [45000, 75000], ['car:1', 'staff:driver:1'], { sla: 98, cost: 0.6 }],
+      ['ส่งพัสดุให้ร้านค้าออนไลน์ 300 ชิ้นต่อวัน', 'log', RET, [6, 18], [80000, 120000], ['car:2', 'staff:driver:2'], { sla: 98, cost: 0.62 }],
       ['ขนย้ายสินค้าก่อสร้างโครงการหมู่บ้านใหม่', 'res|fac', PRJ, [4, 9], [90000, 170000], ['car:2', 'staff:driver:2'], { cost: 0.6 }],
-      ['ขนย้ายบ้านและสำนักงาน', 'res|shop', PRJ, [1, 3], [14000, 36000], ['car:1', 'staff:driver:1'], { cost: 0.55 }],
+      ['ขนย้ายบ้านและสำนักงาน', 'res|shop', PRJ, [1, 3], [6000, 25000], ['car:1', 'staff:driver:1'], { cost: 0.55 }],
     ],
     food: [
       ['ส่งผลไม้อบแห้งให้ห้างสรรพสินค้า 400 กก. ต่อเดือน', 'shop', RET, [6, 18], [64000, 98000], ['staff:qa:1', 'lic:fda'], { sla: 98, cost: 0.62 }],
@@ -199,9 +206,9 @@ V23.add('v207_contracts', () => {
       ['ผลิตสินค้า OEM ติดแบรนด์ร้านค้า (ล็อตแรก)', 'shop', PRJ, [10, 20], [260000, 430000], ['staff:qa:1', 'lic:fda'], { cost: 0.6 }],
     ],
     cater: [
-      ['จัดเลี้ยงอาหารกลางวันพนักงานโรงงาน 150 คนต่อวัน', 'fac', RET, [6, 24], [58000, 92000], ['kitchen', 'staff:chef:1'], { sla: 98, cost: 0.62 }],
-      ['อาหารกลางวันโรงเรียน 300 คน', 'edu', RET, [6, 24], [52000, 84000], ['kitchen', 'staff:chef:1'], { sla: 98, cost: 0.64 }],
-      ['จัดเลี้ยงงานแต่งงานและงานบุญ', 'res|hotel', PRJ, [1, 3], [28000, 85000], ['kitchen', 'staff:chef:1'], { cost: 0.6 }],
+      ['จัดเลี้ยงอาหารกลางวันพนักงานโรงงาน 150 คนต่อวัน', 'fac', RET, [6, 24], [150000, 230000], ['kitchen', 'staff:chef:1'], { sla: 98, cost: 0.62 }],
+      ['อาหารกลางวันโรงเรียน 300 คน', 'edu', RET, [6, 24], [170000, 250000], ['kitchen', 'staff:chef:1'], { sla: 98, cost: 0.64 }],
+      ['จัดเลี้ยงงานแต่งงานและงานบุญ', 'res|hotel', PRJ, [1, 3], [40000, 120000], ['kitchen', 'staff:chef:1'], { cost: 0.6 }],
       ['อาหารกล่องประชุมสัมมนาให้เทศบาล', 'gov', PRJ, [1, 3], [18000, 45000], ['kitchen'], { cost: 0.6 }],
     ],
     cafe: [
@@ -213,7 +220,7 @@ V23.add('v207_contracts', () => {
       ['เค้กวันเกิดและกล่องขนมงานบริษัท', 'fin|fac', PRJ, [1, 2], [12000, 30000], ['kitchen'], { cost: 0.5 }],
     ],
     noodle: [
-      ['ส่งอาหารตามสั่งให้โรงงาน 80 คนต่อวัน', 'fac', RET, [3, 12], [28000, 46000], ['kitchen'], { sla: 97, cost: 0.6 }],
+      ['ส่งอาหารตามสั่งให้โรงงาน 80 คนต่อวัน', 'fac', RET, [3, 12], [75000, 110000], ['kitchen'], { sla: 97, cost: 0.6 }],
       ['อาหารเลี้ยงงานกีฬาสีโรงเรียน', 'edu', PRJ, [1, 2], [9000, 22000], ['kitchen'], { cost: 0.55 }],
     ],
     tea: [
@@ -269,15 +276,18 @@ V23.add('v207_contracts', () => {
   // ----- offers -----
   const mkOffer = (c, t) => {
     const [title, sec, kind, [a, b], [f1, f2], req, o] = t; const prem = 0.9 + (c.rep || 30) / 500 + rnd(-0.05, 0.1);
-    const x = st(c); const off = { id: ++x.seq, title, cust: CUSTOMER(sec), kind, reqs: req.map(parse), sla: (o && o.sla) || 0, cost: (o && o.cost) || 0.5, note: (o && o.note) || '', exp: S.day + ri(4, 8), fam: null };
-    const v = R5(rnd(f1, f2) * prem, f2 > 100000 ? 5000 : 1000);
-    if (kind === RET) { off.term = ri(a, b); off.fee = v; off.dep = 1; off.value = v * off.term; }
-    else { off.len = ri(a, b); off.price = v; off.adv = 0.3; off.value = v; }
+    const x = st(c); const off = { x2: 1, xm: OFFER_X, id: ++x.seq, title, cust: CUSTOMER(sec), kind, reqs: req.map(parse), sla: (o && o.sla) || 0, cost: (o && o.cost) || 0.5, note: (o && o.note) || '', exp: S.day + ri(4, 8), fam: null };
+    const v = R5(rnd(f1, f2) * prem * OFFER_X * (window.Biz212 ? Biz212.mult(c.type) : 1), f2 > 100000 ? 5000 : 1000);   // v247: customers offer twice as much, for every kind of business   // v212: offers follow the market
+    if (kind === RET) { off.term = ri(a, b); off.fee = Math.min(v, capRet(c)); off.dep = 1; off.value = off.fee * off.term; }
+    else { off.len = ri(a, b); off.price = Math.min(v, capPrj(c)); off.adv = 0.3; off.value = off.price; }
+    // v241: a retired police / military officer among the shareholders opens doors to public bodies: such an offer pays about 10% more, needs the VAT registration, and follows the official procedure
+    if (window.Inv241 && Inv241.govNetwork) { const n = Inv241.govNetwork(c); if (n > 0 && Math.random() < Math.min(0.6, 0.15 + 0.2 * n)) { off.cust = pick(CU.gov); off.gov = 1; if (kind === RET) { off.fee = R5(off.fee * 1.1, 1000); off.value = off.fee * off.term; } else { off.price = R5(off.price * 1.1, 1000); off.value = off.price; } if (!off.reqs.some(r => r.k === 'lic' && r.r === 'vat')) off.reqs.push(parse('lic:vat')); off.note = 'งานหน่วยงานรัฐ ผ่านเครือข่ายผู้ถือหุ้นที่เป็นนายทหาร/ตำรวจเกษียณ ต้องจดภาษีมูลค่าเพิ่ม และดำเนินการตามระเบียบราชการ'; } }
     return off;
   };
   const pool = c => { const L = []; for (const f of FAMILY[c.type] || []) for (const t of F[f] || []) L.push(t); return L; };
   const refresh = c => {
     const x = st(c); x.offers.list = x.offers.list.filter(o => o.exp >= S.day);
+    for (const o of x.offers.list) if (o.xm !== OFFER_X) { const k = OFFER_X / (o.xm || (o.x2 ? 2 : 1)); o.x2 = 1; o.xm = OFFER_X; if (o.kind === RET) { o.fee = Math.min(R5(o.fee * k, 1000), capRet(c)); o.value = o.fee * o.term; } else { o.price = Math.min(R5(o.price * k, 1000), capPrj(c)); o.value = o.price; } }   // an offer made at an older price level is raised once to the current level
     if (x.offers.day === S.day) return x.offers.list; x.offers.day = S.day;
     const P = pool(c); if (!P.length) return x.offers.list;
     const want = Math.min(8, 4 + Math.floor((c.rep || 30) / 30)); let guard = 0;
@@ -402,5 +412,5 @@ V23.add('v207_contracts', () => {
       ${x.done.length ? `<h5>🗂️ ประวัติสัญญา</h5><p class="dim">${x.done.map(E).join('<br>')}</p>` : ''}`;
   };
   { const _h = Company.html.bind(Company); Company.html = t => { let s = _h(t); if (t !== 1) { const c = Company.get(Company.sel); if (c && ['setup', 'open'].includes(c.st) && FAMILY[c.type]) { const h = html(c); const m = '<h5>🗓️ ประชุมบอร์ด / ผู้ถือหุ้น</h5>'; s = s.includes(m) ? s.replace(m, h + m) : s.replace('<div class="row"><button class="btn danger" data-a="coclose"', h + '<div class="row"><button class="btn danger" data-a="coclose"'); } } return s; }; }
-  window.Contracts207 = { F, FAMILY, offers: refresh, st, reqAll, html };
+  window.Contracts207 = { F, FAMILY, offers: refresh, st, reqAll, html, MO };
 });

@@ -3,7 +3,7 @@
 const Slots = {
   cur() { return +(safeGet('raisukjai3d_slot') || 1); },
   key(n = this.cur()) { return n === 1 ? SAVE_KEY : SAVE_KEY + '_s' + n; },
-  info(n) { try { const s = JSON.parse(safeGet(this.key(n)) || 'null'); return s ? `${s.name || 'ชาวไร่'} · ${(() => { try { const st0 = s.v36 && s.v36.cal && s.v36.cal.start; if (typeof st0 === 'number' && typeof Cal36 !== 'undefined') { const t = new Date((st0 + s.day - 1) * 86400000); return t.getUTCDate() + ' ' + Cal36.MONS[t.getUTCMonth()] + ' ' + (t.getUTCFullYear() + 543); } } catch (e) { } return RD(s.day); })()} · ${U.fmt(s.money)} ฿ · Lv.${s.lvl || 1}` : 'ว่าง'; } catch (e) { return 'ว่าง'; } },
+  info(n) { try { const s = JSON.parse(safeGet(this.key(n)) || 'null'); return s ? `${s.name || 'ผู้เล่น'} · ${(() => { try { const st0 = s.v36 && s.v36.cal && s.v36.cal.start; if (typeof st0 === 'number' && typeof Cal36 !== 'undefined') { const t = new Date((st0 + s.day - 1) * 86400000); return t.getUTCDate() + ' ' + Cal36.MONS[t.getUTCMonth()] + ' ' + (t.getUTCFullYear() + 543); } } catch (e) { } return RD(s.day); })()} · ${U.fmt(s.money)} ฿ · Lv.${s.lvl || 1}` : 'ว่าง'; } catch (e) { return 'ว่าง'; } },
   has(n) { try { const r = safeGet(this.key(n)); return !!(r && r.length > 100); } catch (e) { return false; } },
   html() { return [1, 2, 3].map(n => `<div class="slotwrap"><button class="btn ${n === this.cur() ? '' : 'ghost'} slotbtn" data-slot="${n}">💾 ช่อง ${n}<br><small>${esc(this.info(n))}</small></button>${this.has(n) ? `<button class="btn ghost slotdel" data-del="${n}" title="ลบเซฟช่อง ${n}">🗑️ ลบเซฟ</button>` : ''}</div>`).join(''); },
   // delete a save for good: this browser's copy, its automatic backup, and the copy kept on the server. Nothing may write the slot again while it goes
@@ -77,16 +77,13 @@ const Pad = {
 
 const Tutorial = {
   steps: [
-    { t: 'เดินไปที่แปลงผักหน้าบ้าน', at: () => plotCenter(0), done: () => Math.hypot(G.player.pos.x - plotCenter(0).x, G.player.pos.z - plotCenter(0).z) < 3 },
-    { t: 'เลือกเมล็ดในแถบล่าง แล้วกดปุ่มกลมเพื่อปลูก', at: () => plotCenter(0), done: b => S.stats.planted > b.planted },
-    { t: 'เลือกบัวรดน้ำ แล้วรดน้ำแปลงที่ปลูก', at: () => plotCenter(0), done: b => S.stats.watered > b.watered },
     { t: 'เปิดมือถือ (ปุ่ม 📱 มุมขวาบน หรือกด P)', done: () => Tutorial.phoned },
     { t: 'ไปที่กล่องส่งขายหน้าบ้าน', at: () => { const p = World.pois.find(x => x.kind === 'bin'); return p || { x: 0, z: 0 }; }, done: () => { const p = World.pois.find(x => x.kind === 'bin'); return p && Math.hypot(G.player.pos.x - p.x, G.player.pos.z - p.z) < 3; } },
     { t: 'เดินไปหมู่บ้าน (ตามถนน) แล้วคุยกับชาวบ้าน 1 คน', at: () => ({ x: -10, z: -230 }), done: () => Object.keys(S.daily.talk || {}).length > 0 },
     { t: 'ดูภารกิจรายสัปดาห์ในมือถือ (แอป 🎯 ภารกิจ)', done: () => Phone.app === 'missions' },
   ],
   start(force) {
-    if (!force && (S.tut === 'done' || S.stats.harvest > 3)) { S.tut = 'done'; return; }
+    if (!force && (S.tut === 'done' || (S.stats.cooked || 0) > 3)) { S.tut = 'done'; return; }
     S.tut = 0; this.base = Object.assign({}, S.stats);
     if (!this.el) { const el = document.createElement('div'); el.id = 'tut'; el.innerHTML = '<span id="tutTxt"></span><button class="btn ghost" id="tutSkip">ข้าม</button>'; document.body.appendChild(el); this.el = el; el.querySelector('#tutSkip').onclick = () => this.end(true); }
     this.el.hidden = false; this.show();
@@ -102,7 +99,7 @@ const Tutorial = {
     if (st.at && this.mk) { const p = st.at(); this.mk.position.set(p.x, World.groundY(p.x, p.z) + 2.6 + Math.sin(G.t * 4) * 0.2, p.z); this.mk.rotation.y += dt * 2; this.mk.visible = !G.inside; }
     if (st.done(this.base)) { Sfx.tone(880, 0.15, 'sine', 0.06, 1320); S.tut++; this.base = Object.assign({}, S.stats); if (S.tut >= this.steps.length) this.end(); else this.show(); }
   },
-  end(skip) { S.tut = 'done'; if (this.el) this.el.hidden = true; if (this.mk) this.mk.visible = false; if (!skip && !S.tutPaid) { S.tutPaid = 1; earn(500); UI.toast('จบการสอนเล่นแล้ว! รับเงินรางวัล 500 ฿ ขอให้สนุกกับไร่สุขใจ', '🎓'); } },
+  end(skip) { S.tut = 'done'; if (this.el) this.el.hidden = true; if (this.mk) this.mk.visible = false; if (!skip && !S.tutPaid) { S.tutPaid = 1; earn(500); UI.toast('จบการสอนเล่นแล้ว! รับเงินรางวัล 500 ฿ ขอให้สนุกกับบ้านสุขใจ', '🎓'); } },
 };
 UI.H.rebind = d => KeyMap.listen(d.k);
 UI.H.keyreset = () => { KeyMap.binds = {}; safeSet('raisukjai3d_keys', '{}'); };

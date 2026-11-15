@@ -36,17 +36,17 @@ V23.add('v48_stand', () => {
       if (R() < risk) skim = Math.max(1, Math.round(pay * (R() < 0.25 ? 0.6 + R() * 0.4 : 0.15 + R() * 0.3)));
     }
     const got = pay - skim;
-    if (m === 'transfer') { const b = Bank.st(); b.sav += got; try { Bank2.log('รับโอนจากแผงหน้าฟาร์ม (พร้อมเพย์)', got); } catch (x) { } }
+    if (m === 'transfer') { const b = Bank.st(); b.sav += got; try { Bank2.log('รับโอนจากแผงหน้าบ้าน (พร้อมเพย์)', got); } catch (x) { } }
     else S.money += got;
-    try { Bank2.income('แผงหน้าฟาร์ม', got); } catch (x) { }
+    try { Bank2.income('แผงหน้าบ้าน', got); } catch (x) { }
     if (s.day.d !== S.day) s.day = { d: S.day, cash: 0, tr: 0 };
     s.day[m === 'cash' ? 'cash' : 'tr'] += got; s.tot[m === 'cash' ? 'cash' : 'tr'] += got; s.tot.n += n;
     s.led.unshift({ k: s.lseq = (s.lseq || 0) + 1, d: S.day, t: Phone.clock(), id, n, amt: got, exp: pay, m, by: onDuty ? e.name : '' }); if (s.led.length > 120) s.led.length = 120;
     if (onDuty) { e.sold = (e.sold || 0) + n; e.rev = (e.rev || 0) + got; }
-    if (skim) { s.short = (s.short || 0) + skim; s.thefts = (s.thefts || 0) + 1; if (s.short - (s.hinted || 0) >= 400 && R() < 0.5) { s.hinted = s.short; if (!G.simulating) Phone.msg('แผงหน้าฟาร์ม', 'ลูกค้าบอกว่าจ่ายเงินสดครบ แต่ยอดเงินที่เข้ามาดูน้อยกว่าที่ควร ลองไปตรวจสอบยอดขายที่แผง (แท็บพนักงาน)', true); } }
+    if (skim) { s.short = (s.short || 0) + skim; s.thefts = (s.thefts || 0) + 1; if (s.short - (s.hinted || 0) >= 400 && R() < 0.5) { s.hinted = s.short; if (!G.simulating) Phone.msg('แผงหน้าบ้าน', 'ลูกค้าบอกว่าจ่ายเงินสดครบ แต่ยอดเงินที่เข้ามาดูน้อยกว่าที่ควร ลองไปตรวจสอบยอดขายที่แผง (แท็บพนักงาน)', true); } }
     const near = !G.inside && Math.hypot(G.player.pos.x - v.x, G.player.pos.z - v.z) < 40;
     const txt = `${ITEMS[id].n} ×${n} · ${m === 'cash' ? `จ่ายเงินสด +${baht(got)} เข้ากระเป๋า` : `จ่ายโอน +${baht(got)} เข้าบัญชีธนาคาร`}`;
-    if (near) toast('ชาวบ้านซื้อ ' + txt, m === 'cash' ? '💵' : '📲'); else Phone.msg('แผงหน้าฟาร์ม', 'ขาย ' + txt, true);
+    if (near) toast('ชาวบ้านซื้อ ' + txt, m === 'cash' ? '💵' : '📲'); else Phone.msg('แผงหน้าบ้าน', 'ขาย ' + txt, true);
   };
 
   // ===================== 2) applicants =====================
@@ -83,38 +83,38 @@ V23.add('v48_stand', () => {
   function dayTick() {
     const s = St(), e = s.emp;
     // applicants
-    s.apps = s.apps.filter(a => { if (a.st === 'new' || a.st === 'neg' || a.st === 'agreed') { if (S.day > a.until) { if (!G.simulating) Phone.msg('สมัครงานแผงหน้าฟาร์ม', `${a.name} ไปรับงานที่อื่นแล้ว (ไม่ได้ตอบกลับภายใน 7 วัน)`, true); return false; } return true; } return S.day - a.got < 14; });
+    s.apps = s.apps.filter(a => { if (a.st === 'new' || a.st === 'neg' || a.st === 'agreed') { if (S.day > a.until) { if (!G.simulating) Phone.msg('สมัครงานแผงหน้าบ้าน', `${a.name} ไปรับงานที่อื่นแล้ว (ไม่ได้ตอบกลับภายใน 7 วัน)`, true); return false; } return true; } return S.day - a.got < 14; });
     const open = s.apps.filter(a => ['new', 'neg', 'agreed'].includes(a.st)).length;
-    if (!e && s.open && open < 4 && R() < 0.5) { const a = genApplicant(); s.apps.push(a); s.unread = (s.unread || 0) + 1; if (!G.simulating) { Phone.msg('สมัครงานแผงหน้าฟาร์ม', `${a.name} (อายุ ${a.age}) ส่งใบสมัครงานคนขายแผงผักสดจากไร่ ขอเงินเดือน ${baht(a.ask)} · ดูประวัติและเจรจาที่แผงหน้าฟาร์ม > พนักงาน`); } }
+    if (!e && s.open && open < 4 && R() < 0.5) { const a = genApplicant(); s.apps.push(a); s.unread = (s.unread || 0) + 1; if (!G.simulating) { Phone.msg('สมัครงานแผงหน้าบ้าน', `${a.name} (อายุ ${a.age}) ส่งใบสมัครงานคนขายแผงผักสดจากไร่ ขอเงินเดือน ${baht(a.ask)} · ดูประวัติและเจรจาที่แผงหน้าบ้าน > พนักงาน`); } }
     if (!e) return;
     // wages accrue on working days
     if (wkOf(S.day) !== e.off) e.owed = (e.owed || 0) + e.wage / WD;
     // pay day
-    const due = e.payType === 'day' || (e.payType === 'week' && wkOf(S.day) === e.payWk) || (e.payType === 'month' && domOf(S.day) === Math.min(e.payDay >= 29 ? 99 : e.payDay, dimOf(S.day)));
+    const due = MonthCal.isPayDay(S.day);   // v235: monthly only, on the month close (last day of the month, or 3 days earlier if Saturday)
     if (due && Math.round(e.owed) >= 1) payNow(e.payMode, true);
     // morale drifts with how fair the pay is; unpaid hurts
     const market = overall(e.skills) * 450 + MIN_WAGE - 1350;
     e.morale = clamp(e.morale + (e.wage >= market ? 0.4 : -0.4) + (e.late ? -1.5 : 0.1), 0, 100);
     if (e.morale <= 8 && !e.leave) { quit('ไม่พอใจเงินเดือนและงานที่ทำ'); return; }
     // ask for a raise after 90 days
-    if (!e.raiseReq && S.day - (e.raisedAt || e.hired) >= 90 && R() < 0.12 && e.morale >= 40) { const amt = r100(e.wage * (1.06 + R() * 0.06)); e.raiseReq = amt; if (!G.simulating) Phone.msg('พนักงานแผงหน้าฟาร์ม', `${e.name} ขอปรับเงินเดือนเป็น ${baht(amt)} (ทำงานมา ${S.day - e.hired} วัน) ตอบได้ที่แผงหน้าฟาร์ม > พนักงาน`); }
+    if (!e.raiseReq && S.day - (e.raisedAt || e.hired) >= 90 && R() < 0.12 && e.morale >= 40) { const amt = r100(e.wage * (1.06 + R() * 0.06)); e.raiseReq = amt; if (!G.simulating) Phone.msg('พนักงานแผงหน้าบ้าน', `${e.name} ขอปรับเงินเดือนเป็น ${baht(amt)} (ทำงานมา ${S.day - e.hired} วัน) ตอบได้ที่แผงหน้าบ้าน > พนักงาน`); }
   }
   // pay what is owed: mode cash (wallet) or transfer (bank savings). `auto` = pay day; otherwise a manual payment
   function payNow(mode, auto) {
     const e = E(); if (!e) return false; const amt = Math.round(e.owed || 0); if (amt < 1) { if (!auto) toast('ไม่มียอดค้างจ่าย', 'ℹ️'); return true; }
     const b = Bank.st();
     if (mode === 'transfer' ? b.sav >= amt : S.money >= amt) {
-      if (mode === 'transfer') { b.sav -= amt; try { Bank2.log(`โอนเงินเดือน ${e.name} (แผงหน้าฟาร์ม)`, -amt); } catch (x) { } } else { S.money -= amt; try { Bank2.log(`จ่ายเงินสดเงินเดือน ${e.name}`, -amt); } catch (x) { } }
+      if (mode === 'transfer') { b.sav -= amt; try { Bank2.log(`โอนเงินเดือน ${e.name} (แผงหน้าบ้าน)`, -amt); } catch (x) { } } else { S.money -= amt; try { Bank2.log(`จ่ายเงินสดเงินเดือน ${e.name}`, -amt); } catch (x) { } }
       e.paid = (e.paid || 0) + amt; e.owed = 0; e.lastPay = S.day; e.late = 0; e.morale = clamp(e.morale + 3, 0, 100);
       if (!G.simulating || !auto) Phone.msg(e.name, `ได้รับเงินเดือน ${baht(amt)} ${mode === 'transfer' ? 'โอนเข้าบัญชีแล้ว' : 'เป็นเงินสดแล้ว'} ขอบคุณค่ะ/ครับ 🙏`, true);
       if (!auto) toast(`จ่ายเงินเดือน ${baht(amt)} แล้ว`, '💵'); return true;
     }
     e.late = (e.late || 0) + 1; e.morale = clamp(e.morale - 7, 0, 100);
-    Phone.msg('พนักงานแผงหน้าฟาร์ม', `จ่ายเงินเดือน ${e.name} ${baht(amt)} ไม่ได้ (${mode === 'transfer' ? 'เงินในบัญชีธนาคารไม่พอ' : 'เงินสดไม่พอ'}) ค้างจ่าย ${e.late} งวด · ถ้าค้างครบ 3 งวดพนักงานจะลาออก`, false);
+    Phone.msg('พนักงานแผงหน้าบ้าน', `จ่ายเงินเดือน ${e.name} ${baht(amt)} ไม่ได้ (${mode === 'transfer' ? 'เงินในบัญชีธนาคารไม่พอ' : 'เงินสดไม่พอ'}) ค้างจ่าย ${e.late} งวด · ถ้าค้างครบ 3 งวดพนักงานจะลาออก`, false);
     if (e.late >= 3) quit(`ค้างจ่ายเงินเดือน ${e.late} งวด`);
     return false;
   }
-  function quit(why) { const s = St(), e = s.emp; if (!e) return; s.hist.unshift({ name: e.name, from: e.hired, to: S.day, why, owed: Math.round(e.owed || 0) }); if (s.hist.length > 10) s.hist.length = 10; Phone.msg('พนักงานแผงหน้าฟาร์ม', `${e.name} ขอลาออก: ${why}${e.owed >= 1 ? ` (ยังค้างจ่าย ${baht(Math.round(e.owed))})` : ''}`, false); s.emp = null; hideStaff(); }
+  function quit(why) { const s = St(), e = s.emp; if (!e) return; s.hist.unshift({ name: e.name, from: e.hired, to: S.day, why, owed: Math.round(e.owed || 0) }); if (s.hist.length > 10) s.hist.length = 10; Phone.msg('พนักงานแผงหน้าบ้าน', `${e.name} ขอลาออก: ${why}${e.owed >= 1 ? ` (ยังค้างจ่าย ${baht(Math.round(e.owed))})` : ''}`, false); s.emp = null; hideStaff(); }
 
   // ===================== 3) the person at the stand =====================
   let staffObj = null, staffId = 0, sit = 0;
@@ -204,22 +204,20 @@ V23.add('v48_stand', () => {
     const a = St().apps.find(x => x.id === U48.form); if (!a) { U48.view = 0; return tabStaff(); }
     return `<p class="lead">สัญญาจ้าง: ${esc(a.name)} · เงินเดือน ${baht(a.ask)}/เดือน · ทดลองงาน 30 วัน</p>
       <div class="card"><div class="cb">
-      <p class="dim">รูปแบบการจ่าย</p>${sel('v48Type', [['month', 'รายเดือน'], ['week', 'รายสัปดาห์'], ['day', 'รายวัน (ทุกเช้า)']], 'month')}
-      <p class="dim">วันที่จ่าย (รายเดือน)</p>${sel('v48Day', [...Array.from({ length: 28 }, (_, i) => [i + 1, 'วันที่ ' + (i + 1)]), [99, 'สิ้นเดือน']], 28)}
-      <p class="dim">วันจ่าย (รายสัปดาห์)</p>${sel('v48Wk', WK.map((n, i) => [i, 'วัน' + n]), 5)}
+      <p class="dim">รูปแบบการจ่าย: <b>รายเดือน</b> (จ่ายวันสุดท้ายของเดือน · ถ้าตรงวันเสาร์ย้อน 3 วัน)</p>
       <p class="dim">จ่ายด้วย</p>${sel('v48Mode', [['cash', 'เงินสด (หักจากกระเป๋า)'], ['transfer', 'โอนเข้าบัญชี (หักจากบัญชีธนาคาร)']], 'cash')}
       <p class="dim">วันหยุดประจำสัปดาห์</p>${sel('v48Off', WK.map((n, i) => [i, 'วัน' + n]), 6)}</div></div>
       <div class="row end"><button class="btn ghost" data-a="v48" data-v="back">กลับ</button><button class="btn" data-a="v48" data-v="sign|${a.id}">✍️ เซ็นสัญญา เริ่มงานพรุ่งนี้</button></div>`;
   }
   function employeeHtml(e) {
     const on = working(e), sk = e.skills, ten = S.day - e.hired, prob = ten < 30;
-    return `<div class="card"><div class="ci">${e.fem ? '👩‍🌾' : '👨‍🌾'}</div><div class="cb"><h4>${esc(e.name)} <small>พนักงานแผงหน้าฟาร์ม · ${on ? '🟢 กำลังขายของ' : '⚪ ไม่ได้อยู่เวร'}</small></h4>
+    return `<div class="card"><div class="ci">${e.fem ? '👩‍🌾' : '👨‍🌾'}</div><div class="cb"><h4>${esc(e.name)} <small>พนักงานแผงหน้าบ้าน · ${on ? '🟢 กำลังขายของ' : '⚪ ไม่ได้อยู่เวร'}</small></h4>
       <p>เงินเดือน <b>${baht(e.wage)}</b>/เดือน · ${payTxt(e)}</p><p class="dim">ทำงานมา ${ten} วัน${prob ? ` (ทดลองงานอีก ${30 - ten} วัน)` : ''} · ขวัญกำลังใจ ${Math.round(e.morale)}% · ขายแล้ว ${e.sold || 0} ชิ้น ${baht(e.rev || 0)} · จ่ายแล้วรวม ${baht(e.paid || 0)}</p>
       <p>ยอดค้างจ่าย <b>${baht(Math.round(e.owed || 0))}</b>${e.late ? ` · ⚠️ ค้าง ${e.late} งวด` : ''}${e.lastPay ? ` · จ่ายล่าสุด ${RD(e.lastPay)}` : ''}</p></div></div>
       ${e.raiseReq ? `<div class="card"><div class="ci">💬</div><div class="cb"><h4>${esc(e.name)} ขอปรับเงินเดือนเป็น ${baht(e.raiseReq)}</h4><div class="row"><button class="btn" data-a="v48" data-v="raiseok">ตกลง</button><button class="btn ghost" data-a="v48" data-v="raiseno">ไม่ตกลง</button></div></div></div>` : ''}
       <div class="row"><button class="btn" data-a="v48" data-v="pay|cash" ${e.owed >= 1 ? '' : 'disabled'}>💵 จ่ายตอนนี้ (เงินสด)</button><button class="btn" data-a="v48" data-v="pay|transfer" ${e.owed >= 1 ? '' : 'disabled'}>📲 จ่ายตอนนี้ (โอน)</button><button class="btn ghost" data-a="v48" data-v="bonus|500">🎁 โบนัส 500</button><button class="btn ghost" data-a="v48" data-v="bonus|1000">🎁 โบนัส 1,000</button></div>
       <h5>แก้สัญญา / ปรับเงินเดือน</h5>
-      <p class="dim">รูปแบบ ${sel('v48Type', [['month', 'รายเดือน'], ['week', 'รายสัปดาห์'], ['day', 'รายวัน']], e.payType)} วันที่ ${sel('v48Day', [...Array.from({ length: 28 }, (_, i) => [i + 1, i + 1]), [99, 'สิ้นเดือน']], e.payDay)} วัน ${sel('v48Wk', WK.map((n, i) => [i, n]), e.payWk)} ${sel('v48Mode', [['cash', 'เงินสด'], ['transfer', 'โอน']], e.payMode)} หยุด ${sel('v48Off', WK.map((n, i) => [i, n]), e.off)}</p>
+      <p class="dim">รูปแบบ <b>รายเดือน</b> (จ่ายวันสุดท้ายของเดือน) ${sel('v48Mode', [['cash', 'เงินสด'], ['transfer', 'โอน']], e.payMode)} หยุด ${sel('v48Off', WK.map((n, i) => [i, n]), e.off)}</p>
       <div class="row"><button class="btn" data-a="v48" data-v="save">บันทึกสัญญา</button></div>
       <div class="row"><input id="v48Raise" type="number" min="${MIN_WAGE}" step="100" placeholder="เงินเดือนใหม่ (บาท)" style="flex:1;font-size:16px;padding:8px;border-radius:10px;border:1px solid #ccc"><button class="btn" data-a="v48" data-v="raise">เสนอเงินเดือนใหม่</button></div>
       ${auditHtml(e)}
@@ -254,17 +252,17 @@ V23.add('v48_stand', () => {
     else if (a === 'awarn' && e) { e.warn = (e.warn || 0) + 1; e.morale = clamp(e.morale - 8, 0, 100); U48.audit = null; toast(`ตักเตือน ${e.name} เป็นลายลักษณ์อักษร (ครั้งที่ ${e.warn})`, '📄'); if (e.warn >= 3) quit('ถูกตักเตือนเรื่องเงินหลายครั้ง'); }
     else if (a === 'arec' && e && U48.audit) { const d = U48.audit.diff; e.owed = (e.owed || 0) - d; e.morale = clamp(e.morale - 15, 0, 100); U48.audit = null; toast(`หักค่าเสียหาย ${baht(d)} จากเงินเดือนที่ค้างจ่ายของ ${e.name}`, '⚖️'); if (e.skills.honesty <= 3 && R() < 0.35) quit('ไม่พอใจที่ถูกหักเงินเดือน'); }
     else if (a === 'arep' && e && U48.audit) {
-      const d = U48.audit.diff, back = R() < 0.6 ? Math.round(d * (0.4 + R() * 0.4)) : 0; U48.audit = null; if (back) { S.money += back; try { Bank2.log('ได้คืนเงินจากคดียักยอก (แผงหน้าฟาร์ม)', back); } catch (z) { } }
-      const s2 = St(); s2.hist.unshift({ name: e.name, from: e.hired, to: S.day, why: 'ทุจริตเงินขาย (แจ้งความ ไม่มีค่าชดเชย)', owed: 0 }); s2.emp = null; hideStaff(); toast(back ? `ตำรวจติดตามเงินคืนได้ ${baht(back)}` : 'แจ้งความแล้ว ยังติดตามเงินคืนไม่ได้', '🚓'); Phone.msg('สถานีตำรวจ', `รับแจ้งความคดียักยอกเงินจากแผงหน้าฟาร์ม (${e.name}) ${back ? `ติดตามเงินคืนได้ ${baht(back)}` : 'อยู่ระหว่างติดตาม'}`, true);
+      const d = U48.audit.diff, back = R() < 0.6 ? Math.round(d * (0.4 + R() * 0.4)) : 0; U48.audit = null; if (back) { S.money += back; try { Bank2.log('ได้คืนเงินจากคดียักยอก (แผงหน้าบ้าน)', back); } catch (z) { } }
+      const s2 = St(); s2.hist.unshift({ name: e.name, from: e.hired, to: S.day, why: 'ทุจริตเงินขาย (แจ้งความ ไม่มีค่าชดเชย)', owed: 0 }); s2.emp = null; hideStaff(); toast(back ? `ตำรวจติดตามเงินคืนได้ ${baht(back)}` : 'แจ้งความแล้ว ยังติดตามเงินคืนไม่ได้', '🚓'); Phone.msg('สถานีตำรวจ', `รับแจ้งความคดียักยอกเงินจากแผงหน้าบ้าน (${e.name}) ${back ? `ติดตามเงินคืนได้ ${baht(back)}` : 'อยู่ระหว่างติดตาม'}`, true);
     }
     else if (a === 'back') { U48.view = 0; }
     else if (a === 'sign' && ap) {
-      if (s.emp) return; const type = val('v48Type') || 'month';
-      s.emp = { id: ap.id, name: ap.name, fem: ap.fem, age: ap.age, edu: ap.edu, exp: ap.exp, skills: ap.skills, trait: ap.trait, history: ap.history, look: ap.look, int: 1, chkTxt: ap.chkTxt || '', wage: ap.ask, payType: type, payDay: +val('v48Day') || 28, payWk: +val('v48Wk') || 0, payMode: val('v48Mode') || 'cash', off: +val('v48Off'), hired: S.day + 1, morale: 70, owed: 0, paid: 0, late: 0, sold: 0, rev: 0 };
+      if (s.emp) return; const type = 'month';
+      s.emp = { id: ap.id, name: ap.name, fem: ap.fem, age: ap.age, edu: ap.edu, exp: ap.exp, skills: ap.skills, trait: ap.trait, history: ap.history, look: ap.look, int: 1, chkTxt: ap.chkTxt || '', wage: ap.ask, payType: type, payDay: 99, payWk: +val('v48Wk') || 0, payMode: val('v48Mode') || 'cash', off: +val('v48Off'), hired: S.day + 1, morale: 70, owed: 0, paid: 0, late: 0, sold: 0, rev: 0 };
       if (isNaN(s.emp.off)) s.emp.off = 6;
       ap.st = 'hired'; s.apps = s.apps.filter(q => q.st !== 'hired'); s.open = 0; U48.view = 0; Phone.msg(ap.name, `ขอบคุณที่รับเข้าทำงานนะคะ/ครับ จะเริ่มงานพรุ่งนี้เวลา 07:00 ค่ะ/ครับ 🙏`, true); toast(`${ap.name} เริ่มงานพรุ่งนี้`, '🤝');
     }
-    else if (a === 'save' && e) { e.payType = val('v48Type') || e.payType; e.payDay = +val('v48Day') || e.payDay; e.payWk = +val('v48Wk'); e.payMode = val('v48Mode') || e.payMode; e.off = +val('v48Off'); if (isNaN(e.payWk)) e.payWk = 0; if (isNaN(e.off)) e.off = 6; toast('บันทึกสัญญาแล้ว', '📝'); }
+    else if (a === 'save' && e) { e.payType = 'month'; e.payDay = 99; e.payWk = 0; e.payMode = val('v48Mode') || e.payMode; e.off = +val('v48Off'); if (isNaN(e.payWk)) e.payWk = 0; if (isNaN(e.off)) e.off = 6; toast('บันทึกสัญญาแล้ว', '📝'); }
     else if (a === 'pay' && e) payNow(x, false);
     else if (a === 'bonus' && e) { const b = +x; if (S.money < b) { toast('เงินสดไม่พอ', '💸'); return; } S.money -= b; e.morale = clamp(e.morale + b / 100, 0, 100); try { Bank2.log('โบนัสพนักงานแผง', -b); } catch (z) { } toast(`จ่ายโบนัส ${baht(b)} ขวัญกำลังใจดีขึ้น`, '🎁'); }
     else if (a === 'raiseok' && e && e.raiseReq) { e.wage = e.raiseReq; e.raisedAt = S.day; e.raiseReq = 0; e.morale = clamp(e.morale + 10, 0, 100); toast('ปรับเงินเดือนแล้ว', '📈'); }
@@ -303,7 +301,7 @@ V23.add('v48_stand', () => {
     const floor = a.ask0 * (1 - a.flex);
     if (amt >= a.ask || amt >= floor) { a.ask = amt >= a.ask ? a.ask : amt; if (amt > a.ask) a.ask = amt; a.st = 'agreed'; toast(`${a.name}: “ตกลงค่ะ/ครับ ${baht(a.ask)}”`, '🤝'); return; }
     a.round++; a.st = 'neg';
-    if (a.round >= a.patience) { a.st = 'withdrawn'; Phone.msg('สมัครงานแผงหน้าฟาร์ม', `${a.name}: “ขอบคุณที่ให้โอกาสนะคะ/ครับ แต่เงินเดือนไม่ตรงกับที่ต้องการ ขอไปหางานที่อื่นก่อน”`, false); toast(`${a.name} ถอนใบสมัคร`, '🙇'); return; }
+    if (a.round >= a.patience) { a.st = 'withdrawn'; Phone.msg('สมัครงานแผงหน้าบ้าน', `${a.name}: “ขอบคุณที่ให้โอกาสนะคะ/ครับ แต่เงินเดือนไม่ตรงกับที่ต้องการ ขอไปหางานที่อื่นก่อน”`, false); toast(`${a.name} ถอนใบสมัคร`, '🙇'); return; }
     a.ask = Math.max(r100(floor), r100((a.ask + amt) / 2)); toast(`${a.name}: “ขอ ${baht(a.ask)} ได้ไหมคะ/ครับ”`, '💬');
   }
 
@@ -320,6 +318,6 @@ V23.add('v48_stand', () => {
   if (!APPS.some(a => a.id === 'stand48')) APPS.splice(Math.min(APPS.length, 15), 0, { id: 'stand48', i: '🧺', n: 'แผงผักสดจากไร่' });
   Phone.apps.stand48 = () => { setTimeout(() => { Phone.app = null; UI.close(); Social.standUI(); }, 0); return ''; };
   try { if (typeof APP_GROUPS !== 'undefined') { const gr = APP_GROUPS.find(x => /ฟาร์ม|ไร่/.test(x[0])) || APP_GROUPS[0]; if (gr && !gr[1].includes('stand48')) gr[1].push('stand48'); } } catch (e) { }
-  try { const poi = World.pois.find(x => x.label === 'แผงขายหน้าฟาร์ม'); if (poi) poi.act = () => ({ icon: '🧺', label: (St().apps.some(a => a.st === 'new') ? '📢 มีผู้สมัครงานใหม่ · ' : '') + (staffed() ? `แผงหน้าฟาร์ม (${E().name} กำลังขายของ)` : 'แผงหน้าฟาร์ม: จัดของ / การรับเงิน / พนักงาน'), fn: () => Social.standUI() }); } catch (e) { }
+  try { const poi = World.pois.find(x => x.label === 'แผงขายหน้าบ้าน'); if (poi) poi.act = () => ({ icon: '🧺', label: (St().apps.some(a => a.st === 'new') ? '📢 มีผู้สมัครงานใหม่ · ' : '') + (staffed() ? `แผงหน้าบ้าน (${E().name} กำลังขายของ)` : 'แผงหน้าบ้าน: จัดของ / การรับเงิน / พนักงาน'), fn: () => Social.standUI() }); } catch (e) { }
   window.Stand48 = { St, genApplicant, payNow, working, offer, fx, hasId, canTransfer, MIN_WAGE };
 });

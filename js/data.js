@@ -37,9 +37,9 @@ const LOOK = {
 const MOVABLE = ['rug', 'sofa', 'tv', 'table', 'plant', 'bookshelf', 'lamp', 'piano', 'aquarium', 'elephant', 'lanternL', 'trophy', 'trophy2', 'flowers'];
 // one festival on the last day of every season, held in the village plaza
 const FESTIVALS = {
-  hot: { n: 'เทศกาลสงกรานต์', i: '💦', shop: 'fest_hot', desc: 'สาดน้ำคลายร้อนกับชาวบ้าน ประกวดผลผลิต และซื้อของที่ระลึก' },
-  rain: { n: 'งานเกษตรแฟร์', i: '🎪', shop: 'fest_rain', desc: 'ขายผักได้ราคาแพงขึ้น 20% ทั้งวัน และมีประกวดผลผลิต' },
-  cool: { n: 'งานลอยกระทง', i: '🪷', shop: 'fest_cool', desc: 'ซื้อกระทงไปลอยที่บ่อน้ำหรือท่าเรือตอนกลางคืน ชมโคมลอยเต็มฟ้า' },
+  hot: { n: 'เทศกาลสงกรานต์', i: '💦', shop: 'fest_hot', desc: 'สาดน้ำคลายร้อนกับชาวบ้าน และซื้อของที่ระลึก' },
+  rain: { n: 'งานตลาดหน้าฝน', i: '🎪', shop: 'fest_rain', desc: 'ตลาดนัดของร้อนและของใช้กันฝนในลานหมู่บ้าน พร้อมงานฝีมือจากชาวบ้าน' },
+  cool: { n: 'งานลอยกระทง', i: '🪷', shop: 'fest_cool', desc: 'ซื้อกระทงไปลอยที่ท่าเรือตอนกลางคืน ชมโคมลอยเต็มฟ้า' },
 };
 // farmer level needed to buy each seed
 const SEED_LVL = { carrot: 1, cabbage: 1, chili: 1, tomato: 2, corn: 3, eggplant: 3, strawberry: 4, sunflower: 4, pumpkin: 5, watermelon: 6, pineapple: 6, orange: 7, mango: 8 };
@@ -107,7 +107,7 @@ const TOOLS = {
   feed:          { n: 'อาหารสัตว์', i: '🌾', price: 12, desc: 'เติมรางอาหาร สัตว์กิน 1 ถุง/ตัว/วัน' },
   fert:          { n: 'ปุ๋ยเร่งโต', i: '🧪', price: 50, desc: 'ผักโตเร็วขึ้น 50% จนกว่าจะเก็บเกี่ยว' },
   sprinkler:     { n: 'สปริงเกอร์', i: '💦', price: 450, r: 2.2, desc: 'รดน้ำอัตโนมัติ 4 แปลงรอบตัว ตอน 6:00 และ 15:00' },
-  krathong:      { n: 'กระทงใบตอง', i: '🪷', price: 50, desc: 'ลอยที่บ่อน้ำหรือท่าเรือในคืนลอยกระทง ขอพรให้ผลผลิตวันพรุ่งนี้ได้คุณภาพดี' },
+  krathong:      { n: 'กระทงใบตอง', i: '🪷', price: 50, desc: 'ลอยที่ท่าเรือในคืนลอยกระทง ขอพรให้ผลผลิตวันพรุ่งนี้ได้คุณภาพดี' },
   sprinkler_pro: { n: 'สปริงเกอร์โปร', i: '⛲', price: 1500, r: 4.0, desc: 'รดน้ำอัตโนมัติ 12 แปลงรอบตัว ตอน 6:00 และ 15:00' },
 };
 const FURN = {
@@ -163,15 +163,15 @@ const UPG = {
   can:     { n: 'อัปเกรดบัวรดน้ำ', i: '🚿', start: 1, cost: [0, 1500, 5000], desc: ['', 'จุน้ำ 30 · รดทีละ 3 แปลงในแถว', 'จุน้ำ 50 · รดทีละ 9 แปลง (3×3)'] },
 };
 const SHOPS = {
-  farmshop:   { n: 'ร้านเกษตรรุ่งเรือง', tabs: [
+  farmshop:   { n: 'ร้านวัสดุรุ่งเรือง', tabs: [
     { n: 'เมล็ดพันธุ์', items: ['seed:carrot', 'seed:cabbage', 'seed:tomato', 'seed:chili', 'seed:corn', 'seed:eggplant', 'seed:strawberry', 'seed:pumpkin', 'seed:sunflower'] },
     { n: 'อุปกรณ์', items: ['up:rod', 'up:can', 'tool:sprinkler', 'tool:sprinkler_pro', 'tool:fert', 'tool:feed'] }] },
-  ranch:      { n: 'ฟาร์มปศุสัตว์ลุงมี', tabs: [
+  ranch:      { n: 'ร้านสัตว์เลี้ยงลุงมี', tabs: [
     { n: 'สัตว์เลี้ยง', items: ['animal:chicken', 'animal:sheep', 'animal:cow'] },
     { n: 'อาหารสัตว์', items: ['tool:feed'] },
     { n: 'สัตว์เลี้ยงในบ้าน', items: ['pet:dog', 'pet:cat'] }] },
   fest_hot: { n: 'ซุ้มงานสงกรานต์', tabs: [{ n: 'ของในงาน', items: ['food:ice', 'furn:elephant', 'furn:lanternL'] }] },
-  fest_rain: { n: 'ซุ้มเกษตรแฟร์', tabs: [{ n: 'ของในงาน', items: ['seed:watermelon', 'seed:pineapple', 'tool:fert', 'food:ice', 'furn:lanternL'] }] },
+  fest_rain: { n: 'ซุ้มตลาดหน้าฝน', tabs: [{ n: 'ของในงาน', items: ['food:ice', 'furn:lanternL'] }] },
   fest_cool: { n: 'ซุ้มลอยกระทง', tabs: [{ n: 'ของในงาน', items: ['tool:krathong', 'food:ice', 'furn:lanternL', 'furn:elephant'] }] },
   online: { n: 'ร้านค้าออนไลน์ (ส่งถึงบ้านพรุ่งนี้เช้า)', tabs: [
     { n: 'เมล็ดพันธุ์', items: ['seed:carrot', 'seed:cabbage', 'seed:tomato', 'seed:chili', 'seed:corn', 'seed:eggplant', 'seed:strawberry', 'seed:pumpkin', 'seed:sunflower', 'seed:watermelon', 'seed:pineapple'] },
@@ -181,7 +181,7 @@ const SHOPS = {
     { n: 'เฟอร์นิเจอร์', items: ['furn:rug', 'furn:plant', 'furn:lamp', 'furn:painting', 'furn:table', 'furn:bookshelf', 'furn:sofa', 'furn:tv'] }] },
   dealer:     { n: 'โชว์รูมรถยนต์สุขใจ', tabs: [{ n: 'รถยนต์', items: ['car:oldtruck', 'car:pickup'] }] },
   restaurant: { n: 'ร้านอาหารป้าแดง', tabs: [{ n: 'เมนู', items: ['food:rice', 'food:noodle', 'food:coffee'] }] },
-  rare:       { n: 'ร้านพันธุ์ไม้หายาก', tabs: [
+  rare:       { n: 'ร้านต้นไม้ประดับ', tabs: [
     { n: 'พันธุ์หายาก', items: ['seed:watermelon', 'seed:pineapple', 'seed:mango', 'seed:orange'] },
     { n: 'พิเศษ', items: ['up:rod', 'animal:pig', 'tool:sprinkler_pro', 'tool:fert'] }] },
   lux:        { n: 'บ้านสวยเฟอร์นิเจอร์', tabs: [{ n: 'ของแต่งบ้านหรู', items: ['furn:piano', 'furn:aquarium', 'furn:tv', 'furn:sofa', 'furn:painting'] }] },
@@ -189,39 +189,25 @@ const SHOPS = {
   seafood:    { n: 'ร้านซีฟู้ดริมหาด', tabs: [{ n: 'เมนู', items: ['food:seafood', 'food:coffee', 'food:rice'] }] },
 };
 const NPC_LINES = [
-  'ผักต้องการน้ำทุกวันนะ ถ้าดินแห้งจะหยุดโต',
-  'วันไหนฝนตก ไม่ต้องรดน้ำเลย สบายไป!',
-  'ตลาดริมทะเลรับซื้อผลผลิตแพงกว่าที่อื่นตั้ง 50%',
-  'สปริงเกอร์ช่วยรดน้ำตอนเช้ากับบ่ายให้อัตโนมัติ',
-  'อยากได้ไข่ไก่ทุกวัน อย่าลืมเติมอาหารในรางนะ',
-  'ร้านช่างไม้รับอัปเกรดบ้านกับขยายแปลงผัก',
-  'ทำอาหารในครัวที่บ้าน ขายได้ราคาดีกว่าผักสดอีก',
+  'ตลาดริมทะเลรับซื้อของแพงกว่าที่อื่นตั้ง 50%',
+  'ทำอาหารในครัวที่บ้าน ขายได้ราคาดีกว่าซื้อกินข้างนอกอีก',
   'ถ้าเหนื่อยก็กินอะไรหน่อย หรือกลับไปนอนพักนะ',
   'ข้ามถนนระวังรถด้วยนะหลานเอ๋ย',
-  'ได้ยินว่าร้านพันธุ์ไม้หายากมีต้นมะม่วงขายด้วย',
-  'ดูพยากรณ์อากาศจากทีวีที่บ้านได้นะ ถ้ามีทีวี',
-  'ปุ๋ยเร่งโตทำให้ผักโตไวขึ้นเยอะเลย',
-  'ตกปลาตอนกลางคืน มีโอกาสเจอปลาหายากนะ',
-  'ที่ท่าเรือริมทะเลมีหมึกกับปลาอินทรีด้วย',
+  'ร้านช่างไม้รับอัปเกรดบ้านกับขายเฟอร์นิเจอร์ด้วยนะ',
+  'ที่ท่าเรือริมทะเลมีอาหารทะเลสดๆ ให้กินด้วย',
+  'ถ้ามีรถ ขับไปเที่ยวเมืองริมทะเลสิ สวยนะ',
+  'อยากมีรายได้มั่นคง ลองสมัครงานประจำดูสิ',
 ];
 const NPC_NAMES = ['ป้าแดง', 'ลุงมี', 'น้องฝน', 'พี่ต้น', 'ยายสาย', 'ครูเอ', 'พี่หมอก', 'น้าชม', 'ตาเพิ่ม', 'น้องข้าวหอม', 'พี่ทะเล', 'ป้าจิ๋ว'];
 const GOALS = [
-  { t: 'ปลูกผัก 3 แปลง', k: s => s.stats.planted, n: 3, reward: 100 },
-  { t: 'รดน้ำผัก 4 ครั้ง', k: s => s.stats.watered, n: 4, reward: 100 },
-  { t: 'เก็บเกี่ยวผลผลิต 5 ชิ้น', k: s => s.stats.harvest, n: 5, reward: 150 },
-  { t: 'ส่งขายของที่กล่องหน้าบ้าน', k: s => s.stats.sold, n: 1, reward: 100 },
-  { t: 'ไปร้านเกษตรในหมู่บ้าน ซื้อของ 1 ชิ้น', k: s => s.stats.bought, n: 1, reward: 150 },
-  { t: 'ซื้อไก่ตัวแรกที่ฟาร์มปศุสัตว์', k: s => s.animals.length, n: 1, reward: 200 },
-  { t: 'เติมอาหารในรางอาหารสัตว์', k: s => s.stats.fed, n: 1, reward: 100 },
-  { t: 'เก็บผลผลิตจากสัตว์', k: s => s.stats.products, n: 1, reward: 200 },
-  { t: 'ทำอาหารในครัวที่บ้าน', k: s => s.stats.cooked, n: 1, reward: 200 },
-  { t: 'วางสปริงเกอร์ในแปลงผัก', k: s => s.sprinklers.length, n: 1, reward: 300 },
+  { t: 'ทำอาหารในครัวที่บ้าน', k: s => s.stats.cooked, n: 1, reward: 100 },
+  { t: 'ไปร้านค้าในหมู่บ้าน ซื้อของ 1 ชิ้น', k: s => s.stats.bought, n: 1, reward: 150 },
+  { t: 'สมัครงานทำที่เมืองหรือในหมู่บ้าน', k: s => (s.job && s.job.k) ? 1 : 0, n: 1, reward: 300 },
+  { t: 'เป็นเพื่อนสนิทกับชาวบ้าน 1 หัวใจ', k: s => Math.max(0, ...Object.values(s.friends || {})) >= 1 ? 1 : 0, n: 1, reward: 150 },
+  { t: 'จองชื่อและจดทะเบียนบริษัทของคุณ', k: s => (typeof Company !== 'undefined' && Company.list && Company.list().length) ? 1 : 0, n: 1, reward: 500 },
   { t: 'เก็บเงินซื้อรถคันแรก', k: s => s.cars.length, n: 1, reward: 500 },
   { t: 'ขับรถไปเมืองริมทะเล', k: s => s.stats.sea ? 1 : 0, n: 1, reward: 500 },
   { t: 'อัปเกรดบ้านเป็นระดับ 2', k: s => s.up.house - 1, n: 1, reward: 1000 },
-  { t: 'มีสัตว์เลี้ยง 6 ตัว', k: s => s.animals.length, n: 6, reward: 1500 },
-  { t: 'ตกปลาได้ 3 ตัว', k: s => s.stats.fish || 0, n: 3, reward: 800 },
-  { t: 'ส่งของตามออเดอร์บนกระดานในหมู่บ้าน', k: s => s.stats.orders || 0, n: 1, reward: 300 },
   { t: 'เป็นเพื่อนสนิทกับชาวบ้าน 3 หัวใจ', k: s => Math.max(0, ...Object.values(s.friends || {})) >= 3 ? 1 : 0, n: 1, reward: 600 },
   { t: 'สะสมเงิน 50,000 บาท', k: s => s.money, n: 50000, reward: 5000 },
 ];

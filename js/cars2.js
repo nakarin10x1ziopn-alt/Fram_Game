@@ -4,7 +4,7 @@ Object.assign(CARS, {
   truckflat: { n: 'กระบะพื้นเรียบขนผัก', i: '🛻', price: 16000, top: 28, acc: 9, k: 'truck-flat' },
   deliveryflat: { n: 'รถบรรทุกพื้นเรียบ 6 ล้อ', i: '🚚', price: 24000, top: 25, acc: 7, k: 'delivery-flat' },
   garbage: { n: 'รถขนขยะ (รับจ้างเก็บขยะได้)', i: '🚛', price: 26000, top: 23, acc: 6, k: 'garbage-truck' },
-  shovel: { n: 'รถตักดินหน้าฟาร์ม', i: '🚜', price: 30000, top: 12, acc: 5, k: 'tractor-shovel' },
+  shovel: { n: 'รถตักดินหน้าบ้าน', i: '🚜', price: 30000, top: 12, acc: 5, k: 'tractor-shovel' },
   kart: { n: 'โกคาร์ทสีส้ม', i: '🏎️', price: 9000, top: 30, acc: 20, k: 'kart-oobi' },
   kart2: { n: 'โกคาร์ทสีเขียว', i: '🏎️', price: 9500, top: 31, acc: 20, k: 'kart-oozi' },
   racefuture: { n: 'รถแข่งแห่งอนาคต', i: '🚀', price: 120000, top: 64, acc: 27, k: 'race-future' },

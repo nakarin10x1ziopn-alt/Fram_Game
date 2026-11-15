@@ -41,10 +41,10 @@ body.photo .hud,body.photo #prompt,body.photo #dailyCard,body.photo #dock,body.p
 
 // ===== 7. daily goals, streaks and gift boxes =====
 const DAILY_POOL = [
-  ['harvest', 'เก็บเกี่ยวผลผลิต', '🧺', () => 8 + S.lvl], ['sold', 'ขายของ', '💰', () => 10 + S.lvl], ['planted', 'ปลูกผัก', '🌱', () => 6], ['watered', 'รดน้ำ', '💧', () => 6],
-  ['cooked', 'ทำอาหาร', '🍳', () => 1], ['fish', 'ตกปลา', '🎣', () => 2], ['fed', 'ให้อาหารสัตว์', '🐔', () => 1], ['talk', 'คุยกับชาวบ้าน', '💬', () => 3],
+  ['sold', 'ขายของ', '💰', () => 5 + Math.floor(S.lvl / 2)], ['bought', 'ซื้อของ', '🛍️', () => 3],
+  ['cooked', 'ทำอาหาร', '🍳', () => 1 + Math.floor(S.lvl / 10)], ['talk', 'คุยกับชาวบ้าน', '💬', () => 3],
 ];
-const GIFT_LOOT = [['seed_' + 'tomato', 6], ['fert', 4], ['feed', 6], ['teddy', 1], ['cake', 2], ['n95', 2]];
+const GIFT_LOOT = [['food_rice', 3], ['teddy', 1], ['cake', 2], ['n95', 2]];
 const Daily = {
   st() { const d = S.dq; if (!d || d.day !== S.day) { const pick = DAILY_POOL.slice().sort(() => Math.random() - 0.5).slice(0, 3); S.dq = { day: S.day, base: { ...S.stats, talk: Object.keys(S.daily.talk || {}).length }, list: pick.map(([k, n, i, g]) => ({ k, n, i, goal: g() })), done: false, streak: d && d.done && d.day === S.day - 1 ? (d.streak || 0) : 0, boxes: (d && d.boxes) || 0 }; } return S.dq; },
   prog(q) { const d = this.st(), cur = q.k === 'talk' ? Object.keys(S.daily.talk || {}).length : (S.stats[q.k] || 0); return Math.min(q.goal, cur - (d.base[q.k] || 0)); },
@@ -121,32 +121,6 @@ const Cook = {
 UI.H.ckhit = () => Cook.hit();
 UI.H.cook = d => Cook.start(d.id);
 
-// ===== 10. time trial: ghost rivals and turbo =====
-const RaceFX = {
-  update(dt) {
-    const r = Contests.race;
-    if (!r) { if (this.ghosts) { for (const g of this.ghosts) World.dyn.remove(g.m.g); this.ghosts = null; } this.boost = 0; return; }
-    if (r.st === 'go' && !this.ghosts) {
-      const path = [[RACE_START.x, RACE_START.z]].concat(RACE_CP), segs = []; let L = 0; for (let i = 1; i < path.length; i++) { const l = Math.hypot(path[i][0] - path[i - 1][0], path[i][1] - path[i - 1][1]); segs.push(l); L += l; }
-      this.ghosts = RIVAL_TIMES.slice(0, 2).map(([who, t], i) => { const m = Models.car(i ? 'sedan' : 'sports'); m.g.traverse(o => { if (o.material) { o.material = o.material.clone(); o.material.transparent = true; o.material.opacity = 0.45; o.material.depthWrite = false; } }); World.dyn.add(m.g); return { m, who, v: L / t, s: 0, path, segs }; });
-    }
-    for (const g of this.ghosts || []) {
-      g.s += g.v * dt; let s = g.s, i = 0; while (i < g.segs.length && s > g.segs[i]) { s -= g.segs[i]; i++; } if (i >= g.segs.length) { g.m.g.visible = false; continue; }
-      // side by side across the road (perpendicular to it), turning smoothly at the checkpoints
-      const a = g.path[i], b = g.path[i + 1], k = s / g.segs[i], ux = (b[0] - a[0]) / g.segs[i], uz = (b[1] - a[1]) / g.segs[i], off = g === this.ghosts[0] ? -2.2 : 2.2;
-      const x = U.lerp(a[0], b[0], k) + uz * off, z = U.lerp(a[1], b[1], k) - ux * off, hd = Math.atan2(ux, uz);
-      g.h = g.h == null ? hd : U.angLerp(g.h, hd, Math.min(1, dt * 3));
-      g.m.g.position.set(x, World.groundY(x, z), z); g.m.g.rotation.y = g.h; for (const w of g.m.wheels) w.rotation.x += g.v * dt / g.m.r;
-    }
-    this.cd = Math.max(0, (this.cd || 0) - dt); this.boost = Math.max(0, (this.boost || 0) - dt);
-    if (Contests.hud && !Contests.hud.hidden && r.st === 'go') Contests.hud.dataset.extra = this.cd ? ` · เทอร์โบชาร์จ ${Math.ceil(this.cd)} วิ` : ' · กด B เทอร์โบ!';
-  },
-  turbo() { if (!Contests.race || this.cd > 0) return; this.boost = 2.5; this.cd = 8; Sfx.burst(0.6, 400, 'bandpass', 0.3); UI.toast('เทอร์โบ!', '🚀'); },
-  init() {
-    const _spec = Garage.spec.bind(Garage); Garage.spec = d => { const s = _spec(d); if (this.boost > 0 && G.driving && G.driving.d === d) return Object.assign({}, s, { top: s.top * 1.3, acc: s.acc * 1.6 }); return s; };
-    addEventListener('keydown', e => { if (e.code === 'KeyB' && G.driving) this.turbo(); });
-  },
-};
 
 // ===== 11. photo mode =====
 const Photo = {
@@ -161,7 +135,7 @@ const Photo = {
   },
   snap() {
     Gfx.render(); const src = $('c'); if (!src.width || !src.height) { UI.toast('ถ่ายรูปไม่ได้ตอนหน้าต่างเกมถูกย่อ', '📸'); return; } const w = 480, h = Math.round(480 * src.height / src.width), c = document.createElement('canvas'); c.width = w; c.height = h; const g = c.getContext('2d'); g.filter = this.css[this.f] || 'none'; g.drawImage(src, 0, 0, w, h);
-    g.filter = 'none'; g.fillStyle = 'rgba(0,0,0,.35)'; g.fillRect(0, h - 22, w, 22); g.fillStyle = '#ffe08a'; g.font = '13px Kanit,sans-serif'; g.fillText(`${S.farm || 'ไร่สุขใจ'} · ${RD(S.day)} · ${Phone.clock()}`, 8, h - 7);
+    g.filter = 'none'; g.fillStyle = 'rgba(0,0,0,.35)'; g.fillRect(0, h - 22, w, 22); g.fillStyle = '#ffe08a'; g.font = '13px Kanit,sans-serif'; g.fillText(`${S.farm || 'บ้านสุขใจ'} · ${RD(S.day)} · ${Phone.clock()}`, 8, h - 7);
     const url = c.toDataURL('image/jpeg', 0.72), L = this.list(); L.unshift({ t: `${RD(S.day)} ${Phone.clock()}`, url }); if (L.length > 12) L.length = 12; safeSet('raisukjai3d_album', JSON.stringify(L));
     const fl = document.createElement('div'); fl.style.cssText = 'position:fixed;inset:0;background:#fff;z-index:32;opacity:.85;transition:opacity .4s;pointer-events:none'; document.body.appendChild(fl); setTimeout(() => fl.style.opacity = 0, 30); setTimeout(() => fl.remove(), 450); Sfx.tone(1400, 0.05, 'square', 0.04);
   },
@@ -248,13 +222,11 @@ const Vis = {
 };
 
 const Fun = {
-  init() { Juice.init(); Villagers.init(); RaceFX.init(); Hud.init(); Vis.init(); Daily.st(); },
+  init() { Juice.init(); Villagers.init(); Hud.init(); Vis.init(); Daily.st(); },
   day() { Villagers.day(); },
   update(dt) {
-    Villagers.update(dt); Cook.update(dt); RaceFX.update(dt); Hints.update(dt); Vis.update(dt);
+    Villagers.update(dt); Cook.update(dt); Hints.update(dt); Vis.update(dt);
     this.ct = (this.ct || 0) - dt; if (this.ct <= 0) { this.ct = 0.5; Daily.check(); Daily.card(); }
   },
 };
 UI.H.giftopen = () => Daily.open();
-// the race HUD shows the turbo state
-{ const _u = Contests.update.bind(Contests); Contests.update = dt => { _u(dt); if (Contests.race && Contests.hud && Contests.hud.dataset.extra && !Contests.hud.textContent.includes('เทอร์โบ')) Contests.hud.textContent += Contests.hud.dataset.extra; }; }

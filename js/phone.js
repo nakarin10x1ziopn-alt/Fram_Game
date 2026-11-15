@@ -91,11 +91,9 @@ const Phone = {
     },
     wx() {
       const n = WEATHER[S.weather.next], c = WEATHER[S.weather.type], se = season();
-      const hot = hotCrops().slice(0, 3).map(k => `${CROPS[k].i} ${CROPS[k].n} ${baht(priceOf(k))}`).join(' · ');
       return `<div class="card"><div class="ci">${c.i}</div><div class="cb"><h4>วันนี้: ${c.n}</h4><p class="dim">${se.i} ${se.n} ${RD(S.day)}</p></div></div>
-        <div class="card"><div class="ci">${n.i}</div><div class="cb"><h4>พรุ่งนี้: ${n.n}</h4><p class="dim">${n.rain > 0.3 ? 'ฝนจะรดน้ำผักให้ ไม่ต้องรดเอง' : 'ไม่มีฝน อย่าลืมรดน้ำผัก'}${n.storm ? ' · ระวังฟ้าผ่าและไฟไหม้!' : ''}</p></div></div>
-        ${Gadgets.has('wxstation') && S.weather.next2 ? `<div class="card"><div class="ci">${WEATHER[S.weather.next2].i}</div><div class="cb"><h4>มะรืนนี้: ${WEATHER[S.weather.next2].n}</h4><p class="dim">จากสถานีตรวจอากาศที่บ้าน</p></div></div>` : ''}
-        <p class="lead">📈 ราคาเด่นวันนี้: ${hot}</p>`;
+        <div class="card"><div class="ci">${n.i}</div><div class="cb"><h4>พรุ่งนี้: ${n.n}</h4><p class="dim">${n.rain > 0.3 ? 'พรุ่งนี้มีฝน พกร่มหรือใช้รถ' : 'พรุ่งนี้ไม่มีฝน'}${n.storm ? ' · ระวังฟ้าผ่าและไฟไหม้!' : ''}</p></div></div>
+        ${Gadgets.has('wxstation') && S.weather.next2 ? `<div class="card"><div class="ci">${WEATHER[S.weather.next2].i}</div><div class="cb"><h4>มะรืนนี้: ${WEATHER[S.weather.next2].n}</h4><p class="dim">จากสถานีตรวจอากาศที่บ้าน</p></div></div>` : ''}`;
     },
     cam() {
       return `<p class="lead">ถ่ายภาพวิวตอนนี้ (ปิดหน้าจอมือถือชั่วครู่) แล้วกดค้าง/คลิกขวาที่รูปเพื่อบันทึก หรือกดปุ่มบันทึกลงเครื่อง</p>

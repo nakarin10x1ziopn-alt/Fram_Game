@@ -18,7 +18,7 @@ V23.add('v196_savefile', () => {
     const file = (typeof File === 'function') ? new File([text], name, { type: 'application/json' }) : null;
     const done = () => { try { localStorage.setItem('raisukjai_lastexp', String(Date.now())); } catch (e) { } toast(`ส่งออกเซฟช่อง ${n} แล้ว เก็บไฟล์ไว้ให้ดี`, '💾'); };
     const dl = () => { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([text], { type: 'application/json' })); a.download = name; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 4000); done(); };
-    try { if (file && navigator.canShare && navigator.canShare({ files: [file] })) { navigator.share({ files: [file], title: 'เซฟไร่สุขใจ' }).then(done, e => { if (e && e.name !== 'AbortError') dl(); }); return; } } catch (e) { }
+    try { if (file && navigator.canShare && navigator.canShare({ files: [file] })) { navigator.share({ files: [file], title: 'เซฟบ้านสุขใจ' }).then(done, e => { if (e && e.name !== 'AbortError') dl(); }); return; } } catch (e) { }
     dl();
   }
   function importFile() {
@@ -37,7 +37,7 @@ V23.add('v196_savefile', () => {
           if (!safeSet(Slots.key(n), JSON.stringify(save))) { Slots.deleting = 0; toast('เก็บเซฟไม่สำเร็จ (พื้นที่เบราว์เซอร์เต็ม?)', '⚠️'); return; }
           toast('นำเข้าเซฟสำเร็จ กำลังโหลดใหม่...', '✅'); setTimeout(() => location.reload(), 700);
         };
-        if (has) UI.confirm(`นำเข้าเซฟไปที่ช่อง ${n}?`, `เซฟในไฟล์: ${save.name || 'ชาวไร่'} · เงิน ${Math.round(save.money).toLocaleString()} ฿ · วันที่ ${save.day} — จะทับเซฟช่อง ${n} ที่มีอยู่ (เซฟเดิมถูกเก็บเป็นสำรองอัตโนมัติ 1 ชุด)`, 'นำเข้า', go);
+        if (has) UI.confirm(`นำเข้าเซฟไปที่ช่อง ${n}?`, `เซฟในไฟล์: ${save.name || 'ผู้เล่น'} · เงิน ${Math.round(save.money).toLocaleString()} ฿ · วันที่ ${save.day} — จะทับเซฟช่อง ${n} ที่มีอยู่ (เซฟเดิมถูกเก็บเป็นสำรองอัตโนมัติ 1 ชุด)`, 'นำเข้า', go);
         else go();
       };
       rd.readAsText(f);

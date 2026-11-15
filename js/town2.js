@@ -16,7 +16,7 @@ const LICENSE_Q = [
   ['ก่อนออกรถควรทำอะไร?', ['คาดเข็มขัดนิรภัย', 'เปิดเพลงดัง ๆ', 'เล่นมือถือ'], 0],
 ];
 const TAXI_DEST = [
-  { n: 'หน้าฟาร์ม', x: 3, z: -62, fee: 0 }, { n: 'หมู่บ้าน (ลานน้ำพุ)', x: -14, z: -262, fee: 80 }, { n: 'สุขใจพลาซ่า', x: -16, z: -112, fee: 60 },
+  { n: 'หน้าบ้าน', x: 3, z: -62, fee: 0 }, { n: 'หมู่บ้าน (ลานน้ำพุ)', x: -14, z: -262, fee: 80 }, { n: 'สุขใจพลาซ่า', x: -16, z: -112, fee: 60 },
   { n: 'วัดสุขใจาราม', x: -22, z: -322, fee: 90 }, { n: 'โรงเรียน', x: 24, z: -320, fee: 90 }, { n: 'เมืองริมทะเล', x: 300, z: -372, fee: 180 },
   { n: 'ดอยสุขใจ (เมืองภูเขา)', away: 'mount', fee: 350 }, { n: 'เกาะสุขใจ (ทางเรือ)', away: 'island', fee: 400 },
 ];
@@ -115,7 +115,7 @@ const Town2 = {
     if (Garage.full && Garage.full(o)) { UI.toast('โรงจอดรถเต็ม ย้ายรถคันอื่นออกก่อน', '🛻'); return; }
     if (G.driving) { G.driving.speed = 0; exitCar(); }
     S.money -= 500; this.carState(o.d); o.d.fuel = Math.max(o.d.fuel, 20); o.d.cond = Math.max(o.d.cond, 40); Bank2.log('รถลาก', -500);
-    UI.close(); fade(() => { Garage.callHome(o); UI.toast('รถลากพารถไปส่งที่โรงจอดในฟาร์ม ซ่อมเบื้องต้นให้แล้ว', '🛻'); });
+    UI.close(); fade(() => { Garage.callHome(o); UI.toast('รถลากพารถไปส่งที่โรงจอดที่บ้าน ซ่อมเบื้องต้นให้แล้ว', '🛻'); });
   },
   licenseUI() {
     if (S.license) { UI.toast('คุณมีใบขับขี่แล้ว', '🪪'); return; }

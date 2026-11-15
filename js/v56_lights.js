@@ -200,7 +200,7 @@ V23.add('v56_lights', () => {
     }
     if (tab === 1) {
       const bag = Object.keys(T).filter(k => count('light_' + k) > 0);
-      return `<p class="lead">เลือกไฟจากกระเป๋า แล้วเดินไปที่ที่อยากวาง (ภายในไร่ ที่ไหนก็ได้ อิสระ) หมุนและขยับระยะได้ กด ✅ วางตรงนี้</p>` + (bag.length ? `<div class="grid">${bag.map(k => `<div class="card"><div class="ci">${T[k].i}</div><div class="cb"><h4>${E(T[k].n)} ×${count('light_' + k)}</h4><p class="dim">${FAM[T[k].fam][0]} ${FAM[T[k].fam][1]} · ${T[k].w}W · ไกล ${T[k].r} ม.</p><div class="row"><button class="btn" data-a="lt56" data-v="place" data-id="${k}">วางไฟ</button></div></div></div>`).join('')}</div>` : '<p class="dim">ไม่มีไฟในกระเป๋า — ซื้อได้ที่ร้านเกษตรรุ่งเรือง ช่างไม้ หรือร้านวัสดุก่อสร้าง</p>');
+      return `<p class="lead">เลือกไฟจากกระเป๋า แล้วเดินไปที่ที่อยากวาง (ภายในไร่ ที่ไหนก็ได้ อิสระ) หมุนและขยับระยะได้ กด ✅ วางตรงนี้</p>` + (bag.length ? `<div class="grid">${bag.map(k => `<div class="card"><div class="ci">${T[k].i}</div><div class="cb"><h4>${E(T[k].n)} ×${count('light_' + k)}</h4><p class="dim">${FAM[T[k].fam][0]} ${FAM[T[k].fam][1]} · ${T[k].w}W · ไกล ${T[k].r} ม.</p><div class="row"><button class="btn" data-a="lt56" data-v="place" data-id="${k}">วางไฟ</button></div></div></div>`).join('')}</div>` : '<p class="dim">ไม่มีไฟในกระเป๋า — ซื้อได้ที่ร้านวัสดุรุ่งเรือง ช่างไม้ หรือร้านวัสดุก่อสร้าง</p>');
     }
     if (tab === 2) {
       const all = s.lights.length, avg = all ? Math.round(s.lights.reduce((t, x) => t + x.br, 0) / all) : 0, sol = s.lights.filter(x => T[x.t].fam === 'solar'), bat = sol.length ? Math.round(sol.reduce((t, x) => t + (x.batt || 0), 0) / sol.length) : 0;
@@ -211,9 +211,9 @@ V23.add('v56_lights', () => {
         <div class="row"><button class="btn ${g.save ? '' : 'ghost'}" data-a="lt56" data-v="save">${g.save ? '✅ โหมดประหยัดไฟ: หรี่ 50% ช่วง 00:00–04:00' : '⬜ โหมดประหยัดไฟ: หรี่ 50% ช่วง 00:00–04:00'}</button></div>
         <p class="dim">⚡ ไฟธรรมดา/LED ใช้ไฟบ้านและคิดเข้าค่าไฟ (ไฟดับ = ดับ) · ☀️ ไฟโซล่าเซลล์ใช้แบตในตัว ชาร์จตอนแดดออก (ฝนตกชาร์จช้า) ปรับให้หรี่ลงถ้าอยากให้สว่างได้ทั้งคืน</p>`;
     }
-    return `<p class="lead">ไฟส่องสว่าง 10 แบบ (ซื้อได้ที่ร้านเกษตรรุ่งเรือง ช่างไม้ และร้านวัสดุก่อสร้าง)</p><div class="grid">${Object.keys(T).map(k => { const t = T[k]; return `<div class="card"><div class="ci">${t.i}</div><div class="cb"><h4>${E(t.n)}</h4><p class="dim">${FAM[t.fam][0]} ${FAM[t.fam][1]} · ${t.w}W · ${t.lm} ลูเมน · ไกล ${t.r} ม. · ${baht0(t.price)}</p><p class="dim">${E(t.desc)}</p></div></div>`; }).join('')}</div>`;
+    return `<p class="lead">ไฟส่องสว่าง 10 แบบ (ซื้อได้ที่ร้านวัสดุรุ่งเรือง ช่างไม้ และร้านวัสดุก่อสร้าง)</p><div class="grid">${Object.keys(T).map(k => { const t = T[k]; return `<div class="card"><div class="ci">${t.i}</div><div class="cb"><h4>${E(t.n)}</h4><p class="dim">${FAM[t.fam][0]} ${FAM[t.fam][1]} · ${t.w}W · ${t.lm} ลูเมน · ไกล ${t.r} ม. · ${baht0(t.price)}</p><p class="dim">${E(t.desc)}</p></div></div>`; }).join('')}</div>`;
   }
-  function openApp(tab, focus) { A.tab = tab || 0; A.focus = focus || null; UI.open('💡 ไฟส่องสว่าง', ['ไฟในไร่', 'วางไฟ', 'ตั้งค่ารวม', 'แคตตาล็อก'], t => { A.tab = t; return html(t); }, { wide: true, tab: A.tab }); }
+  function openApp(tab, focus) { A.tab = tab || 0; A.focus = focus || null; UI.open('💡 ไฟส่องสว่าง', ['ไฟนอกบ้าน', 'วางไฟ', 'ตั้งค่ารวม', 'แคตตาล็อก'], t => { A.tab = t; return html(t); }, { wide: true, tab: A.tab }); }
   const byId = id => st().lights.find(x => x.id === +id);
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
   UI.H.lt56 = d => {

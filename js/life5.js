@@ -83,7 +83,7 @@ const Credit = {
 
 // ===== 5. real estate =====
 const PROPS = [
-  { k: 'condo1', n: 'คอนโด 1 ห้องนอน ทุ่งทอง', i: '🏢', p: 1200000, rent: 6500 }, { k: 'shop1', n: 'อาคารพาณิชย์ 3 ชั้น ภูผาใหม่', i: '🏬', p: 3800000, rent: 22000 },
+  { k: 'condo1', n: 'คอนโด 1 ห้องนอน สุขใจ', i: '🏢', p: 1200000, rent: 6500 }, { k: 'shop1', n: 'อาคารพาณิชย์ 3 ชั้น สุขใจ', i: '🏬', p: 3800000, rent: 22000 },
   { k: 'land1', n: 'ที่ดินเปล่า 1 ไร่ ริมถนนทางหลวง', i: '🌳', p: 900000, rent: 0 }, { k: 'house1', n: 'บ้านเดี่ยว 2 ชั้น หมู่บ้านจัดสรร', i: '🏡', p: 2600000, rent: 14000 },
   { k: 'dorm', n: 'หอพัก 20 ห้อง ใกล้โรงเรียน', i: '🏨', p: 6500000, rent: 20 * 3500 * 0.85 },
 ];
@@ -180,9 +180,9 @@ const Disaster = {
 
 // ===== 10. co-op play =====
 const Coop = {
-  help(id) { Net.api('mail', { id: Net.id(), to: id, name: S.name || 'ชาวไร่', kind: 'help', item: '', msg: 'มาช่วยรดน้ำทั้งไร่' }).then(() => { Prog.add(10); UI.toast('ส่งแรงไปช่วยเพื่อนรดน้ำแล้ว เพื่อนจะได้รับเมื่อออนไลน์', '🤝'); }).catch(() => {}); },
-  sell(id) { const it = Object.keys(S.inv).find(k => ITEMS[k] && ITEMS[k].cat === 'crop' && S.inv[k] >= 5); if (!it) { UI.toast('ต้องมีผลผลิตอย่างน้อย 5 ชิ้น', '📦'); return; } const price = Math.round(priceOf(it) * 5 * 0.9); Net.api('mail', { id: Net.id(), to: id, name: S.name || 'ชาวไร่', kind: 'offer', item: it, n: 5, price, msg: `เสนอขาย${ITEMS[it].n} 5 ชิ้น ${baht(price)}` }).then(r => { if (r.ok) { takeItem(it, 5); UI.toast('ส่งข้อเสนอขายแล้ว (ของจะคืนถ้าเพื่อนปฏิเสธ)', '📦'); } }).catch(() => {}); },
-  pay(id, v) { if (S.money < v) { UI.toast('เงินสดไม่พอ ต้องใช้ ' + baht(v), '💸'); return; } S.money -= v; Net.api('mail', { id: Net.id(), to: id, name: S.name || 'ชาวไร่', kind: 'cash', item: '', n: 1, price: v, msg: 'โอนเงิน' }).catch(() => {}); },
+  help(id) { Net.api('mail', { id: Net.id(), to: id, name: S.name || 'ผู้เล่น', kind: 'help', item: '', msg: 'มาช่วยรดน้ำทั้งไร่' }).then(() => { Prog.add(10); UI.toast('ส่งแรงไปช่วยเพื่อนรดน้ำแล้ว เพื่อนจะได้รับเมื่อออนไลน์', '🤝'); }).catch(() => {}); },
+  sell(id) { const it = Object.keys(S.inv).find(k => ITEMS[k] && ITEMS[k].cat === 'crop' && S.inv[k] >= 5); if (!it) { UI.toast('ต้องมีผลผลิตอย่างน้อย 5 ชิ้น', '📦'); return; } const price = Math.round(priceOf(it) * 5 * 0.9); Net.api('mail', { id: Net.id(), to: id, name: S.name || 'ผู้เล่น', kind: 'offer', item: it, n: 5, price, msg: `เสนอขาย${ITEMS[it].n} 5 ชิ้น ${baht(price)}` }).then(r => { if (r.ok) { takeItem(it, 5); UI.toast('ส่งข้อเสนอขายแล้ว (ของจะคืนถ้าเพื่อนปฏิเสธ)', '📦'); } }).catch(() => {}); },
+  pay(id, v) { if (S.money < v) { UI.toast('เงินสดไม่พอ ต้องใช้ ' + baht(v), '💸'); return; } S.money -= v; Net.api('mail', { id: Net.id(), to: id, name: S.name || 'ผู้เล่น', kind: 'cash', item: '', n: 1, price: v, msg: 'โอนเงิน' }).catch(() => {}); },
   // incoming mail kinds from friends
   handle(m) {
     if (m.kind === 'help') { S.plots.forEach(p => { if (p.c) p.w = 1; }); Phone.msg(m.name || 'เพื่อน', 'แวะมาช่วยรดน้ำทั้งไร่ให้ตอนคุณไม่อยู่ 🤝'); return true; }

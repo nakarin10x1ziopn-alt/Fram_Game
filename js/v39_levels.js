@@ -255,7 +255,7 @@ V23.add('v39_levels', () => {
     const l = lv(), need = l >= MAX ? 1 : xpNeed(l), R = buildRoadmap();
     let h = `<h5>🏆 ระดับของคุณ: Lv.${l}${l >= MAX ? ' (สูงสุด)' : ''}</h5>`;
     h += l >= MAX ? '<p class="lead good">ถึงเลเวลสูงสุดแล้ว ปลดล็อกทุกอย่าง</p>' : `${bar(S.xp, need)}<p class="lead">XP ${U.fmt(Math.round(S.xp))} / ${U.fmt(need)} · อีก ${U.fmt(Math.max(0, need - Math.round(S.xp)))} XP ถึงเลเวล ${l + 1}</p>`;
-    h += `<p class="dim">ได้ XP จาก ปลูก/รดน้ำ/เก็บเกี่ยว ขายของ ทำอาหาร ตกปลา ทำงานประจำ เรียน ธุรกิจ เดินทาง ขับรถ เควสต์/เนื้อเรื่อง และความสนิทกับคนในหมู่บ้าน · อินเทอร์เน็ตสมัครได้ตั้งแต่เลเวล 1</p>`;
+    h += `<p class="dim">ได้ XP จาก ขายของ ทำอาหาร ตกปลา ทำงานประจำ เรียน ธุรกิจ เดินทาง ขับรถ เควสต์/เนื้อเรื่อง และความสนิทกับคนในหมู่บ้าน · อินเทอร์เน็ตสมัครได้ตั้งแต่เลเวล 1</p>`;
     const E = { shops: [], apps: [], cities: [], items: [] };
     h += '<h5>เลเวลนี้ได้อะไร (Lv.' + l + ')</h5><div class="grid">' + line(l, R[l] || E, true) + '</div>';
     const nxt = []; for (let n = l + 1; n <= MAX && nxt.length < 3; n++) nxt.push(n);

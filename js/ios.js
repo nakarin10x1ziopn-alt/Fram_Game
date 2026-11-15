@@ -54,7 +54,7 @@ body.ios .btn,body.ios button{touch-action:manipulation}
   steady() { const a = this.dts; if (a.length < 60) return false; const m = a.reduce((x, y) => x + y, 0) / a.length; return a.every(d => Math.abs(d - m) < 0.008); },
   // 5. Safari has no install prompt: explain "Add to Home Screen" (also keeps saves safe from Safari's 7-day storage clean-up)
   install() {
-    UI.H.install = () => UI.open('ติดตั้งบน iPad / iPhone', null, () => `<p class="lead">1) แตะปุ่ม <b>แชร์</b> (สี่เหลี่ยมมีลูกศรขึ้น) ใน Safari<br>2) เลือก <b>เพิ่มไปยังหน้าจอโฮม</b><br>3) เปิดเกมจากไอคอนไร่สุขใจบนหน้าจอโฮม</p><p class="dim">เล่นแบบเต็มจอ และ Safari จะไม่ลบเซฟเมื่อไม่ได้เปิดเกมนานเกิน 7 วัน แนะนำให้กด “บันทึกขึ้นเซิร์ฟเวอร์” ในแอปเซฟออนไลน์ด้วย</p><div class="row end"><button class="btn" data-a="close">เข้าใจแล้ว</button></div>`);
+    UI.H.install = () => UI.open('ติดตั้งบน iPad / iPhone', null, () => `<p class="lead">1) แตะปุ่ม <b>แชร์</b> (สี่เหลี่ยมมีลูกศรขึ้น) ใน Safari<br>2) เลือก <b>เพิ่มไปยังหน้าจอโฮม</b><br>3) เปิดเกมจากไอคอนบ้านสุขใจบนหน้าจอโฮม</p><p class="dim">เล่นแบบเต็มจอ และ Safari จะไม่ลบเซฟเมื่อไม่ได้เปิดเกมนานเกิน 7 วัน แนะนำให้กด “บันทึกขึ้นเซิร์ฟเวอร์” ในแอปเซฟออนไลน์ด้วย</p><div class="row end"><button class="btn" data-a="close">เข้าใจแล้ว</button></div>`);
     const standalone = navigator.standalone || matchMedia('(display-mode: standalone)').matches;
     if (!standalone && !safeGet('raisukjai3d_iostip')) setTimeout(() => { safeSet('raisukjai3d_iostip', '1'); UI.toast('เล่นบน iPad/iPhone: เพิ่มเกมไปหน้าจอโฮมเพื่อเล่นเต็มจอและกันเซฟหาย (เมนู ⚙️ → ติดตั้งเกมเป็นแอป)', '📲'); }, 15000);
   },

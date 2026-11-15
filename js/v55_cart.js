@@ -24,20 +24,20 @@ V23.add('v55_cart', () => {
   const baht0 = n => (typeof baht === 'function' ? baht(n) : '฿' + n);
   const ctl = (k, stack) => {
     const q = C.items[k] || 0;
-    return q ? `<span class="c55q"><button class="btn ghost" data-a="c55dec" data-k="${E(k)}">−</button><b style="min-width:26px;text-align:center;display:inline-block">${q}</b><button class="btn" data-a="c55inc" data-k="${E(k)}" ${stack ? '' : 'disabled'}>＋</button></span>`
+    return q ? `<span class="c55q"><button class="btn ghost" data-a="c55dec" data-k="${E(k)}">−</button><input type="number" class="qty36" inputmode="numeric" min="1" max="999" value="${q}" data-bk="${E(k)}" aria-label="จำนวน" ${stack ? '' : 'disabled'} oninput="UI.H.c55set(this,1)" onchange="UI.H.c55set(this,0)" onkeydown="if(event.key==='Enter'){this.blur()}"><button class="btn" data-a="c55inc" data-k="${E(k)}" ${stack ? '' : 'disabled'}>＋</button></span>`
       : `<button class="btn" data-a="c55inc" data-k="${E(k)}">🛒 ใส่ตะกร้า</button>`;
   };
   function bar() {
     const T = totals(); if (!T.n) return '';
     return `<div class="c55bar" style="position:sticky;bottom:0;margin:10px -4px -4px;padding:10px 12px;background:var(--panel-solid,#183424);border-top:2px solid var(--sun,#ffcf3f);border-radius:14px 14px 0 0;z-index:3">
-      <div style="font-weight:600">🛒 ${T.m} รายการ · ${T.n} ชิ้น · รวม <span style="color:var(--sun,#ffcf3f)">${baht0(T.t)}</span></div>
+      <div style="font-weight:600">🛒 ${T.m} รายการ · <span data-bn="bar">${T.n}</span> ชิ้น · รวม <span style="color:var(--sun,#ffcf3f)" data-bt="bar">${baht0(T.t)}</span></div>
       <div class="row" style="margin:6px 0 0"><button class="btn ghost" data-a="c55view">ดูตะกร้า</button><button class="btn ghost" data-a="c55clear">ล้าง</button><button class="btn" data-a="c55pay">💳 ชำระเงินทั้งหมด</button></div></div>`;
   }
   function viewHtml() {
     const L = lines(), T = totals();
     if (!L.length) { C.view = false; return ''; }
-    return `<p class="lead">🛒 ตะกร้าของ ${E(((typeof SHOPS !== 'undefined' && SHOPS[C.shop]) || {}).n || 'ร้านค้า')}</p><div class="grid">${L.map(l => `<div class="card"><div class="ci">${l.x.icon}</div><div class="cb"><h4>${E(l.x.name)}</h4><p class="dim">${baht0((l.x.take || l.x.dine) ? l.x.unit : Math.round(l.x.unit * mult(C.shop)))}${l.x.take ? ' (รวมค่ากล่อง)' : ''} × ${l.q} = <b>${baht0(lineCost(l.k, l.q))}</b></p><div class="row">${ctl(l.k, l.x.stack)}<button class="btn ghost" data-a="c55del" data-k="${E(l.k)}">นำออก</button></div></div></div>`).join('')}</div>
-      <p class="lead">รวมทั้งหมด <b>${baht0(T.t)}</b> (${T.n} ชิ้น)${C.shop === 'online' ? ' · ร้านออนไลน์บวกค่าส่ง 10%' : ''}</p>
+    return `<p class="lead">🛒 ตะกร้าของ ${E(((typeof SHOPS !== 'undefined' && SHOPS[C.shop]) || {}).n || 'ร้านค้า')}</p><div class="grid">${L.map(l => `<div class="card"><div class="ci">${l.x.icon}</div><div class="cb"><h4>${E(l.x.name)}</h4><p class="dim">${baht0((l.x.take || l.x.dine) ? l.x.unit : Math.round(l.x.unit * mult(C.shop)))}${l.x.take ? ' (รวมค่ากล่อง)' : ''} × <span data-bq="${E(l.k)}">${l.q}</span> = <b data-bp="${E(l.k)}">${baht0(lineCost(l.k, l.q))}</b></p><div class="row">${ctl(l.k, l.x.stack)}<button class="btn ghost" data-a="c55del" data-k="${E(l.k)}">นำออก</button></div></div></div>`).join('')}</div>
+      <p class="lead">รวมทั้งหมด <b data-bt="all">${baht0(T.t)}</b> (<span data-bn="all">${T.n}</span> ชิ้น)${C.shop === 'online' ? ' · ร้านออนไลน์บวกค่าส่ง 10%' : ''}</p>
       <div class="row end"><button class="btn ghost" data-a="c55back">← เลือกสินค้าเพิ่ม</button><button class="btn" data-a="c55pay">💳 ชำระเงินทั้งหมด</button></div>`;
   }
   function decorate(html) {
@@ -61,9 +61,18 @@ V23.add('v55_cart', () => {
   if (typeof Food !== 'undefined' && Food.open) { const _fo = Food.open.bind(Food); Food.open = function (shop) { if (C.shop !== shop) { C.items = {}; C.view = false; } C.shop = shop; const r = _fo(shop); hook(); return r; }; }
 
   // ----- basket actions -----
-  const inc = k => { const x = info(k); if (!x) return; const q = C.items[k] || 0; if (q && !x.stack) { _toast('สินค้านี้ซื้อได้ชิ้นเดียว', 'ℹ️'); return; } if (x.block) { _toast(x.block, 'ℹ️'); return; } C.items[k] = Math.min(99, q + 1); };
+  const inc = k => { const x = info(k); if (!x) return; const q = C.items[k] || 0; if (q && !x.stack) { _toast('สินค้านี้ซื้อได้ชิ้นเดียว', 'ℹ️'); return; } if (x.block) { _toast(x.block, 'ℹ️'); return; } C.items[k] = Math.min(999, q + 1); };
   Object.assign(UI.H, {
     c55inc: d => inc(d.k),
+    c55set: (el, live) => {
+      const k = el.dataset.bk, x = info(k); if (!x) return; let q = Math.floor(+el.value);
+      if (!isFinite(q) || el.value === '') { if (live) return; q = 1; }
+      q = Math.max(1, Math.min(999, q)); if (!x.stack) q = 1; C.items[k] = q;
+      const T = totals(), f = (a, v) => { for (const e of document.querySelectorAll('[' + a + ']')) v(e); };
+      f('data-bp', e => { if (e.dataset.bp === k) e.textContent = baht0(lineCost(k, q)); }); f('data-bq', e => { if (e.dataset.bq === k) e.textContent = q; });
+      f('data-bt', e => { e.textContent = baht0(T.t); }); f('data-bn', e => { e.textContent = T.n; });
+      if (!live) { el.value = q; if (UI.renderBody) UI.renderBody(); }
+    },
     c55dec: d => { const q = (C.items[d.k] || 0) - 1; if (q > 0) C.items[d.k] = q; else delete C.items[d.k]; },
     c55del: d => { delete C.items[d.k]; },
     c55clear: () => { C.items = {}; C.view = false; },

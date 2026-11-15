@@ -90,7 +90,7 @@ V23.add('v46_pond', () => {
   // morning message: ripe fish, hungry fish
   { const _nd = newDay; newDay = function () {
     const r = _nd.apply(this, arguments);
-    try { const p = P(); if (p.n > 0) { if (ripe(p) && !p.told) { p.told = 1; Phone.msg('บ่อปลาไร่สุขใจ', `ปลานิล ${p.n} ตัวโตเต็มที่แล้ว จับขายได้เลย (ราว ${baht(expect(p).v)})`); } else if (p.fed !== S.day - 1 && p.g < RIPE) Phone.msg('บ่อปลาไร่สุขใจ', 'ปลาในบ่อหิวแล้ว ไปให้อาหารด้วยนะ ไม่ให้อาหารปลาจะโตช้า'); } } catch (e) { }
+    try { const p = P(); if (p.n > 0) { if (ripe(p) && !p.told) { p.told = 1; Phone.msg('บ่อปลาบ้านสุขใจ', `ปลานิล ${p.n} ตัวโตเต็มที่แล้ว จับขายได้เลย (ราว ${baht(expect(p).v)})`); } else if (p.fed !== S.day - 1 && p.g < RIPE) Phone.msg('บ่อปลาบ้านสุขใจ', 'ปลาในบ่อหิวแล้ว ไปให้อาหารด้วยนะ ไม่ให้อาหารปลาจะโตช้า'); } } catch (e) { }
     return r;
   }; }
   window.Pond46 = { fishN: () => fish.length, C, state: P, growPct, ripe, expect };
